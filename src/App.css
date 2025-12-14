@@ -1,38 +1,155 @@
-.App {
-  text-align: center;
-}
+/* =========================================
+   App.css - CLEAN LIGHT THEME (FIXED)
+   ========================================= */
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
+   :root {
+    /* COLORI: Sfondo Bianco, Testo Nero */
+    --bg-body: #f0f2f5;       /* Grigio chiarissimo per lo sfondo pagina */
+    --bg-card: #ffffff;       /* Bianco PURO per il box */
+    
+    --text-main: #000000;     /* NERO ASSOLUTO per il testo principale */
+    --text-secondary: #333333;/* Grigio scuro per i sottotitoli */
+    
+    --color-accent: #007bff;  /* Blu brillante */
+    --color-accent-hover: #0056b3;
+    
+    --shadow-card: 0 4px 15px rgba(0, 0, 0, 0.1);
+    --radius: 12px;
   }
-}
-
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
-}
-
-.App-link {
-  color: #61dafb;
-}
-
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
+  
+  /* RESET FORZATO DEL COLORE */
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
   }
-  to {
-    transform: rotate(360deg);
+  
+  body {
+    font-family: 'Poppins', sans-serif, system-ui;
+    background-color: var(--bg-body);
+    
+    /* FORZO IL COLORE NERO QUI */
+    color: var(--text-main) !important; 
+    -webkit-font-smoothing: antialiased;
+    
+    height: 100vh;
+    width: 100vw;
+    overflow-x: hidden;
   }
-}
+  
+  /* LAYOUT CENTRALE */
+  .app-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+    position: relative;
+  }
+  
+  /* CARD BIANCA */
+  .card {
+    background-color: var(--bg-card);
+    color: var(--text-main); /* Assicura testo nero nella card */
+    width: 100%;
+    max-width: 400px;
+    padding: 2.5rem;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-card);
+    text-align: center;
+    border: 1px solid #e0e0e0; /* Un leggero bordo per staccare */
+  }
+  
+  /* TESTI */
+  h1, h2, h3 {
+    color: var(--text-main) !important; /* Forza nero */
+    margin-bottom: 10px;
+    font-weight: 700;
+  }
+  
+  p, .subtitle {
+    color: var(--text-secondary) !important; /* Grigio scuro */
+    font-size: 0.95rem;
+    margin-bottom: 25px;
+    line-height: 1.5;
+  }
+  
+  span {
+      color: inherit;
+  }
+  
+  /* INPUT */
+  input {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 1rem;
+    
+    /* IMPORTANTE: Colore sfondo e testo input */
+    background-color: #fff; 
+    color: #000 !important;
+  }
+  
+  input::placeholder {
+      color: #888;
+  }
+  
+  /* BOTTONI */
+  button {
+    width: 100%; /* Larghezza piena su mobile */
+    padding: 12px 20px;
+    border: none;
+    border-radius: 50px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-bottom: 10px;
+    transition: transform 0.1s ease;
+  }
+  
+  /* Bottone Blu */
+  button:not(.btn-secondary) {
+    background-color: var(--color-accent);
+    color: #ffffff !important; /* Testo bianco SOLO sul bottone blu */
+  }
+  
+  button:not(.btn-secondary):hover {
+    background-color: var(--color-accent-hover);
+  }
+  
+  /* Bottone Secondario */
+  .btn-secondary {
+    background-color: transparent;
+    color: var(--text-main) !important; /* Testo nero */
+    border: 2px solid #ddd;
+  }
+  
+  .btn-secondary:hover {
+    background-color: #f0f0f0;
+    border-color: #bbb;
+  }
+  
+  /* LOGO */
+  .persistent-logo {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    opacity: 0.8;
+  }
+  
+  .logo-text {
+    font-weight: bold;
+    font-size: 1.2rem;
+    color: #000 !important; /* Testo logo nero */
+  }
+  
+  .logo-img {
+      height: 40px;
+      width: auto;
+  }
