@@ -2,8 +2,9 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import '../../App.css';
+import API_BASE_URL from "../../config";
 
-const API_URL = "http://localhost:5000/api/turni";
+const API_URL = `${API_BASE_URL}/turni`;
 
 // Funzione helper per generare gli orari
 const generaFasceOrarie = () => {

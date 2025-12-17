@@ -4,6 +4,8 @@ import axios from 'axios';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css'; // Importa lo stile base
 import '../../App.css';
+import API_BASE_URL from "../../config";
+
 
 export default function ViewCalendario() {
   const navigate = useNavigate();
@@ -16,7 +18,7 @@ export default function ViewCalendario() {
     const fetchNote = async () => {
         const token = localStorage.getItem('token');
         try {
-            const res = await axios.get("http://localhost:5000/api/bacheca", {
+            const res = await axios.get(`${API_BASE_URL}/bacheca`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             // Filtra solo quelle che hanno una data (Eventi)

@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import '../../App.css';
+import API_BASE_URL from "../../config";
+
 
 export default function AggiungiNota() {
   const navigate = useNavigate();
@@ -20,7 +22,7 @@ export default function AggiungiNota() {
     };
 
     try {
-      await axios.post("http://localhost:5000/api/bacheca", payload, {
+      await axios.post(`${API_BASE_URL}/bacheca`, payload, {
           headers: { Authorization: `Bearer ${token}` }
       });
       navigate("/bacheca");

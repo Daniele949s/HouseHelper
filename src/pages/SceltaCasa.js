@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import API_BASE_URL from "../config";
 
 export default function SceltaCasa() {
   const navigate = useNavigate();
@@ -21,7 +22,7 @@ export default function SceltaCasa() {
     try {
       // POST sicura: solo nomeCasa nel body, headers per l'ID utente
       const res = await axios.post(
-        "http://localhost:5000/api/casa/crea", 
+        `${API_BASE_URL}/casa/crea`, 
         { nomeCasa }, 
         getAuthHeader()
       );
@@ -44,7 +45,7 @@ export default function SceltaCasa() {
     try {
       // POST sicura: solo codice nel body
       const res = await axios.post(
-        "http://localhost:5000/api/casa/unisciti", 
+        `${API_BASE_URL}/casa/unisciti`, 
         { codice: codiceCasa }, 
         getAuthHeader()
       );

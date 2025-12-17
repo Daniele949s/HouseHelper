@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 import '../../App.css';
+import API_BASE_URL from "../../config";
+
 
 export default function AggiungiEvento() {
   const navigate = useNavigate();
@@ -31,7 +33,7 @@ export default function AggiungiEvento() {
     }
 
     try {
-      await axios.post("http://localhost:5000/api/bacheca", {
+      await axios.post(`${API_BASE_URL}/bacheca`, {
           titolo, 
           contenuto, 
           data: dataEvento 

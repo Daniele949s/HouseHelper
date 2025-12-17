@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import '../../App.css';
+import API_BASE_URL from "../../config";
+
 
 export default function ViewBacheca() {
   const navigate = useNavigate();
@@ -17,7 +19,7 @@ export default function ViewBacheca() {
   // Definiamo la funzione PRIMA di usarla in useEffect
   const fetchNote = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/bacheca", getAuthHeader());
+      const res = await axios.get(`${API_BASE_URL}/bacheca`, getAuthHeader());
       
       // FILTRO: In Bacheca mostriamo solo le note SENZA data (i post-it)
       // Gli eventi con data andranno nel Calendario
@@ -39,7 +41,7 @@ export default function ViewBacheca() {
   const eliminaNota = async (id) => {
     if(!window.confirm("Vuoi davvero eliminare questa nota?")) return;
     try {
-      await axios.delete(`http://localhost:5000/api/bacheca/${id}`, getAuthHeader());
+      await axios.delete(`${API_BASE_URL}/bacheca/${id}`, getAuthHeader());
       fetchNote(); // Ricarica la lista
     } catch(e) { 
       alert("Errore: " + (e.response?.data?.message || "Impossibile eliminare")); 

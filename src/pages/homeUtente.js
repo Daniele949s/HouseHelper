@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom"; // <--- Aggiungi useLocation
 import axios from "axios";
 import '../App.css'; 
+import API_BASE_URL from "../config";
 
 export default function HomeUtente() {
   const navigate = useNavigate();
@@ -31,7 +32,7 @@ export default function HomeUtente() {
       if (!token) { navigate("/login"); return; }
 
       // 1. Dati Utente e Casa
-      const resUser = await axios.get("http://localhost:5000/api/utenti/me", getAuthHeader());
+      const resUser = await axios.get(`${API_BASE_URL}/utenti/me`, getAuthHeader()); // <--- MODIFICA
       const myData = resUser.data;
       setUtente(myData);
 
@@ -43,9 +44,9 @@ export default function HomeUtente() {
 
       // --- 2. CARICAMENTO DATI PER DASHBOARD (NOTIFICHE) ---
       const [resTurni, resDebiti, resBacheca] = await Promise.all([
-        axios.get("http://localhost:5000/api/turni", getAuthHeader()),
-        axios.get("http://localhost:5000/api/debiti", getAuthHeader()),
-        axios.get("http://localhost:5000/api/bacheca", getAuthHeader())
+        axios.get(`${API_BASE_URL}/turni`, getAuthHeader()),
+        axios.get(`${API_BASE_URL}/debiti`, getAuthHeader()),
+        axios.get(`${API_BASE_URL}/bacheca`, getAuthHeader())
       ]);
 
       // A. Calcolo Prossimo Turno
@@ -89,7 +90,7 @@ export default function HomeUtente() {
   const lasciaCasa = async () => {
     if (!window.confirm("Sei sicuro di voler uscire da questa casa?")) return;
     try {
-      await axios.post("http://localhost:5000/api/casa/lascia", {}, getAuthHeader());
+      await axios.post(`${API_BASE_URL}/casa/lascia`, {}, getAuthHeader());
       localStorage.removeItem("casaId");
       navigate("/scelta-casa");
     } catch (e) { console.error(e); alert("Errore durante l'uscita."); }
@@ -99,7 +100,7 @@ export default function HomeUtente() {
     if (!window.confirm("ATTENZIONE: Eliminerai la casa per TUTTI. Sicuro?")) return;
     try {
       const casaId = utente.Casa?.id;
-      await axios.delete(`http://localhost:5000/api/casa/${casaId}`, getAuthHeader());
+      await axios.delete(`${API_BASE_URL}/casa/${casaId}`, getAuthHeader());
       localStorage.removeItem("casaId");
       navigate("/scelta-casa");
     } catch (e) { console.error(e); alert("Errore eliminazione casa."); }

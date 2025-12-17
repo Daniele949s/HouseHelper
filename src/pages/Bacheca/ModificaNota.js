@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
+import API_BASE_URL from "../../config";
+
 
 export default function ModificaNota() {
   const { id } = useParams();
@@ -24,7 +26,7 @@ export default function ModificaNota() {
     
     const fetchNota = async () => {
         try {
-            const res = await axios.get("http://localhost:5000/api/bacheca", getAuthHeader());
+            const res = await axios.get(`${API_BASE_URL}/bacheca`, getAuthHeader());
             const notaTrovata = res.data.find(n => n.id === parseInt(id));
             if (notaTrovata) {
                 setTitolo(notaTrovata.titolo);
@@ -42,7 +44,7 @@ export default function ModificaNota() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.put(`http://localhost:5000/api/bacheca/${id}`, 
+      await axios.put(`${API_BASE_URL}/bacheca/${id}`, 
         { titolo, contenuto }, 
         getAuthHeader()
       );

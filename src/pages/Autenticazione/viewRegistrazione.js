@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
-const API_URL = "http://localhost:5000/api/utenti";
+import API_BASE_URL from "../../config";
 
 export default function ViewRegistrazione() {
   const [utente, setUtente] = useState({
@@ -17,7 +17,7 @@ export default function ViewRegistrazione() {
     setError(null);
 
     try {
-      await axios.post(API_URL, utente);
+      await axios.post(API_BASE_URL, utente);
       
       // La registrazione ha avuto successo
       alert("Registrazione completata! Ora effettua il login.");

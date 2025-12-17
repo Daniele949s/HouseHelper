@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import '../../App.css';
+import API_BASE_URL from "../../config";
+
 
 export default function ViewDebiti() {
   const navigate = useNavigate();
@@ -17,7 +19,7 @@ export default function ViewDebiti() {
   // 1. Definiamo la funzione PRIMA di usarla
   const fetchDebiti = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/debiti", getAuthHeader());
+      const res = await axios.get(`${API_BASE_URL}/debiti`, getAuthHeader());
       setDebiti(res.data);
     } catch (err) {
       console.error(err);
@@ -33,7 +35,7 @@ export default function ViewDebiti() {
   const saldaDebito = async (id) => {
     if(!window.confirm("Confermi che questo debito è stato saldato?")) return;
     try {
-      await axios.delete(`http://localhost:5000/api/debiti/${id}`, getAuthHeader());
+      await axios.delete(`${API_BASE_URL}/debiti/${id}`, getAuthHeader());
       fetchDebiti(); // Ricarica la lista
     } catch(e) { alert("Errore"); }
   };

@@ -8,7 +8,7 @@ const Turno = require('./models/Turno');
 const Utente = require('./models/Utente');
 const Casa = require('./models/Casa');
 const Debito = require('./models/Debito');
-const Nota = require('./models/Nota'); // <--- NUOVO MODELLO
+const Nota = require('./models/Nota');
 
 // --- IMPORTAZIONE ROTTE ---
 const routes = require('./routes');
@@ -28,16 +28,13 @@ Casa.hasMany(Debito);
 Debito.belongsTo(Casa);
 
 // 4. Relazione Utenti - Debiti
-// Un utente può avere molti crediti (soldi che deve ricevere)
 Utente.hasMany(Debito, { as: 'Crediti', foreignKey: 'CreditoreId' });
-// Un utente può avere molti debiti (soldi che deve dare)
 Utente.hasMany(Debito, { as: 'Debiti', foreignKey: 'DebitoreId' });
 
-// Un debito appartiene a un Creditore e a un Debitore specifici
 Debito.belongsTo(Utente, { as: 'Creditore', foreignKey: 'CreditoreId' });
 Debito.belongsTo(Utente, { as: 'Debitore', foreignKey: 'DebitoreId' });
 
-// 5. Relazione Bacheca (NUOVO)
+// 5. Relazione Bacheca
 Casa.hasMany(Nota);
 Nota.belongsTo(Casa);
 
@@ -46,32 +43,52 @@ Nota.belongsTo(Utente, { as: 'Autore', foreignKey: 'AutoreId' });
 
 // --- CONFIGURAZIONE SERVER ---
 const app = express();
-const PORT = 5000;
 
-app.use(cors());
+// MODIFICA FONDAMENTALE PER RENDER: La porta deve essere letta dall'ambiente
+const PORT = process.env.PORT || 5000;
+
+// Configurazione CORS per Produzione
+const allowedOrigins = [
+  'http://localhost:3000', // Per i test sul tuo PC
+  // Quando avrai il link del frontend su Render (es. https://househelper-app.onrender.com), incollalo qui sotto:
+];
+
+app.use(cors({
+  origin: function (origin, callback) {
+    // Il "|| true" finale permette temporaneamente l'accesso a tutti.
+    // Una volta che tutto funziona, potrai rimuoverlo per maggiore sicurezza.
+    if (!origin || allowedOrigins.includes(origin) || true) {
+      callback(null, true);
+    } else {
+      callback(new Error('Non consentito da CORS'));
+    }
+  }
+}));
+
 app.use(express.json());
 
 // Collega le rotte con prefisso /api
 app.use('/api', routes);
 
-// Rotta base di test
+// Rotta base di test (utile per capire se il server su Render è vivo)
 app.get('/', (req, res) => {
-  res.send('Server HouseHelper attivo!');
+  res.send('Server HouseHelper attivo e funzionante!');
 });
 
 // --- AVVIO SERVER E DB ---
 async function startServer() {
   try {
-    // Verifica connessione
+    // Verifica connessione al DB (Postgres su Render o SQLite locale)
     await sequelize.authenticate();
     console.log('✅ Connessione al database riuscita.');
 
-    // Sincronizza i modelli e AGGIORNA le tabelle (crea tabella Debiti e colonne foreigne)
+    // Sincronizza i modelli
     await sequelize.sync({ alter: true }); 
-    console.log('✅ Tabelle sincronizzate e relazioni aggiornate.');
+    console.log('✅ Tabelle sincronizzate.');
 
+    // Ascolta sulla porta dinamica
     app.listen(PORT, () => {
-      console.log(`🚀 Server backend in ascolto su http://localhost:${PORT}`);
+      console.log(`🚀 Server backend in ascolto sulla porta ${PORT}`);
     });
   } catch (error) {
     console.error('❌ Errore avvio server:', error);

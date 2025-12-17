@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import '../../App.css';
+import API_BASE_URL from "../../config";
+
 
 export default function AggiungiDebito() {
   const navigate = useNavigate();
@@ -25,7 +27,7 @@ export default function AggiungiDebito() {
 
   useEffect(() => {
     // Carica lista coinquilini
-    axios.get("http://localhost:5000/api/utenti/casa", getAuthHeader())
+    axios.get(`${API_BASE_URL}/utenti/casa`, getAuthHeader())
       .then(res => {
           setUtenti(res.data);
           // Opzionale: Pre-imposta me stesso come "Chi ha pagato"
@@ -50,7 +52,7 @@ export default function AggiungiDebito() {
     }
 
     try {
-      await axios.post("http://localhost:5000/api/debiti", {
+      await axios.post(`${API_BASE_URL}/debiti`, {
         descrizione, 
         importo, 
         data, 

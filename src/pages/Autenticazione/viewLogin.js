@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios'; // Usiamo Axios per coerenza
 import '../../App.css';
+import API_BASE_URL from "../../config";
+
 
 export default function ViewLogin() {
   const navigate = useNavigate();
@@ -15,7 +17,7 @@ export default function ViewLogin() {
 
     try {
       // 1. Chiamata al Backend
-      const res = await axios.post('http://localhost:5000/api/login', { 
+      const res = await axios.post(`${API_BASE_URL}/login`, { 
         username, 
         password 
       });
