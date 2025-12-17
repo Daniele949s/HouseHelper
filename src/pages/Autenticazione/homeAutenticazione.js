@@ -1,52 +1,47 @@
 import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import '../../App.css'; 
 
 export default function HomeAutenticazione() {
   const navigate = useNavigate();
 
   // CONTROLLO AUTO-INGRESSO
   useEffect(() => {
-    // Usiamo il Token come prova del login
     const token = localStorage.getItem("token");
-    const haCasa = localStorage.getItem("casaId");
-
+    
+    // Se c'è un token, assumiamo che l'utente sia loggato
     if (token) {
-      if (haCasa) {
-        navigate("/home");
-      } else {
-        navigate("/scelta-casa");
-      }
+        // Opzionale: controlliamo se ha già una casa salvata per risparmiare un redirect
+        const casaId = localStorage.getItem("casaId");
+        if (casaId) {
+            navigate("/home");
+        } else {
+            // Se non sappiamo se ha una casa, lo mandiamo alla home che farà il controllo (o a scelta-casa)
+            navigate("/home"); 
+        }
     }
   }, [navigate]);
 
-  const resetLogin = () => {
-      localStorage.clear();
-      window.location.reload();
-  }
-
   return (
-    <div className="card">
-        <h1>Benvenuto su HouseHelper</h1>
+    <div className="card" style={{textAlign:'center', padding:'40px 20px'}}>
+        <h1 style={{fontSize:'2.5rem', marginBottom:'10px'}}>Benvenuto su HouseHelper 🏠</h1>
         
-        <p className="subtitle">
-          Gestisci i turni di pulizia della tua casa in modo semplice e senza stress.
+        <p className="subtitle" style={{marginBottom:'40px', color:'#666'}}>
+          Gestisci i turni di pulizia, le spese e la vita in comune senza stress.
         </p>
         
-        <div style={{ display: 'flex', gap: '15px', justifyContent: 'center', marginTop: '30px' }}>
-          <button onClick={() => navigate("/login")}>
-            Accedi
+        <div style={{ display: 'flex', gap: '20px', justifyContent: 'center', flexDirection:'column' }}>
+          <button onClick={() => navigate("/login")} style={{fontSize:'1.1rem', padding:'15px'}}>
+            Accedi al tuo account
           </button>
           
           <button 
             onClick={() => navigate("/registrazione")} 
             className="btn-secondary"
+            style={{fontSize:'1.1rem', padding:'15px'}}
           >
-            Registrati
+            Crea un nuovo account
           </button>
-        </div>
-
-        <div onClick={resetLogin} style={{marginTop: '40px', fontSize: '0.8rem', color: '#ccc', cursor: 'pointer'}}>
-            (Reset Test Login)
         </div>
     </div>
   );

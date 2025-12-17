@@ -7,7 +7,8 @@ const sequelize = require('./database');
 const Turno = require('./models/Turno');
 const Utente = require('./models/Utente');
 const Casa = require('./models/Casa');
-const Debito = require('./models/Debito'); // <--- NUOVO
+const Debito = require('./models/Debito');
+const Nota = require('./models/Nota'); // <--- NUOVO MODELLO
 
 // --- IMPORTAZIONE ROTTE ---
 const routes = require('./routes');
@@ -22,11 +23,11 @@ Utente.belongsTo(Casa);
 Casa.hasMany(Turno);
 Turno.belongsTo(Casa);
 
-// 3. Relazione Casa - Debiti (NUOVO)
+// 3. Relazione Casa - Debiti
 Casa.hasMany(Debito);
 Debito.belongsTo(Casa);
 
-// 4. Relazione Utenti - Debiti (NUOVO)
+// 4. Relazione Utenti - Debiti
 // Un utente può avere molti crediti (soldi che deve ricevere)
 Utente.hasMany(Debito, { as: 'Crediti', foreignKey: 'CreditoreId' });
 // Un utente può avere molti debiti (soldi che deve dare)
@@ -35,6 +36,13 @@ Utente.hasMany(Debito, { as: 'Debiti', foreignKey: 'DebitoreId' });
 // Un debito appartiene a un Creditore e a un Debitore specifici
 Debito.belongsTo(Utente, { as: 'Creditore', foreignKey: 'CreditoreId' });
 Debito.belongsTo(Utente, { as: 'Debitore', foreignKey: 'DebitoreId' });
+
+// 5. Relazione Bacheca (NUOVO)
+Casa.hasMany(Nota);
+Nota.belongsTo(Casa);
+
+Utente.hasMany(Nota, { as: 'NoteScritte', foreignKey: 'AutoreId' });
+Nota.belongsTo(Utente, { as: 'Autore', foreignKey: 'AutoreId' });
 
 // --- CONFIGURAZIONE SERVER ---
 const app = express();

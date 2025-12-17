@@ -1,23 +1,22 @@
 /* =========================================
-   App.css - CLEAN LIGHT THEME (FIXED)
+   App.css - CLEAN LIGHT THEME (UNICO STILE BOTTONI)
    ========================================= */
 
    :root {
-    /* COLORI: Sfondo Bianco, Testo Nero */
-    --bg-body: #f0f2f5;       /* Grigio chiarissimo per lo sfondo pagina */
-    --bg-card: #ffffff;       /* Bianco PURO per il box */
-    
-    --text-main: #000000;     /* NERO ASSOLUTO per il testo principale */
-    --text-secondary: #333333;/* Grigio scuro per i sottotitoli */
-    
-    --color-accent: #007bff;  /* Blu brillante */
+    --bg-body: #f0f2f5;
+    --bg-card: #ffffff;
+  
+    --text-main: #000000;
+    --text-secondary: #333333;
+  
+    --color-accent: #007bff;
     --color-accent-hover: #0056b3;
-    
+  
     --shadow-card: 0 4px 15px rgba(0, 0, 0, 0.1);
     --radius: 12px;
   }
   
-  /* RESET FORZATO DEL COLORE */
+  /* ================= RESET ================= */
   * {
     box-sizing: border-box;
     margin: 0;
@@ -25,19 +24,16 @@
   }
   
   body {
-    font-family: 'Poppins', sans-serif, system-ui;
+    font-family: 'Poppins', system-ui, sans-serif;
     background-color: var(--bg-body);
-    
-    /* FORZO IL COLORE NERO QUI */
-    color: var(--text-main) !important; 
+    color: var(--text-main);
     -webkit-font-smoothing: antialiased;
-    
-    height: 100vh;
+    min-height: 100vh;
     width: 100vw;
     overflow-x: hidden;
   }
   
-  /* LAYOUT CENTRALE */
+  /* ================= LAYOUT ================= */
   .app-container {
     display: flex;
     flex-direction: column;
@@ -45,41 +41,39 @@
     align-items: center;
     min-height: 100vh;
     padding: 20px;
-    position: relative;
   }
   
-  /* CARD BIANCA */
+  /* ================= CARD ================= */
   .card {
     background-color: var(--bg-card);
-    color: var(--text-main); /* Assicura testo nero nella card */
+    color: var(--text-main);
     width: 100%;
     max-width: 400px;
     padding: 2.5rem;
     border-radius: var(--radius);
     box-shadow: var(--shadow-card);
+    border: 1px solid #e0e0e0;
     text-align: center;
-    border: 1px solid #e0e0e0; /* Un leggero bordo per staccare */
   }
   
-  /* TESTI */
+  /* ================= TESTI ================= */
   h1, h2, h3 {
-    color: var(--text-main) !important; /* Forza nero */
-    margin-bottom: 10px;
+    color: var(--text-main);
     font-weight: 700;
+    margin-bottom: 10px;
   }
   
-  p, .subtitle {
-    color: var(--text-secondary) !important; /* Grigio scuro */
+  p {
+    color: var(--text-secondary);
     font-size: 0.95rem;
-    margin-bottom: 25px;
     line-height: 1.5;
   }
   
   span {
-      color: inherit;
+    color: inherit;
   }
   
-  /* INPUT */
+  /* ================= INPUT ================= */
   input {
     width: 100%;
     padding: 12px;
@@ -87,52 +81,41 @@
     border: 1px solid #ccc;
     border-radius: 8px;
     font-size: 1rem;
-    
-    /* IMPORTANTE: Colore sfondo e testo input */
-    background-color: #fff; 
-    color: #000 !important;
+    background-color: #ffffff;
+    color: #000000;
   }
   
   input::placeholder {
-      color: #888;
+    color: #888888;
   }
   
-  /* BOTTONI */
+  /* ================= BOTTONE GLOBALE UNICO ================= */
   button {
-    width: 100%; /* Larghezza piena su mobile */
+    width: 100%;
     padding: 12px 20px;
-    border: none;
-    border-radius: 50px;
+    border-radius: 12px;
     font-size: 1rem;
     font-weight: 600;
     cursor: pointer;
-    margin-bottom: 10px;
-    transition: transform 0.1s ease;
+  
+    /* STILE UNICO SICURO */
+    background-color: #ffffff;
+    color: #000000;
+    border: 1px solid #dddddd;
+  
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    transition: background-color 0.15s ease, transform 0.1s ease;
   }
   
-  /* Bottone Blu */
-  button:not(.btn-secondary) {
-    background-color: var(--color-accent);
-    color: #ffffff !important; /* Testo bianco SOLO sul bottone blu */
+  button:hover {
+    background-color: #f3f4f6;
   }
   
-  button:not(.btn-secondary):hover {
-    background-color: var(--color-accent-hover);
+  button:active {
+    transform: scale(0.98);
   }
   
-  /* Bottone Secondario */
-  .btn-secondary {
-    background-color: transparent;
-    color: var(--text-main) !important; /* Testo nero */
-    border: 2px solid #ddd;
-  }
-  
-  .btn-secondary:hover {
-    background-color: #f0f0f0;
-    border-color: #bbb;
-  }
-  
-  /* LOGO */
+  /* ================= LOGO ================= */
   .persistent-logo {
     position: absolute;
     bottom: 20px;
@@ -146,10 +129,11 @@
   .logo-text {
     font-weight: bold;
     font-size: 1.2rem;
-    color: #000 !important; /* Testo logo nero */
+    color: #000000;
   }
   
   .logo-img {
-      height: 40px;
-      width: auto;
+    height: 40px;
+    width: auto;
   }
+  

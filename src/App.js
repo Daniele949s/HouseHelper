@@ -3,21 +3,34 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import "./App.css"; 
 import logo from './logo.png'; 
 
-// Import componente di sicurezza appena creato
+// Import componente di sicurezza
 import ProtectedRoute from "./components/ProtectedRoute";
 
-// Import pagine
+// Import pagine Auth
 import HomeAutenticazione from "./pages/Autenticazione/homeAutenticazione";
 import ViewLogin from "./pages/Autenticazione/viewLogin";
 import ViewRegistrazione from "./pages/Autenticazione/viewRegistrazione";
+
+// Import pagine Utente
 import HomeUtente from "./pages/homeUtente";
+import SceltaCasa from "./pages/SceltaCasa";
+
+// Import pagine Turni
 import ViewTurni from "./pages/TurniPulizia/viewTurni";
 import AggiuntaTurno from "./pages/TurniPulizia/aggiuntaTurno";
 import ModificaTurno from "./pages/TurniPulizia/modificaTurno";
 import EliminaTurno from "./pages/TurniPulizia/eliminaTurno";
-import SceltaCasa from "./pages/SceltaCasa";
-import ViewDebiti from "./pages/Debiti/ViewDebiti";      // <--- NUOVO
-import AggiungiDebito from "./pages/Debiti/AggiungiDebito"; // <--- NUOVO
+
+// Import pagine Debiti
+import ViewDebiti from "./pages/Debiti/ViewDebiti";      
+import AggiungiDebito from "./pages/Debiti/AggiungiDebito"; 
+
+// Import pagine Bacheca & Calendario
+import ViewBacheca from "./pages/Bacheca/ViewBacheca"; 
+import AggiungiNota from "./pages/Bacheca/AggiungiNota"; 
+import ModificaNota from "./pages/Bacheca/ModificaNota";
+import ViewCalendario from "./pages/Bacheca/ViewCalendario"; 
+import AggiungiEvento from "./pages/Bacheca/AggiungiEvento";
 
 function App() {
   return (
@@ -35,7 +48,6 @@ function App() {
 
           {/* ==================================================
               ZONE PROTETTE (Richiedono Login)
-              Tutto quello che è qui dentro è protetto dal "Bouncer"
           ================================================== */}
           <Route element={<ProtectedRoute />}>
               
@@ -51,6 +63,15 @@ function App() {
               {/* Gestione Debiti */}
               <Route path="/debiti" element={<ViewDebiti />} />
               <Route path="/debiti/aggiungi" element={<AggiungiDebito />} />
+
+              {/* Gestione Bacheca */}
+              <Route path="/bacheca" element={<ViewBacheca />} />
+              <Route path="/bacheca/aggiungi" element={<AggiungiNota />} />
+              <Route path="/bacheca/modifica/:id" element={<ModificaNota />} />
+
+              {/* Gestione Calendario */}
+              <Route path="/calendario" element={<ViewCalendario />} />
+              <Route path="/calendario/aggiungi" element={<AggiungiEvento />} />
 
           </Route>
 

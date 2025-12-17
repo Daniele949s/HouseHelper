@@ -1,49 +1,79 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom"; // <--- Aggiungi useLocation
 import axios from "axios";
+import '../App.css'; 
 
 export default function HomeUtente() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [utente, setUtente] = useState(null);
+  
+  // Stati per le "Notifiche" (Dashboard)
+  const [prossimoTurno, setProssimoTurno] = useState(null);
+  const [saldo, setSaldo] = useState(0);
+  const [ultimoAvviso, setUltimoAvviso] = useState(null);
+  
   const [loading, setLoading] = useState(true);
 
-  // Helper per ottenere gli headers con il token
   const getAuthHeader = () => {
     const token = localStorage.getItem("token");
     return { headers: { Authorization: `Bearer ${token}` } };
   };
 
   useEffect(() => {
-    fetchDatiUtente();
+    fetchDatiCompleti();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [location.key]);
 
-  const fetchDatiUtente = async () => {
+  const fetchDatiCompleti = async () => {
     try {
       const token = localStorage.getItem("token");
-      if (!token) {
-        navigate("/login");
+      if (!token) { navigate("/login"); return; }
+
+      // 1. Dati Utente e Casa
+      const resUser = await axios.get("http://localhost:5000/api/utenti/me", getAuthHeader());
+      const myData = resUser.data;
+      setUtente(myData);
+
+      if (!myData.CasaId) {
+        navigate("/scelta-casa");
         return;
       }
+      localStorage.setItem("casaId", myData.CasaId);
 
-      // 1. Chiamata sicura al profilo utente
-      const res = await axios.get("http://localhost:5000/api/utenti/me", getAuthHeader());
-      setUtente(res.data);
+      // --- 2. CARICAMENTO DATI PER DASHBOARD (NOTIFICHE) ---
+      const [resTurni, resDebiti, resBacheca] = await Promise.all([
+        axios.get("http://localhost:5000/api/turni", getAuthHeader()),
+        axios.get("http://localhost:5000/api/debiti", getAuthHeader()),
+        axios.get("http://localhost:5000/api/bacheca", getAuthHeader())
+      ]);
+
+      // A. Calcolo Prossimo Turno
+      const oggi = new Date().toISOString().split('T')[0];
+      const mieiTurni = resTurni.data
+        .filter(t => t.UtenteId === myData.id && t.data >= oggi)
+        .sort((a, b) => new Date(a.data) - new Date(b.data));
       
-      // Aggiorniamo casaId in locale per sicurezza
-      if (res.data.CasaId) {
-        localStorage.setItem("casaId", res.data.CasaId);
-      } else {
-        // Se l'utente non ha una casa, lo mandiamo a sceglierla
-        localStorage.removeItem("casaId");
-        navigate("/scelta-casa");
+      setProssimoTurno(mieiTurni.length > 0 ? mieiTurni[0] : null);
+
+      // B. Calcolo Saldo
+      let totale = 0;
+      resDebiti.data.forEach(d => {
+        if (d.DebitoreId === myData.id) totale -= parseFloat(d.importo);
+        if (d.CreditoreId === myData.id) totale += parseFloat(d.importo);
+      });
+      setSaldo(totale);
+
+      // C. Ultimo Avviso
+      if (resBacheca.data.length > 0) {
+        setUltimoAvviso(resBacheca.data[0]);
       }
 
     } catch (error) {
-      console.error("Errore caricamento home:", error);
-      // Se il token è scaduto o non valido
-      if (error.response && (error.response.status === 401 || error.response.status === 403)) {
-        handleLogout();
+      console.error("Errore caricamento dashboard:", error);
+      if (error.response?.status === 401) {
+        localStorage.clear();
+        navigate("/login");
       }
     } finally {
       setLoading(false);
@@ -51,114 +81,172 @@ export default function HomeUtente() {
   };
 
   const handleLogout = () => {
-    localStorage.clear(); // Pulisce token, user, casaId
+    localStorage.clear();
     navigate("/login");
   };
 
+  // --- Funzioni Gestione Casa (Ripristinate) ---
   const lasciaCasa = async () => {
     if (!window.confirm("Sei sicuro di voler uscire da questa casa?")) return;
     try {
-      // Nota: POST richiede (url, body, config). Il body è vuoto {}, gli headers sono in config.
       await axios.post("http://localhost:5000/api/casa/lascia", {}, getAuthHeader());
-      
       localStorage.removeItem("casaId");
-      alert("Hai lasciato la casa.");
       navigate("/scelta-casa");
-    } catch (e) {
-      console.error(e);
-      alert("Errore durante l'uscita.");
-    }
+    } catch (e) { console.error(e); alert("Errore durante l'uscita."); }
   };
 
   const eliminaCasa = async () => {
-    if (!window.confirm("ATTENZIONE: Stai per eliminare la casa per TUTTI. Sei sicuro?")) return;
-    
-    const confermaFinale = prompt("Scrivi 'ELIMINA' per confermare la distruzione della casa.");
-    if (confermaFinale !== "ELIMINA") return;
-
+    if (!window.confirm("ATTENZIONE: Eliminerai la casa per TUTTI. Sicuro?")) return;
     try {
       const casaId = utente.Casa?.id;
-      // Nota: DELETE richiede (url, config). Gli headers sono in config.
       await axios.delete(`http://localhost:5000/api/casa/${casaId}`, getAuthHeader());
-      
-      alert("Casa distrutta definitivamente.");
       localStorage.removeItem("casaId");
       navigate("/scelta-casa");
-    } catch (e) {
-      console.error(e);
-      alert("Errore: impossibile eliminare la casa (forse non sei l'amministratore o errore server).");
-    }
+    } catch (e) { console.error(e); alert("Errore eliminazione casa."); }
   };
 
-  if (loading) return <div className="card"><p>Caricamento profilo...</p></div>;
+  if (loading) return <div className="card"><p style={{color:'black'}}>Caricamento Dashboard...</p></div>;
 
   return (
-    <div className="card" style={{ maxWidth: '600px' }}>
-      {/* Intestazione */}
-      <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-        <h1 style={{ marginBottom: '0.5rem' }}>Ciao, {utente?.username}! 👋</h1>
-        <p className="subtitle">Benvenuto nella tua dashboard</p>
+    <div className="card" style={{ maxWidth: '800px', padding: '0', overflow: 'hidden', background: '#f8fafc', boxShadow: 'none' }}>
+      
+      {/* ================= HEADER CASA ================= */}
+      <div style={{ 
+        background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)', 
+        padding: '2rem', 
+        borderRadius: '0 0 20px 20px',
+        color: 'black', 
+        marginBottom: '20px',
+        boxShadow: '0 4px 10px rgba(0,0,0,0.1)'
+      }}>
+        <h1 style={{ margin: 0, fontSize: '2rem', color: 'black' }}>🏡 {utente?.Casa?.nome || "La tua Casa"}</h1>
+        <p style={{ opacity: 0.9, marginTop: '5px', color: 'black' }}>
+          Codice: <strong style={{ background: 'rgba(255,255,255,0.5)', padding: '2px 8px', borderRadius: '4px', color: 'black' }}>{utente?.Casa?.codiceUnivoco}</strong>
+        </p>
+        <p style={{ fontSize: '0.9rem', marginTop: '10px', color: 'black' }}>
+            Ciao, {utente?.username}!
+        </p>
       </div>
 
-      {/* CARD INFO CASA */}
-      {utente?.Casa && (
-        <div style={{ marginBottom: '2rem' }}>
-            <h2 style={{ color: 'var(--color-accent)' }}>🏠 {utente.Casa.nome}</h2>
+      {/* ================= IN EVIDENZA ================= */}
+      <div style={{ padding: '0 10px' }}>
+        <h3 style={{ textAlign: 'left', color: 'black', marginBottom: '10px', paddingLeft: '5px' }}>📢 In Evidenza</h3>
+        
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px', marginBottom: '30px' }}>
             
-            <div style={{ 
-            background: '#f8fafc', 
-            padding: '1.5rem', 
-            borderRadius: '12px', 
-            margin: '1.5rem 0',
-            border: '2px dashed var(--color-accent)'
-            }}>
-            <p style={{ fontSize: '0.9rem', textTransform: 'uppercase', color: '#64748b', letterSpacing: '1px' }}>
-                Codice Invito
-            </p>
-            <p style={{ fontSize: '2.5rem', fontWeight: 'bold', color: 'var(--color-accent)', margin: '0.5rem 0' }}>
-                {utente.Casa.codiceUnivoco}
-            </p>
-            <p style={{ fontSize: '0.8rem', color: '#64748b' }}>
-                Condividi questo codice con i tuoi coinquilini.
-            </p>
+            {/* Prossimo Turno */}
+            <div style={{ background: 'white', padding: '15px', borderRadius: '12px', boxShadow: '0 2px 5px rgba(0,0,0,0.05)', borderLeft: '5px solid #f59e0b' }}>
+                <span style={{ fontSize: '2rem' }}>🧹</span>
+                <p style={{ fontWeight: 'bold', margin: '5px 0', color: 'black' }}>Prossimo Turno</p>
+                {prossimoTurno ? (
+                    <div>
+                        <strong style={{ color: '#d97706' }}>{prossimoTurno.mansione}</strong>
+                        <div style={{ fontSize: '0.8rem', color: 'black' }}>{new Date(prossimoTurno.data).toLocaleDateString()}</div>
+                    </div>
+                ) : (
+                    <p style={{ fontSize: '0.9rem', color: '#10b981' }}>Tutto pulito! 🎉</p>
+                )}
             </div>
 
-            {/* Bottoni Gestione Casa */}
-            <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap', marginBottom: '30px' }}>
-                <button 
-                    onClick={lasciaCasa} 
-                    className="btn-secondary" 
-                    style={{ width: 'auto' }}
-                >
-                    🏃‍♂️ Lascia Casa
+            {/* Saldo */}
+            <div style={{ background: 'white', padding: '15px', borderRadius: '12px', boxShadow: '0 2px 5px rgba(0,0,0,0.05)', borderLeft: saldo >= 0 ? '5px solid #10b981' : '5px solid #ef4444' }}>
+                <span style={{ fontSize: '2rem' }}>💸</span>
+                <p style={{ fontWeight: 'bold', margin: '5px 0', color: 'black' }}>Bilancio</p>
+                <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: saldo >= 0 ? '#10b981' : '#ef4444' }}>
+                    {saldo >= 0 ? "+" : ""}{saldo.toFixed(2)} €
+                </div>
+            </div>
+
+            {/* Bacheca */}
+            <div style={{ background: 'white', padding: '15px', borderRadius: '12px', boxShadow: '0 2px 5px rgba(0,0,0,0.05)', borderLeft: '5px solid #8b5cf6' }}>
+                <span style={{ fontSize: '2rem' }}>📌</span>
+                <p style={{ fontWeight: 'bold', margin: '5px 0', color: 'black' }}>Avvisi</p>
+                {ultimoAvviso ? (
+                    <div>
+                        <p style={{ fontWeight: 'bold', fontSize:'0.9rem', margin:0, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', color: 'black' }}>
+                            {ultimoAvviso.titolo}
+                        </p>
+                    </div>
+                ) : (
+                    <p style={{ fontSize: '0.9rem', color: 'black' }}>Nessuna novità.</p>
+                )}
+            </div>
+        </div>
+
+        {/* ================= SERVIZI ================= */}
+        <h3 style={{ textAlign: 'left', color: 'black', marginBottom: '10px', paddingLeft: '5px' }}>🚀 Servizi</h3>
+        
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '15px' }}>
+            <button onClick={() => navigate("/turni")} style={btnStyle}>
+                <span style={{ fontSize: '2rem' }}>📅</span> Turni Pulizie
+            </button>
+            <button onClick={() => navigate("/debiti")} style={btnStyle}>
+                <span style={{ fontSize: '2rem' }}>💰</span> Spese & Debiti
+            </button>
+            <button onClick={() => navigate("/bacheca")} style={btnStyle}>
+                <span style={{ fontSize: '2rem' }}>📌</span> Bacheca
+            </button>
+            <button onClick={() => navigate("/calendario")} style={btnStyle}>
+                <span style={{ fontSize: '2rem' }}>🗓️</span> Calendario
+            </button>
+        </div>
+
+        {/* ================= AZIONI RAPIDE (AGGIUNTE) ================= */}
+        <h3 style={{ textAlign: 'left', color: 'black', marginBottom: '10px', marginTop: '25px', paddingLeft: '5px' }}>⚡ Azioni Rapide</h3>
+        
+        <button 
+            onClick={() => navigate("/turni/aggiungi")} 
+            style={{ 
+                width: '100%', 
+                padding: '15px', 
+                background: 'white', 
+                color: 'black', 
+                border: '2px dashed #ccc', 
+                borderRadius: '12px', 
+                fontSize: '1rem',
+                fontWeight: 'bold',
+                cursor: 'pointer',
+                marginBottom: '10px'
+            }}
+        >
+            ➕ Aggiungi Turno Veloce
+        </button>
+
+
+        {/* ================= FOOTER / GESTIONE CASA ================= */}
+        <div style={{ marginTop: '40px', borderTop: '1px solid #ddd', paddingTop: '20px', paddingBottom: '20px' }}>
+            <p style={{fontSize: '0.8rem', color: '#666', marginBottom: '10px'}}>Gestione Account & Casa</p>
+            
+            <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap' }}>
+                <button onClick={handleLogout} className="btn-secondary" style={{ fontSize: '0.8rem', color: 'black', borderColor: '#999' }}>
+                    Esci
                 </button>
-                <button 
-                    onClick={eliminaCasa} 
-                    style={{ width: 'auto', backgroundColor: '#ef4444', color: 'white' }} // Stile rosso inline per pericolo
-                >
-                    💣 Distruggi Casa
+                <button onClick={lasciaCasa} className="btn-secondary" style={{ fontSize: '0.8rem', color: 'black', borderColor: '#999' }}>
+                    Lascia Casa
+                </button>
+                {/* Visualizziamo il tasto distruggi solo se necessario, per pulizia */}
+                <button onClick={eliminaCasa} style={{ fontSize: '0.8rem', background: '#ef4444', color: 'white', border: 'none', padding: '8px 15px', borderRadius: '5px' }}>
+                    Elimina Casa
                 </button>
             </div>
         </div>
-      )}
 
-      {/* MENU AZIONI PRINCIPALI */}
-      <div style={{ display: 'grid', gap: '1rem', width: '100%' }}>
-        <button onClick={() => navigate("/turni")} style={{ padding: '1.2rem', fontSize: '1.1rem' }}>
-            📅 Visualizza Turni
-        </button>
-        
-        <button onClick={() => navigate("/turni/aggiungi")} className="btn-secondary">
-            ➕ Aggiungi Turno
-        </button>
-        <button onClick={() => navigate("/debiti")} style={{ padding: '1.2rem', fontSize: '1.1rem', background: '#10b981' }}>
-            💸 Gestione Spese/Debiti
-        </button>
-
-        <button onClick={handleLogout} className="btn-secondary" style={{ marginTop: '1rem', borderColor: '#cbd5e1' }}>
-            Esci dall'account
-        </button>
       </div>
     </div>
   );
 }
+
+// Stile riutilizzabile per i bottoni della griglia
+const btnStyle = {
+    padding: '20px', 
+    background: 'white', 
+    color: 'black', 
+    border: '1px solid #eee', 
+    borderRadius: '12px', 
+    display:'flex', 
+    flexDirection:'column', 
+    alignItems:'center', 
+    gap:'10px', 
+    boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+    cursor: 'pointer'
+};

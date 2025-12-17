@@ -8,7 +8,8 @@ const jwt = require('jsonwebtoken');
 const Turno = require('./models/Turno');
 const Utente = require('./models/Utente');
 const Casa = require('./models/Casa');
-const Debito = require('./models/Debito'); // <--- NUOVO
+const Debito = require('./models/Debito');
+const Nota = require('./models/Nota'); // <--- NUOVO IMPORT
 
 // --- CONFIGURAZIONE SICUREZZA ---
 const SECRET_KEY = "CAMBIA_QUESTA_FRASE_CON_UNA_SEGRETA_IN_PRODUZIONE";
@@ -229,10 +230,10 @@ router.delete('/turni/:id', autentica, async (req, res) => {
 });
 
 // ==========================================
-//  API DEBITI (NUOVO)
+//  API DEBITI
 // ==========================================
 
-// 1. Ottieni coinquilini (Per il menu a tendina)
+// 1. Ottieni coinquilini
 router.get('/utenti/casa', autentica, async (req, res) => {
   try {
     const utente = await Utente.findByPk(req.user.id);
@@ -246,7 +247,7 @@ router.get('/utenti/casa', autentica, async (req, res) => {
   } catch (error) { res.status(500).json({ error: error.message }); }
 });
 
-// 2. Ottieni tutti i debiti della casa
+// 2. Ottieni tutti i debiti
 router.get('/debiti', autentica, async (req, res) => {
   try {
     const utente = await Utente.findByPk(req.user.id);
@@ -258,53 +259,160 @@ router.get('/debiti', autentica, async (req, res) => {
         { model: Utente, as: 'Creditore', attributes: ['username'] },
         { model: Utente, as: 'Debitore', attributes: ['username'] }
       ],
-      order: [['data', 'DESC']] // I più recenti in alto
+      order: [['data', 'DESC']]
     });
     res.json(debiti);
   } catch (error) { res.status(500).json({ error: error.message }); }
 });
 
-// 3. Aggiungi un debito
+// 3. Aggiungi debito
 router.post('/debiti', autentica, async (req, res) => {
   try {
-    const { importo, descrizione, data, debitoreId, creditoreId } = req.body;
-    
-    // Recupera la casa dell'utente che sta facendo l'azione
+    const { importo, descrizione, data, debitoreId, creditoreId, dividiConTutti } = req.body;
     const utente = await Utente.findByPk(req.user.id);
+    
     if (!utente.CasaId) return res.status(400).json({ message: "Non hai una casa." });
 
-    // Se non specificato, il creditore è chi sta scrivendo
-    const creditoreFinale = creditoreId || req.user.id; 
+    // Determiniamo chi ha pagato (se non specificato, sei tu)
+    const chiHaPagatoId = creditoreId ? parseInt(creditoreId) : req.user.id;
 
-    await Debito.create({
-      importo,
-      descrizione,
-      data,
-      DebitoreId: debitoreId,
-      CreditoreId: creditoreFinale,
-      CasaId: utente.CasaId
-    });
+    // --- CASO A: Divisione spese tra TUTTI (Split) ---
+    if (dividiConTutti) {
+        // 1. Troviamo tutti i coinquilini della casa
+        const coinquilini = await Utente.findAll({ where: { CasaId: utente.CasaId } });
+        
+        if (coinquilini.length < 2) {
+            return res.status(400).json({ message: "Sei da solo in casa, non puoi dividere le spese!" });
+        }
 
-    res.status(201).json({ message: "Debito aggiunto!" });
+        // 2. Calcoliamo la quota a testa (Totale / Numero Persone)
+        // Es: 100€ in 4 persone = 25€ a testa. 
+        // Gli altri 3 devono dare 25€ a chi ha pagato.
+        const importoNum = parseFloat(importo);
+        const quota = (importoNum / coinquilini.length).toFixed(2); 
+
+        // 3. Creiamo un debito per OGNI coinquilino (tranne chi ha pagato)
+        const promesseDebiti = coinquilini.map(coinquilino => {
+            // Se il coinquilino NON è quello che ha pagato, creiamo il debito
+            if (coinquilino.id !== chiHaPagatoId) {
+                return Debito.create({
+                    importo: quota, 
+                    descrizione: `${descrizione} (Quota divisa)`,
+                    data: data || new Date(),
+                    DebitoreId: coinquilino.id,
+                    CreditoreId: chiHaPagatoId,
+                    CasaId: utente.CasaId
+                });
+            }
+        });
+
+        // Aspettiamo che il DB finisca di salvare tutto
+        await Promise.all(promesseDebiti);
+        
+        return res.status(201).json({ message: `Spesa divisa! Ognuno deve ${quota}€` });
+    }
+
+    // --- CASO B: Debito Singolo (Come prima) ---
+    else {
+        if (!debitoreId) return res.status(400).json({ message: "Seleziona chi deve pagare." });
+        if (parseInt(debitoreId) === chiHaPagatoId) return res.status(400).json({ message: "Non puoi avere debiti con te stesso." });
+
+        await Debito.create({
+            importo,
+            descrizione,
+            data: data || new Date(),
+            DebitoreId: debitoreId,
+            CreditoreId: chiHaPagatoId,
+            CasaId: utente.CasaId
+        });
+        
+        return res.status(201).json({ message: "Debito aggiunto!" });
+    }
+
   } catch (error) { res.status(500).json({ error: error.message }); }
 });
 
-// 4. Salda (Elimina) un debito
+// 4. Salda debito
 router.delete('/debiti/:id', autentica, async (req, res) => {
   try {
     const debito = await Debito.findByPk(req.params.id);
     if (!debito) return res.status(404).json({ message: "Non trovato" });
 
     const utente = await Utente.findByPk(req.user.id);
-
-    // Solo se il debito appartiene alla stessa casa dell'utente
-    if (debito.CasaId !== utente.CasaId) {
-        return res.status(403).json({ message: "Vietato toccare debiti altrui." });
-    }
+    if (debito.CasaId !== utente.CasaId) return res.status(403).json({ message: "Vietato." });
 
     await debito.destroy();
-    res.json({ message: "Debito saldato/eliminato" });
+    res.json({ message: "Debito saldato" });
   } catch (error) { res.status(500).json({ error: error.message }); }
+});
+
+// ==========================================
+//  API BACHECA (NUOVO)
+// ==========================================
+
+// 1. Leggi tutte le note della casa
+router.get('/bacheca', autentica, async (req, res) => {
+  try {
+    const utente = await Utente.findByPk(req.user.id);
+    if (!utente.CasaId) return res.json([]);
+
+    const note = await Nota.findAll({
+      where: { CasaId: utente.CasaId },
+      include: [{ model: Utente, as: 'Autore', attributes: ['username'] }],
+      order: [['createdAt', 'DESC']]
+    });
+    res.json(note);
+  } catch (error) { res.status(500).json({ error: error.message }); }
+});
+
+// 2. Aggiungi Nota (CORRETTO)
+router.post('/bacheca', autentica, async (req, res) => {
+  try {
+    const { titolo, contenuto, data } = req.body; // <--- ORA LEGGIAMO LA DATA
+    const utente = await Utente.findByPk(req.user.id);
+    
+    if (!utente.CasaId) return res.status(400).json({ message: "Non hai una casa." });
+
+    await Nota.create({
+      titolo,
+      contenuto,
+      data: data, // <--- ORA USIAMO LA DATA (o null) DEL FRONTEND
+      AutoreId: req.user.id,
+      CasaId: utente.CasaId
+    });
+
+    res.status(201).json({ message: "Nota aggiunta!" });
+  } catch (error) { res.status(500).json({ error: error.message }); }
+});
+
+// 3. Modifica Nota (Solo Autore)
+router.put('/bacheca/:id', autentica, async (req, res) => {
+  try {
+    const nota = await Nota.findByPk(req.params.id);
+    if (!nota) return res.status(404).json({ message: "Non trovata" });
+
+    if (nota.AutoreId !== req.user.id) {
+       return res.status(403).json({ message: "Puoi modificare solo le tue note." });
+    }
+
+    await nota.update(req.body);
+    res.json(nota);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// 4. Elimina Nota (Solo Autore)
+router.delete('/bacheca/:id', autentica, async (req, res) => {
+  try {
+    const nota = await Nota.findByPk(req.params.id);
+    if (!nota) return res.status(404).json({ message: "Non trovata" });
+
+    if (nota.AutoreId !== req.user.id) {
+       return res.status(403).json({ message: "Puoi eliminare solo le tue note." });
+    }
+
+    await nota.destroy();
+    res.json({ message: "Nota eliminata" });
+  } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 module.exports = router;

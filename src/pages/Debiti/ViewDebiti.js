@@ -14,10 +14,7 @@ export default function ViewDebiti() {
     return { headers: { Authorization: `Bearer ${token}` } };
   };
 
-  useEffect(() => {
-    fetchDebiti();
-  }, []);
-
+  // 1. Definiamo la funzione PRIMA di usarla
   const fetchDebiti = async () => {
     try {
       const res = await axios.get("http://localhost:5000/api/debiti", getAuthHeader());
@@ -26,6 +23,12 @@ export default function ViewDebiti() {
       console.error(err);
     } finally { setLoading(false); }
   };
+
+  // 2. Usiamo useEffect DOPO aver definito la funzione
+  useEffect(() => {
+    fetchDebiti();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const saldaDebito = async (id) => {
     if(!window.confirm("Confermi che questo debito è stato saldato?")) return;
@@ -38,11 +41,9 @@ export default function ViewDebiti() {
   if (loading) return <div className="card"><p style={{color: 'black'}}>Caricamento...</p></div>;
 
   return (
-    // Aggiunto color: 'black' al contenitore principale per sicurezza
     <div className="card" style={{maxWidth: '800px', color: 'black'}}>
       
       <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'20px'}}>
-        {/* Titolo forzato nero */}
         <h1 style={{color: '#000'}}>💸 Gestione Spese</h1>
         <button onClick={() => navigate('/debiti/aggiungi')} style={{width:'auto'}}>+ Aggiungi</button>
       </div>
