@@ -17,7 +17,7 @@ export default function ViewRegistrazione() {
     setError(null);
 
     try {
-      await axios.post(API_BASE_URL, utente);
+      await axios.post(`${API_BASE_URL}/utenti`, utente);
       
       // La registrazione ha avuto successo
       alert("Registrazione completata! Ora effettua il login.");

@@ -4,6 +4,6 @@ const isLocalhost = window.location.hostname === "localhost" || window.location.
 
 const API_BASE_URL = isLocalhost 
   ? "http://localhost:5000/api" 
-  : "https://TUO-NOME-BACKEND.onrender.com/api"; // <--- Questo lo aggiornerai dopo!
+  : "https://househelper-backend.onrender.com/api"; // <--- Questo lo aggiornerai dopo!
 
 export default API_BASE_URL;
