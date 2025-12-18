@@ -50,11 +50,13 @@ export default function HomeUtente() {
       ]);
 
       // A. Calcolo Prossimo Turno
-      const oggi = new Date().toISOString().split('T')[0];
+      // Usa 'en-CA' perché restituisce sempre il formato YYYY-MM-DD
+      const oggi = new Date().toLocaleDateString('en-CA'); 
+
       const mieiTurni = resTurni.data
         .filter(t => t.UtenteId === myData.id && t.data >= oggi)
         .sort((a, b) => new Date(a.data) - new Date(b.data));
-      
+
       setProssimoTurno(mieiTurni.length > 0 ? mieiTurni[0] : null);
 
       // B. Calcolo Saldo
