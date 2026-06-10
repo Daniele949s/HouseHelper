@@ -40,6 +40,17 @@ export default function ViewBacheca() {
     fetchDati();
   }, [userData]);
 
+  const fetchDatiReload = async () => {
+    if (!userData?.casaId) return;
+    try {
+      const qNote = query(collection(db, "note"), where("casaId", "==", userData.casaId));
+      const snapNote = await getDocs(qNote);
+      const data = snapNote.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      data.sort((a, b) => new Date(b.createdAt?.toMillis() || 0) - new Date(a.createdAt?.toMillis() || 0));
+      setNote(data);
+    } catch (err) {}
+  };
+
   const eliminaNota = async (id, autoreId) => {
     if (autoreId !== currentUser.uid) {
       alert("Puoi eliminare solo i tuoi avvisi!");
@@ -49,7 +60,7 @@ export default function ViewBacheca() {
     
     try {
       await deleteDoc(doc(db, "note", id));
-      fetchDati();
+      fetchDatiReload();
     } catch (error) {
       alert("Errore eliminazione.");
     }

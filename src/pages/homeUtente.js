@@ -20,14 +20,11 @@ export default function HomeUtente() {
     const fetchDashboardData = async () => {
       try {
         const casaId = userData.casaId;
-        
-        // Info Casa
         const casaDoc = await getDoc(doc(db, "case", casaId));
         if (casaDoc.exists()) setCasa({ id: casaDoc.id, ...casaDoc.data() });
 
         const oggi = new Date().toISOString().split('T')[0];
 
-        // Turni
         const turniQuery = query(collection(db, "turni"), where("casaId", "==", casaId));
         const turniSnap = await getDocs(turniQuery);
         let mieiTurni = [];
@@ -40,7 +37,6 @@ export default function HomeUtente() {
         mieiTurni.sort((a, b) => new Date(a.data) - new Date(b.data));
         setProssimoTurno(mieiTurni.length > 0 ? mieiTurni[0] : null);
 
-        // Debiti
         const debitiQuery = query(collection(db, "debiti"), where("casaId", "==", casaId));
         const debitiSnap = await getDocs(debitiQuery);
         let totale = 0;
@@ -51,7 +47,6 @@ export default function HomeUtente() {
         });
         setSaldo(totale);
 
-        // Bacheca
         const noteQuery = query(collection(db, "note"), where("casaId", "==", casaId));
         const noteSnap = await getDocs(noteQuery);
         let noteList = [];
@@ -67,12 +62,10 @@ export default function HomeUtente() {
     };
 
     if (!currentUser || !userData) return;
-    
     if (!userData.casaId) {
       navigate("/scelta-casa");
       return;
     }
-
     fetchDashboardData();
   }, [currentUser, userData, navigate]);
 
@@ -94,129 +87,119 @@ export default function HomeUtente() {
     navigate("/login");
   };
 
-  if (loading) return <div className="app-container"><p>Caricamento Dashboard...</p></div>;
+  if (loading) return <div className="app-container"><p>Sincronizzazione casa...</p></div>;
 
   return (
-    <div className="card" style={{ maxWidth: '800px', padding: '0', overflow: 'hidden' }}>
-      
-      {/* ================= HEADER CASA ================= */}
-      <div style={{ 
-        background: 'linear-gradient(135deg, var(--color-primary) 0%, #8b5cf6 100%)', 
-        padding: '3rem 2rem', 
-        color: 'white', 
-        borderBottomLeftRadius: '24px',
-        borderBottomRightRadius: '24px',
-        position: 'relative'
-      }}>
-        <h1 style={{ margin: 0, fontSize: '2.5rem', color: 'white', letterSpacing: '-0.02em' }}>
-          {casa?.nome || "La tua Casa"}
-        </h1>
-        <div style={{ marginTop: '12px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <span style={{ opacity: 0.9 }}>Codice Invito:</span>
-          <span style={{ 
-            background: 'rgba(255,255,255,0.2)', 
-            padding: '4px 12px', 
-            borderRadius: '20px', 
-            fontWeight: 'bold',
-            backdropFilter: 'blur(4px)'
-          }}>
-            {casa?.codiceUnivoco}
-          </span>
-        </div>
-        <p style={{ fontSize: '1.1rem', marginTop: '20px', opacity: 0.9 }}>
-            Bentornato, <strong>{userData?.username || "Utente"}</strong>!
-        </p>
-      </div>
-
-      <div style={{ padding: '30px 20px' }}>
-        {/* ================= IN EVIDENZA ================= */}
-        <h3 style={{ marginBottom: '16px' }}>✨ In Evidenza</h3>
+    <div style={{ maxWidth: '800px', width: '100%', margin: '0 auto' }}>
+      <div className="bento-grid">
         
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px', marginBottom: '40px' }}>
-            
-            {/* Prossimo Turno */}
-            <div className="widget-card" style={{ borderTop: '4px solid #f59e0b' }}>
-                <span style={{ fontSize: '2rem' }}>🧹</span>
-                <p style={{ fontWeight: '600', color: 'var(--text-main)', marginTop: '8px' }}>Prossimo Turno</p>
-                {prossimoTurno ? (
-                    <div style={{ marginTop: '4px' }}>
-                        <strong style={{ color: '#d97706', fontSize: '1.1rem' }}>{prossimoTurno.mansione}</strong>
-                        <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>{new Date(prossimoTurno.data).toLocaleDateString()}</div>
-                    </div>
-                ) : (
-                    <p style={{ fontSize: '0.95rem', color: '#10b981', marginTop: '4px' }}>Tutto pulito! 🎉</p>
-                )}
-            </div>
+        {/* ================= HEADER ================= */}
+        <div className="bento-item bento-header">
+          <div>
+            <h1 style={{ fontSize: '2rem', color: '#fff' }}>{casa?.nome || "La tua Casa"}</h1>
+            <p style={{ color: 'var(--text-secondary)', margin: '4px 0 0 0' }}>
+              Bentornato, <span style={{ color: '#fff' }}>{userData?.username || "Utente"}</span>
+            </p>
+          </div>
+          <div style={{ background: 'rgba(0,0,0,0.3)', padding: '8px 16px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)' }}>
+            <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Codice Invito</span>
+            <div style={{ fontSize: '1.2rem', fontWeight: 'bold', color: 'var(--color-accent)' }}>{casa?.codiceUnivoco}</div>
+          </div>
+        </div>
 
-            {/* Saldo */}
-            <div className="widget-card" style={{ borderTop: saldo >= 0 ? '4px solid #10b981' : '4px solid #ef4444' }}>
-                <span style={{ fontSize: '2rem' }}>💸</span>
-                <p style={{ fontWeight: '600', color: 'var(--text-main)', marginTop: '8px' }}>Bilancio Personale</p>
-                <div style={{ fontSize: '1.8rem', fontWeight: '700', color: saldo >= 0 ? '#10b981' : '#ef4444', marginTop: '4px' }}>
-                    {saldo >= 0 ? "+" : ""}{saldo.toFixed(2)} €
-                </div>
+        {/* ================= PROSSIMO TURNO ================= */}
+        <div className="bento-item bento-turno">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+            <div style={{ background: 'rgba(245, 158, 11, 0.1)', padding: '10px', borderRadius: '12px' }}>
+              <span style={{ fontSize: '1.5rem' }}>🧹</span>
             </div>
+            <h3 style={{ fontSize: '1.1rem', color: 'var(--text-secondary)' }}>Prossimo Turno</h3>
+          </div>
+          
+          {prossimoTurno ? (
+            <div>
+              <h2 style={{ fontSize: '1.6rem', color: '#fff', marginBottom: '4px' }}>{prossimoTurno.mansione}</h2>
+              <p style={{ color: '#f59e0b', fontWeight: '500', margin: 0 }}>{new Date(prossimoTurno.data).toLocaleDateString()}</p>
+            </div>
+          ) : (
+            <div style={{ flex: 1, display: 'flex', alignItems: 'center' }}>
+              <p style={{ color: '#10b981', fontSize: '1.1rem', margin: 0 }}>Nessun turno assegnato. Riposati! 🎉</p>
+            </div>
+          )}
+        </div>
 
-            {/* Bacheca */}
-            <div className="widget-card" style={{ borderTop: '4px solid #8b5cf6' }}>
-                <span style={{ fontSize: '2rem' }}>📌</span>
-                <p style={{ fontWeight: '600', color: 'var(--text-main)', marginTop: '8px' }}>Ultimo Avviso</p>
-                {ultimoAvviso ? (
-                    <div style={{ marginTop: '4px' }}>
-                        <p style={{ fontWeight: '600', fontSize:'1rem', margin:0, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>
-                            {ultimoAvviso.titolo}
-                        </p>
-                    </div>
-                ) : (
-                    <p style={{ fontSize: '0.95rem', color: 'var(--text-secondary)', marginTop: '4px' }}>Nessuna novità.</p>
-                )}
+        {/* ================= BILANCIO ================= */}
+        <div className="bento-item bento-saldo">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+            <div style={{ background: 'rgba(16, 185, 129, 0.1)', padding: '10px', borderRadius: '12px' }}>
+              <span style={{ fontSize: '1.5rem' }}>💸</span>
             </div>
+            <h3 style={{ fontSize: '1.1rem', color: 'var(--text-secondary)' }}>Bilancio Personale</h3>
+          </div>
+          
+          <div>
+            <h2 style={{ fontSize: '2.5rem', color: saldo >= 0 ? '#10b981' : '#ef4444', margin: 0 }}>
+              {saldo >= 0 ? "+" : ""}{saldo.toFixed(2)} €
+            </h2>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', margin: '4px 0 0 0' }}>
+              {saldo > 0 ? "Gli altri ti devono soldi." : saldo < 0 ? "Sei in debito con qualcuno." : "Siete tutti pari."}
+            </p>
+          </div>
+        </div>
+
+        {/* ================= ULTIMO AVVISO ================= */}
+        <div className="bento-item bento-avviso">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+            <div style={{ background: 'rgba(99, 102, 241, 0.1)', padding: '8px', borderRadius: '10px' }}>
+              <span style={{ fontSize: '1.2rem' }}>📌</span>
+            </div>
+            <h3 style={{ fontSize: '1rem', color: 'var(--text-secondary)' }}>Ultimo Avviso in Bacheca</h3>
+          </div>
+          {ultimoAvviso ? (
+            <div style={{ background: 'rgba(0,0,0,0.2)', padding: '16px', borderRadius: '12px', borderLeft: '3px solid var(--color-primary)' }}>
+              <h4 style={{ color: '#fff', fontSize: '1.1rem', marginBottom: '4px' }}>{ultimoAvviso.titolo}</h4>
+              <p style={{ color: 'var(--text-secondary)', margin: 0, fontSize: '0.9rem' }}>{ultimoAvviso.contenuto}</p>
+            </div>
+          ) : (
+            <p style={{ color: 'var(--text-muted)', margin: 0 }}>Non ci sono comunicazioni.</p>
+          )}
         </div>
 
         {/* ================= SERVIZI ================= */}
-        <h3 style={{ marginBottom: '16px' }}>🚀 Servizi</h3>
-        
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '16px' }}>
-            <button onClick={() => navigate("/turni")} className="service-btn">
-                <span style={{ fontSize: '2rem' }}>📅</span> 
-                <span>Turni Pulizie</span>
-            </button>
-            <button onClick={() => navigate("/debiti")} className="service-btn">
-                <span style={{ fontSize: '2rem' }}>💰</span> 
-                <span>Spese</span>
-            </button>
-            <button onClick={() => navigate("/bacheca")} className="service-btn">
-                <span style={{ fontSize: '2rem' }}>📌</span> 
-                <span>Bacheca</span>
-            </button>
-            <button onClick={() => navigate("/calendario")} className="service-btn">
-                <span style={{ fontSize: '2rem' }}>🗓️</span> 
-                <span>Calendario</span>
-            </button>
-        </div>
-
-        <div style={{ marginTop: '30px' }}>
-          <button 
-            className="btn-primary" 
-            onClick={() => navigate("/turni/aggiungi")} 
-            style={{ width: '100%', padding: '16px', borderRadius: '12px', fontSize: '1.1rem' }}
-          >
-              ➕ Aggiungi Turno Veloce
+        <div className="bento-item bento-services">
+          <button onClick={() => navigate("/turni")} className="service-btn">
+              <span style={{ fontSize: '2rem' }}>📅</span> 
+              <span>Turni</span>
+          </button>
+          <button onClick={() => navigate("/debiti")} className="service-btn">
+              <span style={{ fontSize: '2rem' }}>💰</span> 
+              <span>Spese</span>
+          </button>
+          <button onClick={() => navigate("/spesa")} className="service-btn">
+              <span style={{ fontSize: '2rem' }}>🛒</span> 
+              <span>Lista Spesa</span>
+          </button>
+          <button onClick={() => navigate("/calendario")} className="service-btn">
+              <span style={{ fontSize: '2rem' }}>🗓️</span> 
+              <span>Calendario</span>
+          </button>
+          <button onClick={() => navigate("/bacheca")} className="service-btn">
+              <span style={{ fontSize: '2rem' }}>📌</span> 
+              <span>Bacheca</span>
           </button>
         </div>
 
-        {/* ================= FOOTER / GESTIONE CASA ================= */}
-        <div style={{ marginTop: '40px', borderTop: '1px solid #e2e8f0', paddingTop: '24px' }}>
-            <p style={{fontSize: '0.85rem', fontWeight: '600', color: 'var(--text-secondary)', marginBottom: '16px', textAlign: 'center'}}>Gestione Account</p>
-            
-            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
-                <button onClick={handleLogout} className="btn-secondary" style={{ width: 'auto', padding: '10px 24px' }}>
-                    Esci
-                </button>
-                <button onClick={lasciaCasa} className="btn-secondary" style={{ width: 'auto', padding: '10px 24px', color: 'var(--color-danger)', borderColor: 'var(--color-danger)' }}>
-                    Lascia Casa
-                </button>
-            </div>
+        {/* ================= GESTIONE ACCOUNT ================= */}
+        <div className="bento-item" style={{ gridColumn: 'span 12', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 24px' }}>
+          <p style={{ margin: 0, color: 'var(--text-muted)' }}>Gestione Account</p>
+          <div style={{ display: 'flex', gap: '10px' }}>
+            <button onClick={lasciaCasa} className="btn-secondary" style={{ padding: '8px 16px', width: 'auto', borderColor: 'rgba(239, 68, 68, 0.3)', color: '#ef4444' }}>
+                Lascia Casa
+            </button>
+            <button onClick={handleLogout} className="btn-secondary" style={{ padding: '8px 16px', width: 'auto' }}>
+                Esci
+            </button>
+          </div>
         </div>
 
       </div>

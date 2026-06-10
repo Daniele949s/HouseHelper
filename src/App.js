@@ -27,6 +27,9 @@ import ModificaTurno from "./pages/TurniPulizia/modificaTurno";
 import ViewDebiti from "./pages/Debiti/ViewDebiti";      
 import AggiungiDebito from "./pages/Debiti/AggiungiDebito"; 
 
+// Import pagine Spesa
+import ViewSpesa from "./pages/Spesa/ViewSpesa";
+
 // Import pagine Bacheca & Calendario
 import ViewBacheca from "./pages/Bacheca/ViewBacheca"; 
 import AggiungiNota from "./pages/Bacheca/AggiungiNota"; 
@@ -65,6 +68,9 @@ function App() {
                 {/* Gestione Debiti */}
                 <Route path="/debiti" element={<ViewDebiti />} />
                 <Route path="/debiti/aggiungi" element={<AggiungiDebito />} />
+
+                {/* Gestione Spesa */}
+                <Route path="/spesa" element={<ViewSpesa />} />
 
                 {/* Gestione Bacheca */}
                 <Route path="/bacheca" element={<ViewBacheca />} />

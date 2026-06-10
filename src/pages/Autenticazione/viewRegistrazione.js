@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { auth, db } from "../../firebase";
-import { createUserWithEmailAndPassword } from "firebase/auth";
-import { doc, setDoc } from "firebase/firestore";
+import { auth, db, googleProvider } from "../../firebase";
+import { createUserWithEmailAndPassword, signInWithPopup } from "firebase/auth";
+import { doc, setDoc, getDoc } from "firebase/firestore";
 import '../../App.css';
 
 export default function ViewRegistrazione() {
@@ -21,7 +21,6 @@ export default function ViewRegistrazione() {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       
-      // Salva info aggiuntive in Firestore
       await setDoc(doc(db, "utenti", userCredential.user.uid), {
         username: username,
         email: email,
@@ -37,6 +36,37 @@ export default function ViewRegistrazione() {
     }
   };
 
+  const handleGoogleAuth = async () => {
+    setError('');
+    setLoading(true);
+    try {
+      const result = await signInWithPopup(auth, googleProvider);
+      const user = result.user;
+      const userDocRef = doc(db, 'utenti', user.uid);
+      const userDoc = await getDoc(userDocRef);
+      
+      if (!userDoc.exists()) {
+        await setDoc(userDocRef, {
+          username: user.displayName || 'Utente Google',
+          email: user.email,
+          casaId: null
+        });
+        navigate('/scelta-casa');
+      } else {
+        if (userDoc.data().casaId) {
+          navigate('/home');
+        } else {
+          navigate('/scelta-casa');
+        }
+      }
+    } catch (err) {
+      console.error(err);
+      setError("Errore con l'accesso Google.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="card auth-card">
       <div className="auth-header">
@@ -45,6 +75,17 @@ export default function ViewRegistrazione() {
       </div>
 
       {error && <div className="error-alert">{error}</div>}
+
+      <button type="button" className="btn-secondary" onClick={handleGoogleAuth} disabled={loading} style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
+        <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google" style={{ width: '20px', height: '20px' }} />
+        Continua con Google
+      </button>
+
+      <div style={{ display: 'flex', alignItems: 'center', margin: '20px 0' }}>
+        <hr style={{ flex: 1, border: 'none', borderTop: '1px solid #e2e8f0' }} />
+        <span style={{ margin: '0 10px', color: '#94a3b8', fontSize: '0.9rem' }}>oppure con l'email</span>
+        <hr style={{ flex: 1, border: 'none', borderTop: '1px solid #e2e8f0' }} />
+      </div>
 
       <form onSubmit={handleSubmit} className="auth-form">
         <div className="input-group">
@@ -82,7 +123,7 @@ export default function ViewRegistrazione() {
         </button>
       </form>
       
-      <div className="auth-footer">
+      <div className="auth-footer" style={{ marginTop: '20px' }}>
         <p>Hai già un account?</p>
         <button className="btn-text" onClick={() => navigate("/login")}>
           <span className="highlight">Accedi qui</span>
