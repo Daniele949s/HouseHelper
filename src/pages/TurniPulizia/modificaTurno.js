@@ -19,7 +19,6 @@ const FASCE_DISPONIBILI = generaFasceOrarie();
 export default function ModificaTurno() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { userData } = useAuth();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { auth, db } from "../firebase";
-import { collection, query, where, getDocs, doc, getDoc, updateDoc, deleteDoc } from "firebase/firestore";
+import { collection, query, where, getDocs, doc, getDoc, updateDoc } from "firebase/firestore";
 import { signOut } from "firebase/auth";
 import { useAuth } from "../contexts/AuthContext";
 import '../App.css';
@@ -17,6 +17,55 @@ export default function HomeUtente() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        const casaId = userData.casaId;
+        
+        // Info Casa
+        const casaDoc = await getDoc(doc(db, "case", casaId));
+        if (casaDoc.exists()) setCasa({ id: casaDoc.id, ...casaDoc.data() });
+
+        const oggi = new Date().toISOString().split('T')[0];
+
+        // Turni
+        const turniQuery = query(collection(db, "turni"), where("casaId", "==", casaId));
+        const turniSnap = await getDocs(turniQuery);
+        let mieiTurni = [];
+        turniSnap.forEach(d => {
+          const data = d.data();
+          if (data.utenteId === currentUser.uid && data.data >= oggi) {
+            mieiTurni.push({ id: d.id, ...data });
+          }
+        });
+        mieiTurni.sort((a, b) => new Date(a.data) - new Date(b.data));
+        setProssimoTurno(mieiTurni.length > 0 ? mieiTurni[0] : null);
+
+        // Debiti
+        const debitiQuery = query(collection(db, "debiti"), where("casaId", "==", casaId));
+        const debitiSnap = await getDocs(debitiQuery);
+        let totale = 0;
+        debitiSnap.forEach(d => {
+          const data = d.data();
+          if (data.debitoreId === currentUser.uid) totale -= parseFloat(data.importo);
+          if (data.creditoreId === currentUser.uid) totale += parseFloat(data.importo);
+        });
+        setSaldo(totale);
+
+        // Bacheca
+        const noteQuery = query(collection(db, "note"), where("casaId", "==", casaId));
+        const noteSnap = await getDocs(noteQuery);
+        let noteList = [];
+        noteSnap.forEach(d => noteList.push({ id: d.id, ...d.data() }));
+        noteList.sort((a, b) => b.createdAt?.toMillis() - a.createdAt?.toMillis());
+        if (noteList.length > 0) setUltimoAvviso(noteList[0]);
+
+      } catch (error) {
+        console.error("Errore caricamento dashboard:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     if (!currentUser || !userData) return;
     
     if (!userData.casaId) {
@@ -26,55 +75,6 @@ export default function HomeUtente() {
 
     fetchDashboardData();
   }, [currentUser, userData, navigate]);
-
-  const fetchDashboardData = async () => {
-    try {
-      const casaId = userData.casaId;
-      
-      // Info Casa
-      const casaDoc = await getDoc(doc(db, "case", casaId));
-      if (casaDoc.exists()) setCasa({ id: casaDoc.id, ...casaDoc.data() });
-
-      const oggi = new Date().toISOString().split('T')[0];
-
-      // Turni
-      const turniQuery = query(collection(db, "turni"), where("casaId", "==", casaId));
-      const turniSnap = await getDocs(turniQuery);
-      let mieiTurni = [];
-      turniSnap.forEach(d => {
-        const data = d.data();
-        if (data.utenteId === currentUser.uid && data.data >= oggi) {
-          mieiTurni.push({ id: d.id, ...data });
-        }
-      });
-      mieiTurni.sort((a, b) => new Date(a.data) - new Date(b.data));
-      setProssimoTurno(mieiTurni.length > 0 ? mieiTurni[0] : null);
-
-      // Debiti
-      const debitiQuery = query(collection(db, "debiti"), where("casaId", "==", casaId));
-      const debitiSnap = await getDocs(debitiQuery);
-      let totale = 0;
-      debitiSnap.forEach(d => {
-        const data = d.data();
-        if (data.debitoreId === currentUser.uid) totale -= parseFloat(data.importo);
-        if (data.creditoreId === currentUser.uid) totale += parseFloat(data.importo);
-      });
-      setSaldo(totale);
-
-      // Bacheca
-      const noteQuery = query(collection(db, "note"), where("casaId", "==", casaId));
-      const noteSnap = await getDocs(noteQuery);
-      let noteList = [];
-      noteSnap.forEach(d => noteList.push({ id: d.id, ...d.data() }));
-      noteList.sort((a, b) => b.createdAt?.toMillis() - a.createdAt?.toMillis());
-      if (noteList.length > 0) setUltimoAvviso(noteList[0]);
-
-    } catch (error) {
-      console.error("Errore caricamento dashboard:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const lasciaCasa = async () => {
     if (!window.confirm("Sei sicuro di voler uscire da questa casa?")) return;

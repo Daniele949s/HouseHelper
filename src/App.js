@@ -22,7 +22,6 @@ import SceltaCasa from "./pages/SceltaCasa";
 import ViewTurni from "./pages/TurniPulizia/viewTurni";
 import AggiuntaTurno from "./pages/TurniPulizia/aggiuntaTurno";
 import ModificaTurno from "./pages/TurniPulizia/modificaTurno";
-import EliminaTurno from "./pages/TurniPulizia/eliminaTurno";
 
 // Import pagine Debiti
 import ViewDebiti from "./pages/Debiti/ViewDebiti";      
@@ -62,7 +61,6 @@ function App() {
                 <Route path="/turni" element={<ViewTurni />} />
                 <Route path="/turni/aggiungi" element={<AggiuntaTurno />} />
                 <Route path="/turni/modifica/:id" element={<ModificaTurno />} />
-                <Route path="/turni/elimina/:id" element={<EliminaTurno />} />
 
                 {/* Gestione Debiti */}
                 <Route path="/debiti" element={<ViewDebiti />} />

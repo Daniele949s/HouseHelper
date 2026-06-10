@@ -15,46 +15,63 @@ export default function ViewDebiti() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const fetchDati = async () => {
-    if (!userData?.casaId) return;
-    setLoading(true);
-    setError(null);
-    try {
-      // Carica Mappa Utenti della casa
-      const qUtenti = query(collection(db, "utenti"), where("casaId", "==", userData.casaId));
-      const snapUtenti = await getDocs(qUtenti);
-      const map = {};
-      snapUtenti.forEach(d => { map[d.id] = d.data().username || "Utente Sconosciuto"; });
-      setUtentiMap(map);
+  useEffect(() => {
+    const fetchDati = async () => {
+      if (!userData?.casaId) return;
+      setLoading(true);
+      setError(null);
+      try {
+        // Carica Mappa Utenti della casa
+        const qUtenti = query(collection(db, "utenti"), where("casaId", "==", userData.casaId));
+        const snapUtenti = await getDocs(qUtenti);
+        const map = {};
+        snapUtenti.forEach(d => { map[d.id] = d.data().username || "Utente Sconosciuto"; });
+        setUtentiMap(map);
 
-      // Carica Debiti
+        // Carica Debiti
+        const qDebiti = query(collection(db, "debiti"), where("casaId", "==", userData.casaId));
+        const snapDebiti = await getDocs(qDebiti);
+        const data = snapDebiti.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        
+        // Calcolo Saldo Personale
+        let totale = 0;
+        data.forEach(d => {
+          if (d.debitoreId === currentUser.uid) totale -= parseFloat(d.importo);
+          if (d.creditoreId === currentUser.uid) totale += parseFloat(d.importo);
+        });
+        setSaldo(totale);
+        
+        // Ordina per data
+        data.sort((a, b) => new Date(b.createdAt?.toMillis() || 0) - new Date(a.createdAt?.toMillis() || 0));
+        setDebiti(data);
+
+      } catch (err) {
+        console.error(err);
+        setError("Errore nel caricamento delle spese.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDati();
+  }, [userData, currentUser]);
+
+  const fetchDatiReload = async () => {
+    if (!userData?.casaId) return;
+    try {
       const qDebiti = query(collection(db, "debiti"), where("casaId", "==", userData.casaId));
       const snapDebiti = await getDocs(qDebiti);
       const data = snapDebiti.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      
-      // Calcolo Saldo Personale
       let totale = 0;
       data.forEach(d => {
         if (d.debitoreId === currentUser.uid) totale -= parseFloat(d.importo);
         if (d.creditoreId === currentUser.uid) totale += parseFloat(d.importo);
       });
       setSaldo(totale);
-      
-      // Ordina per data
       data.sort((a, b) => new Date(b.createdAt?.toMillis() || 0) - new Date(a.createdAt?.toMillis() || 0));
       setDebiti(data);
-
-    } catch (err) {
-      console.error(err);
-      setError("Errore nel caricamento delle spese.");
-    } finally {
-      setLoading(false);
-    }
+    } catch (err) {}
   };
-
-  useEffect(() => {
-    fetchDati();
-  }, [userData]);
 
   const saldaDebito = async (id, isMyDebt) => {
     if (!isMyDebt) {
@@ -65,7 +82,7 @@ export default function ViewDebiti() {
 
     try {
       await deleteDoc(doc(db, "debiti", id));
-      fetchDati();
+      fetchDatiReload();
     } catch (error) {
       console.error("Errore eliminazione:", error);
       alert("Errore nell'eliminazione.");

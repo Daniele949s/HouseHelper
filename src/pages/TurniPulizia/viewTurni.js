@@ -12,33 +12,44 @@ export default function VisualizzaTurni() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const fetchTurni = async () => {
+  useEffect(() => {
+    const fetchTurni = async () => {
+      if (!userData?.casaId) return;
+      setLoading(true);
+      setError(null);
+      try {
+        const q = query(collection(db, "turni"), where("casaId", "==", userData.casaId));
+        const querySnapshot = await getDocs(q);
+        const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        data.sort((a, b) => new Date(a.data) - new Date(b.data));
+        setTurni(data);
+      } catch (err) {
+        console.error(err);
+        setError("Errore nel caricamento dei turni.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTurni();
+  }, [userData]);
+
+  const fetchTurniReload = async () => {
     if (!userData?.casaId) return;
-    setLoading(true);
-    setError(null);
     try {
       const q = query(collection(db, "turni"), where("casaId", "==", userData.casaId));
       const querySnapshot = await getDocs(q);
       const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       data.sort((a, b) => new Date(a.data) - new Date(b.data));
       setTurni(data);
-    } catch (err) {
-      console.error(err);
-      setError("Errore nel caricamento dei turni.");
-    } finally {
-      setLoading(false);
-    }
+    } catch (err) {}
   };
-
-  useEffect(() => {
-    fetchTurni();
-  }, [userData]);
 
   const handleDelete = async (id) => {
     if (!window.confirm("Sei sicuro di voler eliminare questo turno?")) return;
     try {
       await deleteDoc(doc(db, "turni", id));
-      fetchTurni();
+      fetchTurniReload();
     } catch (error) {
       console.error("Errore eliminazione:", error);
       alert("Errore nell'eliminazione del turno.");

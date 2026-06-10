@@ -13,30 +13,30 @@ export default function ViewBacheca() {
   const [utentiMap, setUtentiMap] = useState({});
   const [loading, setLoading] = useState(true);
 
-  const fetchDati = async () => {
-    if (!userData?.casaId) return;
-    setLoading(true);
-    try {
-      const qUtenti = query(collection(db, "utenti"), where("casaId", "==", userData.casaId));
-      const snapUtenti = await getDocs(qUtenti);
-      const map = {};
-      snapUtenti.forEach(d => { map[d.id] = d.data().username || "Sconosciuto"; });
-      setUtentiMap(map);
-
-      const qNote = query(collection(db, "note"), where("casaId", "==", userData.casaId));
-      const snapNote = await getDocs(qNote);
-      const data = snapNote.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      
-      data.sort((a, b) => new Date(b.createdAt?.toMillis() || 0) - new Date(a.createdAt?.toMillis() || 0));
-      setNote(data);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
+    const fetchDati = async () => {
+      if (!userData?.casaId) return;
+      setLoading(true);
+      try {
+        const qUtenti = query(collection(db, "utenti"), where("casaId", "==", userData.casaId));
+        const snapUtenti = await getDocs(qUtenti);
+        const map = {};
+        snapUtenti.forEach(d => { map[d.id] = d.data().username || "Sconosciuto"; });
+        setUtentiMap(map);
+
+        const qNote = query(collection(db, "note"), where("casaId", "==", userData.casaId));
+        const snapNote = await getDocs(qNote);
+        const data = snapNote.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        
+        data.sort((a, b) => new Date(b.createdAt?.toMillis() || 0) - new Date(a.createdAt?.toMillis() || 0));
+        setNote(data);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchDati();
   }, [userData]);
 
