@@ -13,14 +13,37 @@ export default function ViewSpesa() {
   const [newItem, setNewItem] = useState("");
   const [loading, setLoading] = useState(true);
 
-  const fetchSpesa = async () => {
+  useEffect(() => {
+    const fetchSpesa = async () => {
+      if (!userData?.casaId) return;
+      setLoading(true);
+      try {
+        const q = query(collection(db, "spesa"), where("casaId", "==", userData.casaId));
+        const snap = await getDocs(q);
+        const data = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        // Sort by status (unchecked first) then by creation date
+        data.sort((a, b) => {
+          if (a.comprato === b.comprato) {
+            return b.createdAt?.toMillis() - a.createdAt?.toMillis();
+          }
+          return a.comprato ? 1 : -1;
+        });
+        setItems(data);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchSpesa();
+  }, [userData]);
+
+  const fetchSpesaReload = async () => {
     if (!userData?.casaId) return;
-    setLoading(true);
     try {
       const q = query(collection(db, "spesa"), where("casaId", "==", userData.casaId));
       const snap = await getDocs(q);
       const data = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      // Sort by status (unchecked first) then by creation date
       data.sort((a, b) => {
         if (a.comprato === b.comprato) {
           return b.createdAt?.toMillis() - a.createdAt?.toMillis();
@@ -30,14 +53,8 @@ export default function ViewSpesa() {
       setItems(data);
     } catch (error) {
       console.error(error);
-    } finally {
-      setLoading(false);
     }
   };
-
-  useEffect(() => {
-    fetchSpesa();
-  }, [userData]);
 
   const handleAdd = async (e) => {
     e.preventDefault();
@@ -52,7 +69,7 @@ export default function ViewSpesa() {
         createdAt: new Date()
       });
       setNewItem("");
-      fetchSpesa();
+      fetchSpesaReload();
     } catch (error) {
       console.error("Errore aggiunta spesa:", error);
     }
@@ -63,7 +80,7 @@ export default function ViewSpesa() {
       await updateDoc(doc(db, "spesa", id), {
         comprato: !statoAttuale
       });
-      fetchSpesa();
+      fetchSpesaReload();
     } catch (error) {
       console.error("Errore toggle:", error);
     }
@@ -72,7 +89,7 @@ export default function ViewSpesa() {
   const handleDelete = async (id) => {
     try {
       await deleteDoc(doc(db, "spesa", id));
-      fetchSpesa();
+      fetchSpesaReload();
     } catch (error) {
       console.error("Errore eliminazione:", error);
     }
