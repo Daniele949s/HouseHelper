@@ -1,235 +1,220 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom"; // <--- Aggiungi useLocation
-import axios from "axios";
-import '../App.css'; 
-import API_BASE_URL from "../config";
+import { useNavigate } from "react-router-dom";
+import { auth, db } from "../firebase";
+import { collection, query, where, getDocs, doc, getDoc, updateDoc, deleteDoc } from "firebase/firestore";
+import { signOut } from "firebase/auth";
+import { useAuth } from "../contexts/AuthContext";
+import '../App.css';
 
 export default function HomeUtente() {
   const navigate = useNavigate();
-  const location = useLocation();
-  const [utente, setUtente] = useState(null);
+  const { currentUser, userData, setUserData } = useAuth();
   
-  // Stati per le "Notifiche" (Dashboard)
+  const [casa, setCasa] = useState(null);
   const [prossimoTurno, setProssimoTurno] = useState(null);
   const [saldo, setSaldo] = useState(0);
   const [ultimoAvviso, setUltimoAvviso] = useState(null);
-  
   const [loading, setLoading] = useState(true);
 
-  const getAuthHeader = () => {
-    const token = localStorage.getItem("token");
-    return { headers: { Authorization: `Bearer ${token}` } };
-  };
-
   useEffect(() => {
-    fetchDatiCompleti();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [location.key]);
+    if (!currentUser || !userData) return;
+    
+    if (!userData.casaId) {
+      navigate("/scelta-casa");
+      return;
+    }
 
-  const fetchDatiCompleti = async () => {
+    fetchDashboardData();
+  }, [currentUser, userData, navigate]);
+
+  const fetchDashboardData = async () => {
     try {
-      const token = localStorage.getItem("token");
-      if (!token) { navigate("/login"); return; }
+      const casaId = userData.casaId;
+      
+      // Info Casa
+      const casaDoc = await getDoc(doc(db, "case", casaId));
+      if (casaDoc.exists()) setCasa({ id: casaDoc.id, ...casaDoc.data() });
 
-      // 1. Dati Utente e Casa
-      const resUser = await axios.get(`${API_BASE_URL}/utenti/me`, getAuthHeader()); // <--- MODIFICA
-      const myData = resUser.data;
-      setUtente(myData);
+      const oggi = new Date().toISOString().split('T')[0];
 
-      if (!myData.CasaId) {
-        navigate("/scelta-casa");
-        return;
-      }
-      localStorage.setItem("casaId", myData.CasaId);
-
-      // --- 2. CARICAMENTO DATI PER DASHBOARD (NOTIFICHE) ---
-      const [resTurni, resDebiti, resBacheca] = await Promise.all([
-        axios.get(`${API_BASE_URL}/turni`, getAuthHeader()),
-        axios.get(`${API_BASE_URL}/debiti`, getAuthHeader()),
-        axios.get(`${API_BASE_URL}/bacheca`, getAuthHeader())
-      ]);
-
-      // A. Calcolo Prossimo Turno
-      // Usa 'en-CA' perché restituisce sempre il formato YYYY-MM-DD
-      const oggi = new Date().toLocaleDateString('en-CA'); 
-
-      const mieiTurni = resTurni.data
-        .filter(t => t.UtenteId === myData.id && t.data >= oggi)
-        .sort((a, b) => new Date(a.data) - new Date(b.data));
-
+      // Turni
+      const turniQuery = query(collection(db, "turni"), where("casaId", "==", casaId));
+      const turniSnap = await getDocs(turniQuery);
+      let mieiTurni = [];
+      turniSnap.forEach(d => {
+        const data = d.data();
+        if (data.utenteId === currentUser.uid && data.data >= oggi) {
+          mieiTurni.push({ id: d.id, ...data });
+        }
+      });
+      mieiTurni.sort((a, b) => new Date(a.data) - new Date(b.data));
       setProssimoTurno(mieiTurni.length > 0 ? mieiTurni[0] : null);
 
-      // B. Calcolo Saldo
+      // Debiti
+      const debitiQuery = query(collection(db, "debiti"), where("casaId", "==", casaId));
+      const debitiSnap = await getDocs(debitiQuery);
       let totale = 0;
-      resDebiti.data.forEach(d => {
-        if (d.DebitoreId === myData.id) totale -= parseFloat(d.importo);
-        if (d.CreditoreId === myData.id) totale += parseFloat(d.importo);
+      debitiSnap.forEach(d => {
+        const data = d.data();
+        if (data.debitoreId === currentUser.uid) totale -= parseFloat(data.importo);
+        if (data.creditoreId === currentUser.uid) totale += parseFloat(data.importo);
       });
       setSaldo(totale);
 
-      // C. Ultimo Avviso
-      if (resBacheca.data.length > 0) {
-        setUltimoAvviso(resBacheca.data[0]);
-      }
+      // Bacheca
+      const noteQuery = query(collection(db, "note"), where("casaId", "==", casaId));
+      const noteSnap = await getDocs(noteQuery);
+      let noteList = [];
+      noteSnap.forEach(d => noteList.push({ id: d.id, ...d.data() }));
+      noteList.sort((a, b) => b.createdAt?.toMillis() - a.createdAt?.toMillis());
+      if (noteList.length > 0) setUltimoAvviso(noteList[0]);
 
     } catch (error) {
       console.error("Errore caricamento dashboard:", error);
-      if (error.response?.status === 401) {
-        localStorage.clear();
-        navigate("/login");
-      }
     } finally {
       setLoading(false);
     }
   };
 
-  const handleLogout = () => {
-    localStorage.clear();
-    navigate("/login");
-  };
-
-  // --- Funzioni Gestione Casa (Ripristinate) ---
   const lasciaCasa = async () => {
     if (!window.confirm("Sei sicuro di voler uscire da questa casa?")) return;
     try {
-      await axios.post(`${API_BASE_URL}/casa/lascia`, {}, getAuthHeader());
-      localStorage.removeItem("casaId");
+      const userDocRef = doc(db, "utenti", currentUser.uid);
+      await updateDoc(userDocRef, { casaId: null });
+      setUserData({ ...userData, casaId: null });
       navigate("/scelta-casa");
-    } catch (e) { console.error(e); alert("Errore durante l'uscita."); }
+    } catch (e) {
+      console.error(e);
+      alert("Errore durante l'uscita.");
+    }
   };
 
-  const eliminaCasa = async () => {
-    if (!window.confirm("ATTENZIONE: Eliminerai la casa per TUTTI. Sicuro?")) return;
-    try {
-      const casaId = utente.Casa?.id;
-      await axios.delete(`${API_BASE_URL}/casa/${casaId}`, getAuthHeader());
-      localStorage.removeItem("casaId");
-      navigate("/scelta-casa");
-    } catch (e) { console.error(e); alert("Errore eliminazione casa."); }
+  const handleLogout = async () => {
+    await signOut(auth);
+    navigate("/login");
   };
 
-  if (loading) return <div className="card"><p style={{color:'black'}}>Caricamento Dashboard...</p></div>;
+  if (loading) return <div className="app-container"><p>Caricamento Dashboard...</p></div>;
 
   return (
-    <div className="card" style={{ maxWidth: '800px', padding: '0', overflow: 'hidden', background: '#f8fafc', boxShadow: 'none' }}>
+    <div className="card" style={{ maxWidth: '800px', padding: '0', overflow: 'hidden' }}>
       
       {/* ================= HEADER CASA ================= */}
       <div style={{ 
-        background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)', 
-        padding: '2rem', 
-        borderRadius: '0 0 20px 20px',
-        color: 'black', 
-        marginBottom: '20px',
-        boxShadow: '0 4px 10px rgba(0,0,0,0.1)'
+        background: 'linear-gradient(135deg, var(--color-primary) 0%, #8b5cf6 100%)', 
+        padding: '3rem 2rem', 
+        color: 'white', 
+        borderBottomLeftRadius: '24px',
+        borderBottomRightRadius: '24px',
+        position: 'relative'
       }}>
-        <h1 style={{ margin: 0, fontSize: '2rem', color: 'black' }}>🏡 {utente?.Casa?.nome || "La tua Casa"}</h1>
-        <p style={{ opacity: 0.9, marginTop: '5px', color: 'black' }}>
-          Codice: <strong style={{ background: 'rgba(255,255,255,0.5)', padding: '2px 8px', borderRadius: '4px', color: 'black' }}>{utente?.Casa?.codiceUnivoco}</strong>
-        </p>
-        <p style={{ fontSize: '0.9rem', marginTop: '10px', color: 'black' }}>
-            Ciao, {utente?.username}!
+        <h1 style={{ margin: 0, fontSize: '2.5rem', color: 'white', letterSpacing: '-0.02em' }}>
+          {casa?.nome || "La tua Casa"}
+        </h1>
+        <div style={{ marginTop: '12px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <span style={{ opacity: 0.9 }}>Codice Invito:</span>
+          <span style={{ 
+            background: 'rgba(255,255,255,0.2)', 
+            padding: '4px 12px', 
+            borderRadius: '20px', 
+            fontWeight: 'bold',
+            backdropFilter: 'blur(4px)'
+          }}>
+            {casa?.codiceUnivoco}
+          </span>
+        </div>
+        <p style={{ fontSize: '1.1rem', marginTop: '20px', opacity: 0.9 }}>
+            Bentornato, <strong>{userData?.username || "Utente"}</strong>!
         </p>
       </div>
 
-      {/* ================= IN EVIDENZA ================= */}
-      <div style={{ padding: '0 10px' }}>
-        <h3 style={{ textAlign: 'left', color: 'black', marginBottom: '10px', paddingLeft: '5px' }}>📢 In Evidenza</h3>
+      <div style={{ padding: '30px 20px' }}>
+        {/* ================= IN EVIDENZA ================= */}
+        <h3 style={{ marginBottom: '16px' }}>✨ In Evidenza</h3>
         
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px', marginBottom: '30px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px', marginBottom: '40px' }}>
             
             {/* Prossimo Turno */}
-            <div style={{ background: 'white', padding: '15px', borderRadius: '12px', boxShadow: '0 2px 5px rgba(0,0,0,0.05)', borderLeft: '5px solid #f59e0b' }}>
+            <div className="widget-card" style={{ borderTop: '4px solid #f59e0b' }}>
                 <span style={{ fontSize: '2rem' }}>🧹</span>
-                <p style={{ fontWeight: 'bold', margin: '5px 0', color: 'black' }}>Prossimo Turno</p>
+                <p style={{ fontWeight: '600', color: 'var(--text-main)', marginTop: '8px' }}>Prossimo Turno</p>
                 {prossimoTurno ? (
-                    <div>
-                        <strong style={{ color: '#d97706' }}>{prossimoTurno.mansione}</strong>
-                        <div style={{ fontSize: '0.8rem', color: 'black' }}>{new Date(prossimoTurno.data).toLocaleDateString()}</div>
+                    <div style={{ marginTop: '4px' }}>
+                        <strong style={{ color: '#d97706', fontSize: '1.1rem' }}>{prossimoTurno.mansione}</strong>
+                        <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>{new Date(prossimoTurno.data).toLocaleDateString()}</div>
                     </div>
                 ) : (
-                    <p style={{ fontSize: '0.9rem', color: '#10b981' }}>Tutto pulito! 🎉</p>
+                    <p style={{ fontSize: '0.95rem', color: '#10b981', marginTop: '4px' }}>Tutto pulito! 🎉</p>
                 )}
             </div>
 
             {/* Saldo */}
-            <div style={{ background: 'white', padding: '15px', borderRadius: '12px', boxShadow: '0 2px 5px rgba(0,0,0,0.05)', borderLeft: saldo >= 0 ? '5px solid #10b981' : '5px solid #ef4444' }}>
+            <div className="widget-card" style={{ borderTop: saldo >= 0 ? '4px solid #10b981' : '4px solid #ef4444' }}>
                 <span style={{ fontSize: '2rem' }}>💸</span>
-                <p style={{ fontWeight: 'bold', margin: '5px 0', color: 'black' }}>Bilancio</p>
-                <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: saldo >= 0 ? '#10b981' : '#ef4444' }}>
+                <p style={{ fontWeight: '600', color: 'var(--text-main)', marginTop: '8px' }}>Bilancio Personale</p>
+                <div style={{ fontSize: '1.8rem', fontWeight: '700', color: saldo >= 0 ? '#10b981' : '#ef4444', marginTop: '4px' }}>
                     {saldo >= 0 ? "+" : ""}{saldo.toFixed(2)} €
                 </div>
             </div>
 
             {/* Bacheca */}
-            <div style={{ background: 'white', padding: '15px', borderRadius: '12px', boxShadow: '0 2px 5px rgba(0,0,0,0.05)', borderLeft: '5px solid #8b5cf6' }}>
+            <div className="widget-card" style={{ borderTop: '4px solid #8b5cf6' }}>
                 <span style={{ fontSize: '2rem' }}>📌</span>
-                <p style={{ fontWeight: 'bold', margin: '5px 0', color: 'black' }}>Avvisi</p>
+                <p style={{ fontWeight: '600', color: 'var(--text-main)', marginTop: '8px' }}>Ultimo Avviso</p>
                 {ultimoAvviso ? (
-                    <div>
-                        <p style={{ fontWeight: 'bold', fontSize:'0.9rem', margin:0, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis', color: 'black' }}>
+                    <div style={{ marginTop: '4px' }}>
+                        <p style={{ fontWeight: '600', fontSize:'1rem', margin:0, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>
                             {ultimoAvviso.titolo}
                         </p>
                     </div>
                 ) : (
-                    <p style={{ fontSize: '0.9rem', color: 'black' }}>Nessuna novità.</p>
+                    <p style={{ fontSize: '0.95rem', color: 'var(--text-secondary)', marginTop: '4px' }}>Nessuna novità.</p>
                 )}
             </div>
         </div>
 
         {/* ================= SERVIZI ================= */}
-        <h3 style={{ textAlign: 'left', color: 'black', marginBottom: '10px', paddingLeft: '5px' }}>🚀 Servizi</h3>
+        <h3 style={{ marginBottom: '16px' }}>🚀 Servizi</h3>
         
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '15px' }}>
-            <button onClick={() => navigate("/turni")} style={btnStyle}>
-                <span style={{ fontSize: '2rem' }}>📅</span> Turni Pulizie
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '16px' }}>
+            <button onClick={() => navigate("/turni")} className="service-btn">
+                <span style={{ fontSize: '2rem' }}>📅</span> 
+                <span>Turni Pulizie</span>
             </button>
-            <button onClick={() => navigate("/debiti")} style={btnStyle}>
-                <span style={{ fontSize: '2rem' }}>💰</span> Spese & Debiti
+            <button onClick={() => navigate("/debiti")} className="service-btn">
+                <span style={{ fontSize: '2rem' }}>💰</span> 
+                <span>Spese</span>
             </button>
-            <button onClick={() => navigate("/bacheca")} style={btnStyle}>
-                <span style={{ fontSize: '2rem' }}>📌</span> Bacheca
+            <button onClick={() => navigate("/bacheca")} className="service-btn">
+                <span style={{ fontSize: '2rem' }}>📌</span> 
+                <span>Bacheca</span>
             </button>
-            <button onClick={() => navigate("/calendario")} style={btnStyle}>
-                <span style={{ fontSize: '2rem' }}>🗓️</span> Calendario
+            <button onClick={() => navigate("/calendario")} className="service-btn">
+                <span style={{ fontSize: '2rem' }}>🗓️</span> 
+                <span>Calendario</span>
             </button>
         </div>
 
-        {/* ================= AZIONI RAPIDE (AGGIUNTE) ================= */}
-        <h3 style={{ textAlign: 'left', color: 'black', marginBottom: '10px', marginTop: '25px', paddingLeft: '5px' }}>⚡ Azioni Rapide</h3>
-        
-        <button 
+        <div style={{ marginTop: '30px' }}>
+          <button 
+            className="btn-primary" 
             onClick={() => navigate("/turni/aggiungi")} 
-            style={{ 
-                width: '100%', 
-                padding: '15px', 
-                background: 'white', 
-                color: 'black', 
-                border: '2px dashed #ccc', 
-                borderRadius: '12px', 
-                fontSize: '1rem',
-                fontWeight: 'bold',
-                cursor: 'pointer',
-                marginBottom: '10px'
-            }}
-        >
-            ➕ Aggiungi Turno Veloce
-        </button>
-
+            style={{ width: '100%', padding: '16px', borderRadius: '12px', fontSize: '1.1rem' }}
+          >
+              ➕ Aggiungi Turno Veloce
+          </button>
+        </div>
 
         {/* ================= FOOTER / GESTIONE CASA ================= */}
-        <div style={{ marginTop: '40px', borderTop: '1px solid #ddd', paddingTop: '20px', paddingBottom: '20px' }}>
-            <p style={{fontSize: '0.8rem', color: '#666', marginBottom: '10px'}}>Gestione Account & Casa</p>
+        <div style={{ marginTop: '40px', borderTop: '1px solid #e2e8f0', paddingTop: '24px' }}>
+            <p style={{fontSize: '0.85rem', fontWeight: '600', color: 'var(--text-secondary)', marginBottom: '16px', textAlign: 'center'}}>Gestione Account</p>
             
-            <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap' }}>
-                <button onClick={handleLogout} className="btn-secondary" style={{ fontSize: '0.8rem', color: 'black', borderColor: '#999' }}>
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+                <button onClick={handleLogout} className="btn-secondary" style={{ width: 'auto', padding: '10px 24px' }}>
                     Esci
                 </button>
-                <button onClick={lasciaCasa} className="btn-secondary" style={{ fontSize: '0.8rem', color: 'black', borderColor: '#999' }}>
+                <button onClick={lasciaCasa} className="btn-secondary" style={{ width: 'auto', padding: '10px 24px', color: 'var(--color-danger)', borderColor: 'var(--color-danger)' }}>
                     Lascia Casa
-                </button>
-                {/* Visualizziamo il tasto distruggi solo se necessario, per pulizia */}
-                <button onClick={eliminaCasa} style={{ fontSize: '0.8rem', background: '#ef4444', color: 'white', border: 'none', padding: '8px 15px', borderRadius: '5px' }}>
-                    Elimina Casa
                 </button>
             </div>
         </div>
@@ -238,18 +223,3 @@ export default function HomeUtente() {
     </div>
   );
 }
-
-// Stile riutilizzabile per i bottoni della griglia
-const btnStyle = {
-    padding: '20px', 
-    background: 'white', 
-    color: 'black', 
-    border: '1px solid #eee', 
-    borderRadius: '12px', 
-    display:'flex', 
-    flexDirection:'column', 
-    alignItems:'center', 
-    gap:'10px', 
-    boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
-    cursor: 'pointer'
-};

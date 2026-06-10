@@ -1,156 +1,190 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import { db } from "../../firebase";
+import { collection, query, where, getDocs, addDoc } from "firebase/firestore";
+import { useAuth } from "../../contexts/AuthContext";
 import '../../App.css';
-import API_BASE_URL from "../../config";
-
 
 export default function AggiungiDebito() {
   const navigate = useNavigate();
-  const [utenti, setUtenti] = useState([]);
+  const { userData, currentUser } = useAuth();
   
-  // Form States
-  const [descrizione, setDescrizione] = useState("");
-  const [importo, setImporto] = useState("");
-  const [data, setData] = useState(new Date().toISOString().split('T')[0]); 
-  
-  const [creditoreId, setCreditoreId] = useState(""); // Chi ha pagato
-  const [debitoreId, setDebitoreId] = useState("");   // Chi deve ridare (se singolo)
-  
-  // NUOVO STATO: Checkbox Split
-  const [dividiConTutti, setDividiConTutti] = useState(false);
+  const [coinquilini, setCoinquilini] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [isDiviso, setIsDiviso] = useState(false);
 
-  const getAuthHeader = () => {
-    const token = localStorage.getItem('token');
-    return { headers: { Authorization: `Bearer ${token}` } };
-  };
+  const [debito, setDebito] = useState({
+    importo: "",
+    descrizione: "",
+    debitoreId: "",
+    creditoreId: currentUser?.uid || ""
+  });
 
   useEffect(() => {
-    // Carica lista coinquilini
-    axios.get(`${API_BASE_URL}/utenti/casa`, getAuthHeader())
-      .then(res => {
-          setUtenti(res.data);
-          // Opzionale: Pre-imposta me stesso come "Chi ha pagato"
-          const myUsername = localStorage.getItem("username");
-          const me = res.data.find(u => u.username === myUsername);
-          if (me) setCreditoreId(me.id);
-      })
-      .catch(e => console.error(e));
-  }, []);
+    const fetchCoinquilini = async () => {
+      if (!userData?.casaId) return;
+      try {
+        const q = query(collection(db, "utenti"), where("casaId", "==", userData.casaId));
+        const snap = await getDocs(q);
+        const utenti = [];
+        snap.forEach(doc => {
+            utenti.push({ id: doc.id, ...doc.data() });
+        });
+        setCoinquilini(utenti);
+      } catch (error) {
+        console.error("Errore fetch coinquilini:", error);
+      }
+    };
+    fetchCoinquilini();
+  }, [userData]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    // Validazione base
-    if (!creditoreId || !importo || !descrizione) {
-        alert("Compila descrizione, importo e chi ha pagato!"); return;
+    if (!debito.importo || !debito.descrizione || (!isDiviso && !debito.debitoreId) || !debito.creditoreId) {
+      alert("Compila tutti i campi!");
+      return;
     }
     
-    // Se NON dividiamo, serve obbligatoriamente il debitore singolo
-    if (!dividiConTutti && !debitoreId) {
-        alert("Seleziona chi deve pagare il debito."); return;
-    }
+    setLoading(true);
 
     try {
-      await axios.post(`${API_BASE_URL}/debiti`, {
-        descrizione, 
-        importo, 
-        data, 
-        creditoreId,
-        debitoreId: dividiConTutti ? null : debitoreId, // Se dividiamo, questo è null
-        dividiConTutti // Inviamo il flag al server
-      }, getAuthHeader());
+      const importoNum = parseFloat(debito.importo);
       
+      if (isDiviso) {
+        if (coinquilini.length < 2) {
+          alert("Sei da solo in casa, impossibile dividere.");
+          setLoading(false);
+          return;
+        }
+
+        const quota = (importoNum / coinquilini.length).toFixed(2);
+        
+        const promesse = coinquilini.map(c => {
+          if (c.id !== debito.creditoreId) {
+            return addDoc(collection(db, "debiti"), {
+                importo: quota,
+                descrizione: `${debito.descrizione} (Quota)`,
+                debitoreId: c.id,
+                creditoreId: debito.creditoreId,
+                casaId: userData.casaId,
+                createdAt: new Date()
+            });
+          }
+          return Promise.resolve();
+        });
+
+        await Promise.all(promesse);
+
+      } else {
+        if (debito.debitoreId === debito.creditoreId) {
+            alert("Non puoi avere debiti con te stesso!");
+            setLoading(false);
+            return;
+        }
+
+        await addDoc(collection(db, "debiti"), {
+            importo: importoNum.toFixed(2),
+            descrizione: debito.descrizione,
+            debitoreId: debito.debitoreId,
+            creditoreId: debito.creditoreId,
+            casaId: userData.casaId,
+            createdAt: new Date()
+        });
+      }
+
       navigate("/debiti");
-    } catch(e) { 
-        console.error(e);
-        alert("Errore salvataggio: " + (e.response?.data?.message || "Errore server")); 
+    } catch (error) {
+      console.error(error);
+      alert("Errore salvataggio debito");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="card">
-      <h1>💰 Nuova Spesa</h1>
-      <form onSubmit={handleSubmit} style={{maxWidth:'500px', margin:'0 auto', textAlign:'left'}}>
+    <div className="card" style={{ maxWidth: '600px' }}>
+      <h1 style={{ marginBottom: '10px' }}>Nuova Spesa 💸</h1>
+      <p className="subtitle" style={{ marginBottom: '20px' }}>Registra chi ha pagato cosa, o dividi in parti uguali.</p>
+      
+      <form onSubmit={handleSubmit} className="auth-form" style={{ textAlign: 'left' }}>
         
-        <label>Cosa hai comprato? (Descrizione)</label>
-        <input 
+        <div className="input-group">
+          <label>Cosa hai comprato?</label>
+          <input 
             type="text" 
-            value={descrizione} 
-            onChange={e => setDescrizione(e.target.value)} 
-            placeholder="Es. Spesa Conad, Bolletta..."
-            required 
-        />
+            placeholder="es. Spesa Esselunga, Bolletta Luce" 
+            value={debito.descrizione}
+            onChange={(e) => setDebito({...debito, descrizione: e.target.value})}
+            required
+          />
+        </div>
 
-        <label>Importo Totale (€)</label>
-        <input 
+        <div className="input-group">
+          <label>Importo Totale (€)</label>
+          <input 
             type="number" 
-            step="0.01" 
-            value={importo} 
-            onChange={e => setImporto(e.target.value)} 
-            placeholder="Es. 45.50"
-            required 
-        />
+            step="0.01"
+            placeholder="es. 45.50" 
+            value={debito.importo}
+            onChange={(e) => setDebito({...debito, importo: e.target.value})}
+            required
+          />
+        </div>
 
-        <label>Data</label>
-        <input type="date" value={data} onChange={e => setData(e.target.value)} required />
+        <div className="input-group" style={{ background: 'var(--color-secondary)', padding: '16px', borderRadius: '12px', marginTop: '10px' }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: 0, cursor: 'pointer' }}>
+            <input 
+                type="checkbox" 
+                checked={isDiviso}
+                onChange={(e) => setIsDiviso(e.target.checked)}
+                style={{ width: '20px', height: '20px', margin: 0 }}
+            />
+            <span style={{ fontSize: '1rem', color: 'var(--text-main)', fontWeight: '600' }}>Dividi l'importo tra TUTTI i coinquilini</span>
+          </label>
+        </div>
 
-        {/* BOX CHI HA PAGATO */}
-        <div style={{background:'#f0f9ff', padding:'15px', borderRadius:'8px', margin:'15px 0', border:'1px solid #bae6fd'}}>
-            <label style={{color:'#0369a1', fontWeight:'bold'}}>Chi ha cacciato i soldi? (Creditore)</label>
+        <div className="input-group">
+          <label>Chi ha anticipato i soldi?</label>
+          <select 
+            value={debito.creditoreId}
+            onChange={(e) => setDebito({...debito, creditoreId: e.target.value})}
+            required
+            style={{ width: '100%', padding: '14px', borderRadius: '12px', border: '1px solid #e2e8f0', background: 'white' }}
+          >
+            {coinquilini.map(c => (
+                <option key={c.id} value={c.id}>
+                    {c.username} {c.id === currentUser.uid ? "(Tu)" : ""}
+                </option>
+            ))}
+          </select>
+        </div>
+
+        {!isDiviso && (
+          <div className="input-group">
+            <label>Chi deve restituire i soldi?</label>
             <select 
-                value={creditoreId} 
-                onChange={e => setCreditoreId(e.target.value)} 
-                required 
-                style={{background:'white', width:'100%', padding:'10px', borderRadius:'5px', border:'1px solid #ccc', marginTop:'5px'}}
+              value={debito.debitoreId}
+              onChange={(e) => setDebito({...debito, debitoreId: e.target.value})}
+              required
+              style={{ width: '100%', padding: '14px', borderRadius: '12px', border: '1px solid #e2e8f0', background: 'white' }}
             >
-                <option value="">-- Seleziona --</option>
-                {utenti.map(u => <option key={u.id} value={u.id}>{u.username}</option>)}
+              <option value="">-- Seleziona --</option>
+              {coinquilini.map(c => (
+                  <option key={c.id} value={c.id}>
+                      {c.username} {c.id === currentUser.uid ? "(Tu)" : ""}
+                  </option>
+              ))}
             </select>
-        </div>
-
-        {/* CHECKBOX SPLIT */}
-        <div style={{margin: '15px 0', padding: '10px', border: '1px dashed #ccc', borderRadius: '8px', background: '#fffbeb'}}>
-            <label style={{display:'flex', alignItems:'center', cursor:'pointer', fontWeight:'bold', color:'#b45309'}}>
-                <input 
-                    type="checkbox" 
-                    checked={dividiConTutti} 
-                    onChange={e => setDividiConTutti(e.target.checked)}
-                    style={{width: '20px', height: '20px', marginRight: '10px'}}
-                />
-                Dividi la spesa con tutta la casa
-            </label>
-            <p style={{fontSize:'0.8rem', color:'#666', margin:'5px 0 0 30px'}}>
-                L'importo verrà diviso in parti uguali tra tutti i coinquilini.
-            </p>
-        </div>
-
-        {/* SELETTORE DEBITORE (Visibile solo se NON si divide con tutti) */}
-        {!dividiConTutti && (
-            <div style={{background:'#fff1f2', padding:'15px', borderRadius:'8px', margin:'15px 0', border:'1px solid #fecdd3'}}>
-                <div style={{textAlign:'center', marginBottom:'10px', fontWeight:'bold', color:'#be123c'}}>⬇️ AVANZA SOLDI DA ⬇️</div>
-                
-                <label style={{color:'#be123c', fontWeight:'bold'}}>Chi DEVE ridarli? (Debitore)</label>
-                <select 
-                    value={debitoreId} 
-                    onChange={e => setDebitoreId(e.target.value)} 
-                    required={!dividiConTutti}
-                    style={{background:'white', width:'100%', padding:'10px', borderRadius:'5px', border:'1px solid #ccc', marginTop:'5px'}}
-                >
-                    <option value="">-- Seleziona --</option>
-                    {utenti.map(u => (
-                        // Non mostrare chi ha pagato nella lista dei debitori (opzionale, ma pulito)
-                        u.id !== parseInt(creditoreId) && 
-                        <option key={u.id} value={u.id}>{u.username}</option>
-                    ))}
-                </select>
-            </div>
+          </div>
         )}
 
-        <div style={{display:'flex', gap:'10px', marginTop:'20px'}}>
-            <button type="submit">Salva Spesa</button>
-            <button type="button" className="btn-secondary" onClick={() => navigate('/debiti')}>Annulla</button>
+        <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
+            <button type="submit" className="btn-primary" disabled={loading}>
+              {loading ? "Salvataggio..." : "Salva Spesa"}
+            </button>
+            <button type="button" className="btn-secondary" onClick={() => navigate("/debiti")}>Annulla</button>
         </div>
+
       </form>
     </div>
   );

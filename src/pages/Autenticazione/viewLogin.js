@@ -1,83 +1,81 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios'; // Usiamo Axios per coerenza
+import { auth, db } from '../../firebase';
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore";
 import '../../App.css';
-import API_BASE_URL from "../../config";
-
 
 export default function ViewLogin() {
   const navigate = useNavigate();
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleLogin = async (e) => {
-    e.preventDefault(); // Evita il ricaricamento della pagina standard HTML
+    e.preventDefault();
     setError('');
+    setLoading(true);
 
     try {
-      // 1. Chiamata al Backend
-      const res = await axios.post(`${API_BASE_URL}/login`, { 
-        username, 
-        password 
-      });
-
-      // 2. Salvataggio dati fondamentali
-      localStorage.setItem('token', res.data.token);
-      localStorage.setItem('username', res.data.username);
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const userDocRef = doc(db, 'utenti', userCredential.user.uid);
+      const userDoc = await getDoc(userDocRef);
       
-      // Salviamo casaId se esiste
-      if (res.data.casaId) {
-        localStorage.setItem('casaId', res.data.casaId);
-      } else {
-        localStorage.removeItem('casaId'); // Pulizia per sicurezza
-      }
-
-      // 3. REINDIRIZZAMENTO IMMEDIATO
-      // Se l'utente ha già una casa, va alla dashboard, altrimenti alla scelta casa
-      if (res.data.casaId) {
+      if (userDoc.exists() && userDoc.data().casaId) {
         navigate('/home');
       } else {
         navigate('/scelta-casa');
       }
-
     } catch (err) {
       console.error("Errore Login:", err);
-      // Gestione errore specifica di Axios
-      const msg = err.response?.data?.message || 'Credenziali errate o errore server.';
-      setError(msg);
+      setError("Credenziali errate o errore di connessione.");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="card">
-      <h1>Bentornato 👋</h1>
-      <p className="subtitle">Inserisci le tue credenziali</p>
+    <div className="card auth-card">
+      <div className="auth-header">
+        <h1>Bentornato 👋</h1>
+        <p className="subtitle">Accedi per gestire la tua casa</p>
+      </div>
 
-      {error && <div style={{ color: 'red', marginBottom: '15px', background:'#fee2e2', padding:'10px', borderRadius:'5px' }}>{error}</div>}
+      {error && <div className="error-alert">{error}</div>}
 
-      <form onSubmit={handleLogin}>
-        <input 
-            type="text" 
-            placeholder="Username" 
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            required
-        />
-        <input 
-            type="password" 
-            placeholder="Password" 
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-        />
+      <form onSubmit={handleLogin} className="auth-form">
+        <div className="input-group">
+          <label>Email</label>
+          <input 
+              type="email" 
+              placeholder="es. mario@email.com" 
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+          />
+        </div>
+        <div className="input-group">
+          <label>Password</label>
+          <input 
+              type="password" 
+              placeholder="••••••••" 
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+          />
+        </div>
 
-        <button type="submit">Accedi</button>
+        <button type="submit" className="btn-primary" disabled={loading}>
+          {loading ? "Accesso in corso..." : "Accedi"}
+        </button>
       </form>
       
-      <button className="btn-secondary" onClick={() => navigate('/registrazione')} style={{marginTop: '10px'}}>
-        Non hai un account? Registrati
-      </button>
+      <div className="auth-footer">
+        <button className="btn-text" onClick={() => navigate('/registrazione')}>
+          Non hai un account? <span className="highlight">Registrati</span>
+        </button>
+      </div>
     </div>
   );
 }

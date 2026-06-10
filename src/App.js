@@ -3,6 +3,9 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import "./App.css"; 
 import logo from './logo.png'; 
 
+// Import contesto
+import { AuthProvider } from "./contexts/AuthContext";
+
 // Import componente di sicurezza
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -34,57 +37,59 @@ import AggiungiEvento from "./pages/Bacheca/AggiungiEvento";
 
 function App() {
   return (
-    <Router>
-      <div className="app-container">
-        
-        <Routes>
-          {/* ==================================================
-              ZONE PUBBLICHE (Accessibili a tutti)
-          ================================================== */}
-          <Route path="/" element={<HomeAutenticazione />} />
-          <Route path="/login" element={<ViewLogin />} />
-          <Route path="/registrazione" element={<ViewRegistrazione />} />
+    <AuthProvider>
+      <Router>
+        <div className="app-container">
+          
+          <Routes>
+            {/* ==================================================
+                ZONE PUBBLICHE (Accessibili a tutti)
+            ================================================== */}
+            <Route path="/" element={<HomeAutenticazione />} />
+            <Route path="/login" element={<ViewLogin />} />
+            <Route path="/registrazione" element={<ViewRegistrazione />} />
 
 
-          {/* ==================================================
-              ZONE PROTETTE (Richiedono Login)
-          ================================================== */}
-          <Route element={<ProtectedRoute />}>
-              
-              <Route path="/home" element={<HomeUtente />} />
-              <Route path="/scelta-casa" element={<SceltaCasa />} />
+            {/* ==================================================
+                ZONE PROTETTE (Richiedono Login)
+            ================================================== */}
+            <Route element={<ProtectedRoute />}>
+                
+                <Route path="/home" element={<HomeUtente />} />
+                <Route path="/scelta-casa" element={<SceltaCasa />} />
 
-              {/* Gestione Turni */}
-              <Route path="/turni" element={<ViewTurni />} />
-              <Route path="/turni/aggiungi" element={<AggiuntaTurno />} />
-              <Route path="/turni/modifica/:id" element={<ModificaTurno />} />
-              <Route path="/turni/elimina/:id" element={<EliminaTurno />} />
+                {/* Gestione Turni */}
+                <Route path="/turni" element={<ViewTurni />} />
+                <Route path="/turni/aggiungi" element={<AggiuntaTurno />} />
+                <Route path="/turni/modifica/:id" element={<ModificaTurno />} />
+                <Route path="/turni/elimina/:id" element={<EliminaTurno />} />
 
-              {/* Gestione Debiti */}
-              <Route path="/debiti" element={<ViewDebiti />} />
-              <Route path="/debiti/aggiungi" element={<AggiungiDebito />} />
+                {/* Gestione Debiti */}
+                <Route path="/debiti" element={<ViewDebiti />} />
+                <Route path="/debiti/aggiungi" element={<AggiungiDebito />} />
 
-              {/* Gestione Bacheca */}
-              <Route path="/bacheca" element={<ViewBacheca />} />
-              <Route path="/bacheca/aggiungi" element={<AggiungiNota />} />
-              <Route path="/bacheca/modifica/:id" element={<ModificaNota />} />
+                {/* Gestione Bacheca */}
+                <Route path="/bacheca" element={<ViewBacheca />} />
+                <Route path="/bacheca/aggiungi" element={<AggiungiNota />} />
+                <Route path="/bacheca/modifica/:id" element={<ModificaNota />} />
 
-              {/* Gestione Calendario */}
-              <Route path="/calendario" element={<ViewCalendario />} />
-              <Route path="/calendario/aggiungi" element={<AggiungiEvento />} />
+                {/* Gestione Calendario */}
+                <Route path="/calendario" element={<ViewCalendario />} />
+                <Route path="/calendario/aggiungi" element={<AggiungiEvento />} />
 
-          </Route>
+            </Route>
 
-        </Routes>
+          </Routes>
 
-        {/* Logo sempre visibile */}
-        <div className="persistent-logo">
-           <img src={logo} alt="Logo" className="logo-img" />
-           <span className="logo-text">HouseHelper</span>
+          {/* Logo sempre visibile */}
+          <div className="persistent-logo">
+             <img src={logo} alt="Logo" className="logo-img" />
+             <span className="logo-text">HouseHelper</span>
+          </div>
+
         </div>
-
-      </div>
-    </Router>
+      </Router>
+    </AuthProvider>
   );
 }
 

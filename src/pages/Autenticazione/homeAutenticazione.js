@@ -1,46 +1,41 @@
 import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../contexts/AuthContext";
 import '../../App.css'; 
 
 export default function HomeAutenticazione() {
   const navigate = useNavigate();
+  const { currentUser, userData } = useAuth();
 
-  // CONTROLLO AUTO-INGRESSO
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    
-    // Se c'è un token, assumiamo che l'utente sia loggato
-    if (token) {
-        // Opzionale: controlliamo se ha già una casa salvata per risparmiare un redirect
-        const casaId = localStorage.getItem("casaId");
-        if (casaId) {
+    if (currentUser) {
+        if (userData && userData.casaId) {
             navigate("/home");
         } else {
-            // Se non sappiamo se ha una casa, lo mandiamo alla home che farà il controllo (o a scelta-casa)
-            navigate("/home"); 
+            navigate("/scelta-casa"); 
         }
     }
-  }, [navigate]);
+  }, [currentUser, userData, navigate]);
 
   return (
-    <div className="card" style={{textAlign:'center', padding:'40px 20px'}}>
-        <h1 style={{fontSize:'2.5rem', marginBottom:'10px'}}>Benvenuto su HouseHelper 🏠</h1>
+    <div className="card auth-card">
+        <div className="hero-section">
+            <h1 className="main-title">HouseHelper <span className="emoji-pop">✨</span></h1>
+            <p className="subtitle">
+              La convivenza resa semplice. Gestisci turni, spese e comunicazioni in un'unica app dal design premium.
+            </p>
+        </div>
         
-        <p className="subtitle" style={{marginBottom:'40px', color:'#666'}}>
-          Gestisci i turni di pulizia, le spese e la vita in comune senza stress.
-        </p>
-        
-        <div style={{ display: 'flex', gap: '20px', justifyContent: 'center', flexDirection:'column' }}>
-          <button onClick={() => navigate("/login")} style={{fontSize:'1.1rem', padding:'15px'}}>
-            Accedi al tuo account
+        <div className="auth-buttons-container">
+          <button className="btn-primary btn-large" onClick={() => navigate("/login")}>
+            Accedi all'account
           </button>
           
           <button 
+            className="btn-secondary btn-large"
             onClick={() => navigate("/registrazione")} 
-            className="btn-secondary"
-            style={{fontSize:'1.1rem', padding:'15px'}}
           >
-            Crea un nuovo account
+            Inizia Ora
           </button>
         </div>
     </div>

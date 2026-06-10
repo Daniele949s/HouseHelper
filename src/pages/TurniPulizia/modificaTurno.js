@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import axios from "axios";
-import API_BASE_URL from "../../config";
-
-const API_URL = `${API_BASE_URL}/turni`;
+import React, { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { db } from "../../firebase";
+import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { useAuth } from "../../contexts/AuthContext";
+import '../../App.css';
 
 const generaFasceOrarie = () => {
   const orari = [];
@@ -14,152 +14,125 @@ const generaFasceOrarie = () => {
   }
   return orari;
 };
-
 const FASCE_DISPONIBILI = generaFasceOrarie();
 
 export default function ModificaTurno() {
   const { id } = useParams();
   const navigate = useNavigate();
-
-  const [turno, setTurno] = useState(null);
+  const { userData } = useAuth();
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [saving, setSaving] = useState(false);
 
-  // Helper Auth
-  const getAuthHeader = () => {
-    const token = localStorage.getItem('token');
-    return { headers: { Authorization: `Bearer ${token}` } };
-  };
+  const [turno, setTurno] = useState({
+    nomi: "",
+    data: "",
+    luoghi: "",
+    procedura: "",
+    fasciaOraria: ""
+  });
 
   useEffect(() => {
     const fetchTurno = async () => {
-      const token = localStorage.getItem("token");
-      if (!token) { navigate("/login"); return; }
-
       try {
-        const response = await axios.get(`${API_URL}/${id}`, getAuthHeader());
-        const t = response.data;
-
-        const dataFormattata = new Date(t.data).toISOString().split('T')[0];
-
-        // Decodifichiamo i JSON
-        const parseJSON = (str) => {
-            try { return JSON.parse(str); } catch { return []; }
+        const turnoDoc = await getDoc(doc(db, "turni", id));
+        if (turnoDoc.exists()) {
+          const data = turnoDoc.data();
+          setTurno({
+            nomi: Array.isArray(data.nomi) ? data.nomi.join(", ") : data.nomi,
+            data: data.data,
+            luoghi: Array.isArray(data.luoghi) ? data.luoghi.join(", ") : data.luoghi,
+            procedura: Array.isArray(data.procedura) ? data.procedura.join(", ") : data.procedura,
+            fasciaOraria: Array.isArray(data.fasciaOraria) ? data.fasciaOraria[0] : data.fasciaOraria
+          });
+        } else {
+          alert("Turno non trovato");
+          navigate("/turni");
         }
-
-        setTurno({
-          nomi: parseJSON(t.nomi).join(", "),
-          data: dataFormattata, 
-          luoghi: parseJSON(t.luoghi).join(", "),
-          procedura: parseJSON(t.procedura).join(", "),
-          fasciaOraria: parseJSON(t.fasciaOraria)[0] || "" 
-        });
-      } catch (err) {
-        console.error(err);
-        setError("Errore nel caricamento del turno.");
+      } catch (error) {
+        console.error(error);
       } finally {
         setLoading(false);
       }
     };
-
     fetchTurno();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id]);
+  }, [id, navigate]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setTurno(prev => ({ ...prev, [name]: value }));
+    setTurno((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setSaving(true);
 
     const turnoAggiornato = {
-      nomi: JSON.stringify(turno.nomi.split(",").map(n => n.trim()).filter(Boolean)),
-      data: new Date(turno.data),
-      luoghi: JSON.stringify(turno.luoghi.split(",").map(l => l.trim()).filter(Boolean)),
-      procedura: JSON.stringify(turno.procedura.split(",").map(p => p.trim()).filter(Boolean)),
-      fasciaOraria: JSON.stringify([turno.fasciaOraria])
+      nomi: turno.nomi.split(",").map(n => n.trim()).filter(Boolean),
+      data: turno.data,
+      luoghi: turno.luoghi.split(",").map(l => l.trim()).filter(Boolean),
+      procedura: turno.procedura.split(",").map(p => p.trim()).filter(Boolean),
+      fasciaOraria: [turno.fasciaOraria],
+      mansione: turno.luoghi
     };
 
     try {
-      await axios.put(`${API_URL}/${id}`, turnoAggiornato, getAuthHeader());
-      alert("Turno aggiornato correttamente.");
+      await updateDoc(doc(db, "turni", id), turnoAggiornato);
       navigate("/turni");
-    } catch (err) {
-      console.error(err);
-      alert("Errore durante l'aggiornamento del turno.");
+    } catch (error) {
+      console.error("Errore aggiornamento:", error);
+      alert("Errore durante l'aggiornamento.");
+    } finally {
+      setSaving(false);
     }
   };
 
   if (loading) return <div className="card"><p>Caricamento...</p></div>;
-  if (error) return <div className="card"><p style={{color:'red'}}>{error}</p></div>;
 
   return (
-    <div className="card">
-      <h1>Modifica turno</h1>
-
-      <form onSubmit={handleSubmit} style={{ width: '100%', maxWidth: '500px', margin: '0 auto' }}>
+    <div className="card" style={{ maxWidth: '600px' }}>
+      <h1 style={{ marginBottom: '10px' }}>Modifica Turno ✏️</h1>
+      
+      <form onSubmit={handleSubmit} className="auth-form" style={{ textAlign: 'left', marginTop: '20px' }}>
         
-        <label style={{display: 'block', textAlign:'left', marginTop:'10px'}}>Operatori:</label>
-        <input
-          type="text"
-          name="nomi"
-          value={turno.nomi}
-          onChange={handleChange}
-          required
-        />
+        <div className="input-group">
+          <label>Operatori</label>
+          <input type="text" name="nomi" value={turno.nomi} onChange={handleChange} required />
+        </div>
 
-        <label style={{display: 'block', textAlign:'left', marginTop:'10px'}}>Data:</label>
-        <input
-          type="date"
-          name="data"
-          value={turno.data}
-          onChange={handleChange}
-          required
-        />
+        <div className="input-group">
+          <label>Data</label>
+          <input type="date" name="data" value={turno.data} onChange={handleChange} required />
+        </div>
 
-        <label style={{display: 'block', textAlign:'left', marginTop:'10px'}}>Fascia Oraria:</label>
-        <select 
-          name="fasciaOraria" 
-          value={turno.fasciaOraria} 
-          onChange={handleChange}
-          required
-          style={{ width: '100%', padding: '12px', marginBottom: '1rem', borderRadius: '8px', border: '1px solid #ccc', background: 'white' }}
-        >
-          <option value="">-- Seleziona --</option>
-          {FASCE_DISPONIBILI.map((fascia) => (
-            <option key={fascia} value={fascia}>
-              {fascia}
-            </option>
-          ))}
-        </select>
+        <div className="input-group">
+          <label>Fascia Oraria</label>
+          <select 
+            name="fasciaOraria" value={turno.fasciaOraria} onChange={handleChange} required
+            style={{ width: '100%', padding: '14px', borderRadius: '12px', border: '1px solid #e2e8f0', background: 'white' }}
+          >
+            <option value="">-- Seleziona orario --</option>
+            {FASCE_DISPONIBILI.map(f => <option key={f} value={f}>{f}</option>)}
+          </select>
+        </div>
 
-        <label style={{display: 'block', textAlign:'left', marginTop:'10px'}}>Luoghi:</label>
-        <input
-          type="text"
-          name="luoghi"
-          value={turno.luoghi}
-          onChange={handleChange}
-          required
-        />
+        <div className="input-group">
+          <label>Luoghi</label>
+          <input type="text" name="luoghi" value={turno.luoghi} onChange={handleChange} required />
+        </div>
 
-        <label style={{display: 'block', textAlign:'left', marginTop:'10px'}}>Procedura:</label>
-        <textarea
-          name="procedura"
-          value={turno.procedura}
-          onChange={handleChange}
-          required
-          style={{ width: '100%', padding: '12px', marginBottom: '1rem', borderRadius: '8px', border: '1px solid #ccc' }}
-        />
+        <div className="input-group">
+          <label>Istruzioni</label>
+          <textarea
+            name="procedura" value={turno.procedura} onChange={handleChange}
+            style={{ width: '100%', padding: '14px', borderRadius: '12px', border: '1px solid #e2e8f0', minHeight: '80px', fontFamily: 'inherit' }}
+          />
+        </div>
 
         <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
-          <button type="submit">
-            Salva Modifiche
-          </button>
-          <button type="button" className="btn-secondary" onClick={() => navigate("/turni")}>
-            Annulla
-          </button>
+            <button type="submit" className="btn-primary" disabled={saving}>
+              {saving ? "Salvataggio..." : "Salva Modifiche"}
+            </button>
+            <button type="button" className="btn-secondary" onClick={() => navigate("/turni")}>Annulla</button>
         </div>
       </form>
     </div>

@@ -1,130 +1,98 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import { db } from "../../firebase";
+import { collection, query, where, getDocs, doc, deleteDoc } from "firebase/firestore";
+import { useAuth } from "../../contexts/AuthContext";
 import '../../App.css'; 
-import API_BASE_URL from "../../config";
-
-const API_URL = `${API_BASE_URL}/turni`;
 
 export default function VisualizzaTurni() {
   const navigate = useNavigate();
+  const { userData } = useAuth();
   const [turni, setTurni] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    const fetchTurni = async () => {
-      setLoading(true);
-      setError(null);
-
-      const token = localStorage.getItem("token");
-      if (!token) {
-        navigate("/login");
-        return;
-      }
-
-      try {
-        const response = await axios.get(API_URL, {
-            headers: { Authorization: `Bearer ${token}` }
-        });
-        setTurni(response.data);
-      } catch (err) {
-        console.error(err);
-        setError("Errore nel caricamento dei turni.");
-        
-        if (err.response && (err.response.status === 401 || err.response.status === 403)) {
-            localStorage.clear();
-            navigate("/login");
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchTurni();
-  }, [navigate]);
-
-  // --- FUNZIONE HELPER PER EVITARE L'ERRORE JSON ---
-  const formattaDato = (dato) => {
-      if (!dato) return "N/A";
-      
-      // CASO 1: È già un array (Grazie a Sequelize)
-      if (Array.isArray(dato)) {
-          return dato.join(", ");
-      }
-
-      // CASO 2: È una stringa JSON (Vecchi dati o DB diverso)
-      if (typeof dato === 'string') {
-          try {
-              const parsed = JSON.parse(dato);
-              if (Array.isArray(parsed)) return parsed.join(", ");
-              return parsed;
-          } catch (e) {
-              // Se fallisce il parse, è una stringa normale
-              return dato;
-          }
-      }
-
-      return dato.toString();
+  const fetchTurni = async () => {
+    if (!userData?.casaId) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const q = query(collection(db, "turni"), where("casaId", "==", userData.casaId));
+      const querySnapshot = await getDocs(q);
+      const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      data.sort((a, b) => new Date(a.data) - new Date(b.data));
+      setTurni(data);
+    } catch (err) {
+      console.error(err);
+      setError("Errore nel caricamento dei turni.");
+    } finally {
+      setLoading(false);
+    }
   };
-  // -------------------------------------------------
+
+  useEffect(() => {
+    fetchTurni();
+  }, [userData]);
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("Sei sicuro di voler eliminare questo turno?")) return;
+    try {
+      await deleteDoc(doc(db, "turni", id));
+      fetchTurni();
+    } catch (error) {
+      console.error("Errore eliminazione:", error);
+      alert("Errore nell'eliminazione del turno.");
+    }
+  };
 
   if (loading) return <div className="card"><p>Caricamento turni...</p></div>;
-  if (error) return <div className="card"><p style={{color: 'red'}}>{error}</p></div>;
+  if (error) return <div className="card"><p className="error-alert">{error}</p></div>;
 
   return (
-    <div className="card" style={{ maxWidth: '800px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-        <h1>Elenco turni</h1>
+    <div className="card" style={{ maxWidth: '800px', padding: '2rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '10px' }}>
+        <h1 style={{ margin: 0 }}>Turni Pulizia 🧹</h1>
         <button
-          className="btn-aggiungi"
+          className="btn-primary"
           onClick={() => navigate("/turni/aggiungi")}
-          style={{ width: 'auto', padding: '10px 20px', background: 'var(--primary-color)', color: 'white' }}
+          style={{ width: 'auto', padding: '10px 20px' }}
         >
-          + Aggiungi turno
+          + Nuovo Turno
         </button>
       </div>
 
-      <div className="lista-turni">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
         {turni.length === 0 ? (
-          <p className="subtitle">Nessun turno presente in questa casa.</p>
+          <div style={{ padding: '3rem 1rem', textAlign: 'center', background: 'var(--color-secondary)', borderRadius: 'var(--radius-md)' }}>
+            <span style={{ fontSize: '3rem', opacity: 0.5 }}>🤷‍♂️</span>
+            <p className="subtitle" style={{ marginTop: '10px' }}>Nessun turno programmato.</p>
+          </div>
         ) : (
           turni.map((turno) => (
-            <div key={turno.id} className="turno-wrapper" style={{ marginBottom: '15px', padding: '15px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0', textAlign: 'left' }}>
-              
-              <div style={{ marginBottom: '10px' }}>
-                  {/* DATA */}
-                  <h3 style={{ margin: '0 0 5px 0', color: '#3b82f6' }}>
-                    {new Date(turno.data).toLocaleDateString()}
-                  </h3>
-                  
-                  {/* OPERATORI */}
-                  <p style={{ margin: '5px 0' }}>
-                      <strong>Chi:</strong> {formattaDato(turno.nomi)}
-                  </p>
-                  
-                  {/* LUOGHI */}
-                  <p style={{ margin: '5px 0' }}>
-                      <strong>Dove:</strong> {formattaDato(turno.luoghi)}
-                  </p>
-
-                  {/* FASCIA ORARIA */}
-                  <p style={{ margin: '5px 0' }}>
-                      <strong>Orario:</strong> {formattaDato(turno.fasciaOraria)}
-                  </p>
+            <div key={turno.id} className="widget-card" style={{ textAlign: 'left', borderLeft: '4px solid var(--color-primary)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div>
+                    <h3 style={{ margin: '0 0 8px 0', color: 'var(--color-primary)' }}>
+                      {new Date(turno.data).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                    </h3>
+                    <p style={{ margin: '4px 0' }}><strong>Chi:</strong> {Array.isArray(turno.nomi) ? turno.nomi.join(", ") : turno.nomi}</p>
+                    <p style={{ margin: '4px 0' }}><strong>Dove:</strong> {Array.isArray(turno.luoghi) ? turno.luoghi.join(", ") : turno.luoghi}</p>
+                    <p style={{ margin: '4px 0' }}><strong>Orario:</strong> {Array.isArray(turno.fasciaOraria) ? turno.fasciaOraria[0] : turno.fasciaOraria}</p>
+                    {turno.procedura && <p style={{ margin: '4px 0' }}><strong>Procedura:</strong> {Array.isArray(turno.procedura) ? turno.procedura.join(", ") : turno.procedura}</p>}
+                </div>
               </div>
 
-              <div className="azioni-turno" style={{ display: 'flex', gap: '10px', marginTop: '15px' }}>
+              <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
                 <button
                   className="btn-secondary"
                   onClick={() => navigate(`/turni/modifica/${turno.id}`)}
-                  style={{ fontSize: '0.8rem', padding: '8px 15px', width: 'auto' }}
+                  style={{ width: 'auto', padding: '8px 16px', fontSize: '0.9rem' }}
                 >
                   Modifica
                 </button>
                 <button
-                  style={{ fontSize: '0.8rem', padding: '8px 15px', backgroundColor: '#ef4444', color: 'white', border: 'none', borderRadius: '50px', cursor: 'pointer', width: 'auto' }}
-                  onClick={() => navigate(`/turni/elimina/${turno.id}`)}
+                  onClick={() => handleDelete(turno.id)}
+                  style={{ width: 'auto', padding: '8px 16px', fontSize: '0.9rem', background: 'white', color: 'var(--color-danger)', border: '1px solid var(--color-danger)' }}
                 >
                   Elimina
                 </button>
@@ -134,8 +102,8 @@ export default function VisualizzaTurni() {
         )}
       </div>
       
-      <button className="btn-secondary" onClick={() => navigate("/home")} style={{ marginTop: '20px' }}>
-         Torna alla Home
+      <button className="btn-text" onClick={() => navigate("/home")} style={{ marginTop: '30px' }}>
+         ← Torna alla Dashboard
       </button>
     </div>
   );

@@ -1,64 +1,75 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import { db } from "../../firebase";
+import { collection, addDoc } from "firebase/firestore";
+import { useAuth } from "../../contexts/AuthContext";
 import '../../App.css';
-import API_BASE_URL from "../../config";
-
 
 export default function AggiungiNota() {
   const navigate = useNavigate();
-  const [titolo, setTitolo] = useState("");
-  const [contenuto, setContenuto] = useState("");
+  const { userData, currentUser } = useAuth();
+  const [loading, setLoading] = useState(false);
+
+  const [nota, setNota] = useState({
+    titolo: "",
+    contenuto: "",
+    data: "" // Opzionale
+  });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const token = localStorage.getItem('token');
+    if (!nota.titolo || !nota.contenuto) {
+      alert("Titolo e contenuto sono obbligatori");
+      return;
+    }
     
-    // Payload SEMPLICE: data è sempre null
-    const payload = {
-        titolo, 
-        contenuto, 
-        data: null 
-    };
-
+    setLoading(true);
     try {
-      await axios.post(`${API_BASE_URL}/bacheca`, payload, {
-          headers: { Authorization: `Bearer ${token}` }
+      await addDoc(collection(db, "note"), {
+        titolo: nota.titolo,
+        contenuto: nota.contenuto,
+        data: nota.data || null,
+        autoreId: currentUser.uid,
+        casaId: userData.casaId,
+        createdAt: new Date()
       });
       navigate("/bacheca");
-    } catch(e) { 
-        alert("Errore salvataggio nota.");
-        console.error(e);
+    } catch (error) {
+      console.error(error);
+      alert("Errore salvataggio nota");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="card">
-      <h1>Nuovo Avviso Bacheca 📌</h1>
-      <form onSubmit={handleSubmit} style={{maxWidth:'500px', margin:'0 auto', textAlign:'left'}}>
-        
-        <label>Titolo</label>
-        <input 
-            type="text" 
-            value={titolo} 
-            onChange={e => setTitolo(e.target.value)} 
-            placeholder="Es. Manca il sale"
-            required 
-        />
+    <div className="card" style={{ maxWidth: '600px' }}>
+      <h1 style={{ marginBottom: '10px' }}>Nuovo Avviso 📌</h1>
+      
+      <form onSubmit={handleSubmit} className="auth-form" style={{ textAlign: 'left', marginTop: '20px' }}>
+        <div className="input-group">
+          <label>Titolo (es. Finita la carta igienica!)</label>
+          <input type="text" value={nota.titolo} onChange={e => setNota({...nota, titolo: e.target.value})} required />
+        </div>
 
-        <label>Messaggio</label>
-        <textarea 
-            value={contenuto} 
-            onChange={e => setContenuto(e.target.value)} 
-            placeholder="Scrivi qui..."
-            rows="5"
-            required 
-            style={{width:'100%', padding:'10px', marginBottom:'1rem', borderRadius:'8px', border:'1px solid #ccc'}}
-        />
+        <div className="input-group">
+          <label>Contenuto</label>
+          <textarea
+            value={nota.contenuto} onChange={e => setNota({...nota, contenuto: e.target.value})} required
+            style={{ width: '100%', padding: '14px', borderRadius: '12px', border: '1px solid #e2e8f0', minHeight: '100px', fontFamily: 'inherit' }}
+          />
+        </div>
 
-        <div style={{display:'flex', gap:'10px'}}>
-            <button type="submit">Pubblica in Bacheca</button>
-            <button type="button" className="btn-secondary" onClick={() => navigate('/bacheca')}>Annulla</button>
+        <div className="input-group">
+          <label>Collega a una data (opzionale - es. Scadenza bolletta)</label>
+          <input type="date" value={nota.data} onChange={e => setNota({...nota, data: e.target.value})} />
+        </div>
+
+        <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
+            <button type="submit" className="btn-primary" disabled={loading}>
+              {loading ? "Salvataggio..." : "Pubblica"}
+            </button>
+            <button type="button" className="btn-secondary" onClick={() => navigate("/bacheca")}>Annulla</button>
         </div>
       </form>
     </div>
