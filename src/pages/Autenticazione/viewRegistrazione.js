@@ -1,8 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { auth, db, googleProvider } from "../../firebase";
 import { createUserWithEmailAndPassword, signInWithPopup } from "firebase/auth";
 import { doc, setDoc, getDoc } from "firebase/firestore";
+import InteractiveMascot from "../../components/InteractiveMascot";
+import { triggerConfetti } from "../../components/Celebration";
 import '../../App.css';
 
 export default function ViewRegistrazione() {
@@ -11,6 +13,7 @@ export default function ViewRegistrazione() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+  const emailInputRef = useRef(null);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -20,13 +23,14 @@ export default function ViewRegistrazione() {
 
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      
+
       await setDoc(doc(db, "utenti", userCredential.user.uid), {
         username: username,
         email: email,
         casaId: null
       });
-      
+
+      triggerConfetti();
       navigate("/scelta-casa");
     } catch (err) {
       console.error("Errore di registrazione:", err);
@@ -44,7 +48,9 @@ export default function ViewRegistrazione() {
       const user = result.user;
       const userDocRef = doc(db, 'utenti', user.uid);
       const userDoc = await getDoc(userDocRef);
-      
+
+      triggerConfetti();
+
       if (!userDoc.exists()) {
         await setDoc(userDocRef, {
           username: user.displayName || 'Utente Google',
@@ -69,38 +75,61 @@ export default function ViewRegistrazione() {
 
   return (
     <div className="card auth-card">
+      <InteractiveMascot
+        targetInputRef={emailInputRef}
+        isError={!!error}
+        errorMessage="Verifica i campi!"
+      />
+
       <div className="auth-header">
         <h1>Crea Account ✨</h1>
-        <p className="subtitle">Unisciti a HouseHelper</p>
+        <p className="subtitle">Unisciti alla gestione intelligente di HouseHelper</p>
       </div>
 
-      {error && <div className="error-alert">{error}</div>}
+      {error && (
+        <div className="error-alert">
+          <i className="fas fa-exclamation-circle"></i>
+          <span>{error}</span>
+        </div>
+      )}
 
-      <button type="button" className="btn-secondary" onClick={handleGoogleAuth} disabled={loading} style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
-        <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google" style={{ width: '20px', height: '20px' }} />
-        Continua con Google
+      <button
+        type="button"
+        className="btn-secondary"
+        onClick={handleGoogleAuth}
+        disabled={loading}
+        style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px', marginBottom: '18px' }}
+      >
+        <img
+          src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg"
+          alt="Google"
+          style={{ width: '18px', height: '18px' }}
+        />
+        Registrati con Google
       </button>
 
-      <div style={{ display: 'flex', alignItems: 'center', margin: '20px 0' }}>
-        <hr style={{ flex: 1, border: 'none', borderTop: '1px solid #e2e8f0' }} />
-        <span style={{ margin: '0 10px', color: '#94a3b8', fontSize: '0.9rem' }}>oppure con l'email</span>
-        <hr style={{ flex: 1, border: 'none', borderTop: '1px solid #e2e8f0' }} />
+      <div style={{ display: 'flex', alignItems: 'center', margin: '18px 0' }}>
+        <hr style={{ flex: 1, border: 'none', borderTop: '1px solid var(--border-color)' }} />
+        <span style={{ margin: '0 12px', color: 'var(--text-muted)', fontSize: '0.85rem' }}>oppure con email</span>
+        <hr style={{ flex: 1, border: 'none', borderTop: '1px solid var(--border-color)' }} />
       </div>
 
       <form onSubmit={handleSubmit} className="auth-form">
         <div className="input-group">
-          <label>Nome Utente</label>
+          <label>Nome Utente / Nickname</label>
           <input
             type="text"
-            placeholder="Come ti chiamano in casa?"
+            placeholder="Come ti chiamano i coinquilini?"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             required
           />
         </div>
+
         <div className="input-group">
           <label>Email</label>
           <input
+            ref={emailInputRef}
             type="email"
             placeholder="es. mario@email.com"
             value={email}
@@ -108,6 +137,7 @@ export default function ViewRegistrazione() {
             required
           />
         </div>
+
         <div className="input-group">
           <label>Password</label>
           <input
@@ -118,15 +148,19 @@ export default function ViewRegistrazione() {
             required
           />
         </div>
-        <button type="submit" className="btn-primary" disabled={loading}>
-          {loading ? "Creazione in corso..." : "Registrati"}
+
+        <button type="submit" className="btn-primary" disabled={loading} style={{ marginTop: "6px" }}>
+          {loading ? (
+            <span><i className="fas fa-spinner fa-spin"></i> Creazione in corso...</span>
+          ) : (
+            <span><i className="fas fa-check"></i> Completa Registrazione</span>
+          )}
         </button>
       </form>
-      
-      <div className="auth-footer" style={{ marginTop: '20px' }}>
-        <p>Hai già un account?</p>
+
+      <div style={{ marginTop: '24px' }}>
         <button className="btn-text" onClick={() => navigate("/login")}>
-          <span className="highlight">Accedi qui</span>
+          Hai già un account? <span className="highlight">Accedi qui</span>
         </button>
       </div>
     </div>

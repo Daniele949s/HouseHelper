@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { db } from "../../firebase";
 import { collection, addDoc } from "firebase/firestore";
 import { useAuth } from "../../contexts/AuthContext";
+import { triggerConfetti } from "../../components/Celebration";
 import '../../App.css';
 
 export default function AggiungiNota() {
@@ -13,7 +14,7 @@ export default function AggiungiNota() {
   const [nota, setNota] = useState({
     titolo: "",
     contenuto: "",
-    data: "" // Opzionale
+    data: ""
   });
 
   const handleSubmit = async (e) => {
@@ -22,7 +23,7 @@ export default function AggiungiNota() {
       alert("Titolo e contenuto sono obbligatori");
       return;
     }
-    
+
     setLoading(true);
     try {
       await addDoc(collection(db, "note"), {
@@ -33,43 +34,60 @@ export default function AggiungiNota() {
         casaId: userData.casaId,
         createdAt: new Date()
       });
+      triggerConfetti();
       navigate("/bacheca");
     } catch (error) {
       console.error(error);
-      alert("Errore salvataggio nota");
+      alert("Errore durante il salvataggio della nota");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="card" style={{ maxWidth: '600px' }}>
-      <h1 style={{ marginBottom: '10px' }}>Nuovo Avviso 📌</h1>
-      
-      <form onSubmit={handleSubmit} className="auth-form" style={{ textAlign: 'left', marginTop: '20px' }}>
-        <div className="input-group">
-          <label>Titolo (es. Finita la carta igienica!)</label>
-          <input type="text" value={nota.titolo} onChange={e => setNota({...nota, titolo: e.target.value})} required />
-        </div>
+    <div className="card" style={{ maxWidth: '620px' }}>
+      <h1 style={{ marginBottom: '6px' }}>Nuovo Avviso 📌</h1>
+      <p className="subtitle" style={{ marginBottom: '24px' }}>Condividi una comunicazione con tutti i coinquilini</p>
 
+      <form onSubmit={handleSubmit} className="auth-form" style={{ textAlign: 'left' }}>
         <div className="input-group">
-          <label>Contenuto</label>
-          <textarea
-            value={nota.contenuto} onChange={e => setNota({...nota, contenuto: e.target.value})} required
-            style={{ width: '100%', padding: '14px', borderRadius: '12px', border: '1px solid #e2e8f0', minHeight: '100px', fontFamily: 'inherit' }}
+          <label>Titolo (es. Finita la carta forno, Ospiti venerdì)</label>
+          <input
+            type="text"
+            value={nota.titolo}
+            onChange={e => setNota({...nota, titolo: e.target.value})}
+            placeholder="Oggetto dell'avviso"
+            required
           />
         </div>
 
         <div className="input-group">
-          <label>Collega a una data (opzionale - es. Scadenza bolletta)</label>
-          <input type="date" value={nota.data} onChange={e => setNota({...nota, data: e.target.value})} />
+          <label>Messaggio / Dettagli</label>
+          <textarea
+            value={nota.contenuto}
+            onChange={e => setNota({...nota, contenuto: e.target.value})}
+            placeholder="Scrivi qui il messaggio dettagliato..."
+            required
+            style={{ minHeight: '110px' }}
+          />
         </div>
 
-        <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
-            <button type="submit" className="btn-primary" disabled={loading}>
-              {loading ? "Salvataggio..." : "Pubblica"}
-            </button>
-            <button type="button" className="btn-secondary" onClick={() => navigate("/bacheca")}>Annulla</button>
+        <div className="input-group">
+          <label>Data scadenza o evento (opzionale)</label>
+          <input
+            type="date"
+            value={nota.data}
+            onChange={e => setNota({...nota, data: e.target.value})}
+          />
+        </div>
+
+        <div style={{ display: 'flex', gap: '12px', marginTop: '16px' }}>
+          <button type="submit" className="btn-primary" disabled={loading}>
+            {loading ? <i className="fas fa-spinner fa-spin"></i> : "Pubblica Avviso"}
+          </button>
+          <button type="button" className="btn-secondary" onClick={() => navigate("/bacheca")}>
+            Annulla
+          </button>
         </div>
       </form>
     </div>

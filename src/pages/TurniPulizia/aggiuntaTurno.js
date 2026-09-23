@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { db } from "../../firebase";
 import { collection, addDoc } from "firebase/firestore";
 import { useAuth } from "../../contexts/AuthContext";
+import { triggerConfetti } from "../../components/Celebration";
 import '../../App.css';
 
 const generaFasceOrarie = () => {
@@ -51,11 +52,12 @@ export default function AggiuntaTurno() {
       fasciaOraria: [turno.fasciaOraria],
       casaId: userData.casaId,
       utenteId: currentUser.uid,
-      mansione: turno.luoghi // per la dashboard
+      mansione: turno.luoghi
     };
 
     try {
       await addDoc(collection(db, "turni"), turnoDaInviare);
+      triggerConfetti();
       navigate("/turni");
     } catch (error) {
       console.error("Errore aggiunta turno:", error);
@@ -66,52 +68,52 @@ export default function AggiuntaTurno() {
   };
 
   return (
-    <div className="card" style={{ maxWidth: '600px' }}>
-      <h1 style={{ marginBottom: '10px' }}>Nuovo Turno ✨</h1>
-      <p className="subtitle" style={{ marginBottom: '20px' }}>Assegna un nuovo turno di pulizia in casa</p>
-      
+    <div className="card" style={{ maxWidth: '620px' }}>
+      <h1 style={{ marginBottom: '6px' }}>Nuovo Turno Pulizia 🧹</h1>
+      <p className="subtitle" style={{ marginBottom: '24px' }}>Assegna un incarico e pianifica la pulizia della casa</p>
+
       <form onSubmit={handleSubmit} className="auth-form" style={{ textAlign: 'left' }}>
-        
         <div className="input-group">
           <label>Chi farà le pulizie? (separati da virgola)</label>
-          <input type="text" name="nomi" value={turno.nomi} onChange={handleChange} required placeholder="es. Mario, Luigi" />
+          <input type="text" name="nomi" value={turno.nomi} onChange={handleChange} required placeholder="es. Mario, Luca" />
         </div>
 
         <div className="input-group">
-          <label>Data</label>
+          <label>Data Turno</label>
           <input type="date" name="data" value={turno.data} onChange={handleChange} required />
         </div>
 
         <div className="input-group">
           <label>Fascia Oraria</label>
-          <select 
-            name="fasciaOraria" value={turno.fasciaOraria} onChange={handleChange} required
-            style={{ width: '100%', padding: '14px', borderRadius: '12px', border: '1px solid #e2e8f0', background: 'white' }}
-          >
-            <option value="">-- Seleziona orario --</option>
+          <select name="fasciaOraria" value={turno.fasciaOraria} onChange={handleChange} required>
+            <option value="">-- Seleziona orario indicativo --</option>
             {FASCE_DISPONIBILI.map(f => <option key={f} value={f}>{f}</option>)}
           </select>
         </div>
 
         <div className="input-group">
           <label>Cosa c'è da pulire? (separati da virgola)</label>
-          <input type="text" name="luoghi" value={turno.luoghi} onChange={handleChange} required placeholder="es. Cucina, Bagno" />
+          <input type="text" name="luoghi" value={turno.luoghi} onChange={handleChange} required placeholder="es. Cucina, Bagno, Pavimento salotto" />
         </div>
 
         <div className="input-group">
-          <label>Istruzioni extra (opzionale)</label>
+          <label>Istruzioni extra / Procedura (opzionale)</label>
           <textarea
-            name="procedura" value={turno.procedura} onChange={handleChange}
-            placeholder="es. Buttare l'umido, pulire il forno"
-            style={{ width: '100%', padding: '14px', borderRadius: '12px', border: '1px solid #e2e8f0', minHeight: '80px', fontFamily: 'inherit' }}
+            name="procedura"
+            value={turno.procedura}
+            onChange={handleChange}
+            placeholder="es. Svuotare la pattumiera dell'organico, passare lo straccio"
+            style={{ minHeight: '80px' }}
           />
         </div>
 
-        <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
-            <button type="submit" className="btn-primary" disabled={loading}>
-              {loading ? "Creazione..." : "Crea Turno"}
-            </button>
-            <button type="button" className="btn-secondary" onClick={() => navigate("/turni")}>Annulla</button>
+        <div style={{ display: 'flex', gap: '12px', marginTop: '16px' }}>
+          <button type="submit" className="btn-primary" disabled={loading}>
+            {loading ? <i className="fas fa-spinner fa-spin"></i> : "Crea Turno"}
+          </button>
+          <button type="button" className="btn-secondary" onClick={() => navigate("/turni")}>
+            Annulla
+          </button>
         </div>
       </form>
     </div>

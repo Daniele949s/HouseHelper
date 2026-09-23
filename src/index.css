@@ -1,77 +1,199 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@500;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=Lexend:wght@400;500;600;700&display=swap');
 
+/* ==========================================================================
+   THEME PALETTES (DARK & LIGHT)
+   ========================================================================== */
 :root {
-  /* Ultra-Modern Dark Theme Palette */
-  --bg-main: #09090b; /* zinc-950 */
-  --bg-card: rgba(255, 255, 255, 0.03);
-  --bg-card-hover: rgba(255, 255, 255, 0.06);
+  /* Default: Dark Mode */
+  --bg-main: #09090b;
+  --bg-surface: rgba(18, 18, 26, 0.75);
+  --bg-card: rgba(25, 27, 40, 0.65);
+  --bg-card-hover: rgba(35, 38, 58, 0.85);
+  --bg-card-glass: rgba(18, 20, 32, 0.6);
+  --bg-input: rgba(12, 14, 24, 0.6);
   
-  --color-primary: #6366f1; /* Indigo */
+  --color-primary: #6366f1;
   --color-primary-hover: #4f46e5;
-  --color-accent: #14b8a6; /* Teal */
+  --color-primary-glow: rgba(99, 102, 241, 0.35);
+  --color-secondary: rgba(255, 255, 255, 0.05);
+  --color-accent: #14b8a6;
+  --color-accent-glow: rgba(20, 184, 166, 0.35);
   
   --color-success: #10b981;
   --color-danger: #ef4444;
   --color-warning: #f59e0b;
+  --color-purple: #8b5cf6;
 
   --text-main: #f8fafc;
   --text-secondary: #94a3b8;
   --text-muted: #64748b;
   
-  --border-color: rgba(255, 255, 255, 0.08);
-  --border-highlight: rgba(255, 255, 255, 0.15);
+  --border-color: rgba(255, 255, 255, 0.09);
+  --border-highlight: rgba(255, 255, 255, 0.18);
+  --border-focus: #6366f1;
   
+  --radius-xs: 8px;
   --radius-sm: 12px;
   --radius-md: 20px;
-  --radius-lg: 32px;
+  --radius-lg: 30px;
   --radius-full: 9999px;
   
-  --shadow-glow: 0 0 20px rgba(99, 102, 241, 0.15);
-  --shadow-card: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+  --shadow-glow: 0 0 25px rgba(99, 102, 241, 0.22);
+  --shadow-card: 0 16px 36px -12px rgba(0, 0, 0, 0.65);
+  --shadow-subtle: 0 4px 16px rgba(0, 0, 0, 0.3);
   
-  --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition: 0.25s cubic-bezier(0.22, 0.61, 0.36, 1);
+  --transition-bounce: 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+html.light-theme {
+  --bg-main: #f3f4f8;
+  --bg-surface: rgba(255, 255, 255, 0.85);
+  --bg-card: rgba(255, 255, 255, 0.8);
+  --bg-card-hover: rgba(255, 255, 255, 0.95);
+  --bg-card-glass: rgba(255, 255, 255, 0.75);
+  --bg-input: rgba(240, 243, 249, 0.9);
+  
+  --color-primary: #4f46e5;
+  --color-primary-hover: #4338ca;
+  --color-primary-glow: rgba(79, 70, 229, 0.25);
+  --color-secondary: rgba(0, 0, 0, 0.04);
+  --color-accent: #0d9488;
+  --color-accent-glow: rgba(13, 148, 136, 0.2);
+  
+  --color-success: #059669;
+  --color-danger: #dc2626;
+  --color-warning: #d97706;
+  --color-purple: #7c3aed;
+
+  --text-main: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #94a3b8;
+  
+  --border-color: rgba(0, 0, 0, 0.08);
+  --border-highlight: rgba(0, 0, 0, 0.16);
+  --border-focus: #4f46e5;
+  
+  --shadow-glow: 0 0 25px rgba(79, 70, 229, 0.15);
+  --shadow-card: 0 16px 36px -12px rgba(15, 23, 42, 0.09);
+  --shadow-subtle: 0 4px 16px rgba(15, 23, 42, 0.05);
+}
+
+/* ==========================================================================
+   BASE & RESET
+   ========================================================================== */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
 body {
-  margin: 0;
-  font-family: 'Inter', sans-serif;
-  -webkit-font-smoothing: antialiased;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   background-color: var(--bg-main);
   color: var(--text-main);
-  
-  /* Modern glowing mesh background */
-  background-image: 
-    radial-gradient(circle at 15% 50%, rgba(99, 102, 241, 0.08) 0%, transparent 50%),
-    radial-gradient(circle at 85% 30%, rgba(20, 184, 166, 0.08) 0%, transparent 50%);
-  background-attachment: fixed;
   min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.5;
+  transition: background-color 0.4s ease, color 0.4s ease;
 }
 
-h1, h2, h3, h4 {
+h1, h2, h3, h4, h5, h6 {
   font-family: 'Outfit', sans-serif;
-  margin: 0;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.025em;
+  font-weight: 700;
+  color: var(--text-main);
 }
 
-input, select, textarea, button {
-  font-family: 'Inter', sans-serif;
+/* ==========================================================================
+   DYNAMIC BACKGROUND SLIDESHOW (From GeneralTemplate)
+   ========================================================================== */
+.dynamic-bg-container {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
 }
 
-* {
-  box-sizing: border-box;
+.dynamic-bg-slide {
+  position: absolute;
+  inset: 0;
+  width: 120%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+  opacity: 0;
+  transition: opacity 2s ease-in-out, transform 12s linear;
+  transform: translateX(0);
 }
 
-/* Scrollbar styling for a premium feel */
+.dynamic-bg-slide.slide-active {
+  opacity: 1;
+  animation: bgPan 45s linear infinite alternate;
+}
+
+@keyframes bgPan {
+  0% { transform: translateX(0) scale(1); }
+  50% { transform: translateX(-6%) scale(1.04); }
+  100% { transform: translateX(-12%) scale(1); }
+}
+
+.dynamic-bg-auth .dynamic-bg-slide {
+  filter: blur(4px) brightness(0.65);
+}
+
+.light-theme .dynamic-bg-auth .dynamic-bg-slide {
+  filter: blur(6px) brightness(0.9) contrast(0.85);
+}
+
+.dynamic-bg-interior .dynamic-bg-slide {
+  filter: blur(12px) brightness(0.35);
+  opacity: 0.3 !important;
+}
+
+.light-theme .dynamic-bg-interior .dynamic-bg-slide {
+  filter: blur(16px) brightness(1) opacity(0.12);
+  opacity: 0.15 !important;
+}
+
+.dynamic-bg-overlay {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 10%, rgba(99, 102, 241, 0.15) 0%, transparent 60%),
+              radial-gradient(circle at 90% 85%, rgba(20, 184, 166, 0.1) 0%, transparent 50%),
+              linear-gradient(to bottom, rgba(9, 9, 11, 0.4) 0%, var(--bg-main) 90%);
+}
+
+.light-theme .dynamic-bg-overlay {
+  background: radial-gradient(circle at 50% 10%, rgba(99, 102, 241, 0.08) 0%, transparent 60%),
+              radial-gradient(circle at 90% 85%, rgba(20, 184, 166, 0.06) 0%, transparent 50%),
+              linear-gradient(to bottom, rgba(243, 244, 248, 0.6) 0%, var(--bg-main) 90%);
+}
+
+/* ==========================================================================
+   SCROLLBAR & SELECTION
+   ========================================================================== */
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 6px;
+  height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: var(--bg-main);
+  background: transparent;
 }
 ::-webkit-scrollbar-thumb {
   background: var(--border-highlight);
-  border-radius: 4px;
+  border-radius: var(--radius-full);
 }
 ::-webkit-scrollbar-thumb:hover {
   background: var(--text-muted);
+}
+
+::selection {
+  background: var(--color-primary);
+  color: #fff;
 }

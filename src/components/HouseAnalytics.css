@@ -1,0 +1,444 @@
+/* ==========================================================================
+   HOUSE ANALYTICS COMPONENT (from graphs, graphs2, progressStep)
+   ========================================================================== */
+.analytics-card {
+  grid-column: span 12;
+  background: var(--bg-card);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 26px 28px;
+  box-shadow: var(--shadow-subtle);
+  transition: all 0.3s ease;
+  text-align: left;
+}
+
+.analytics-card:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--border-highlight);
+  box-shadow: var(--shadow-card);
+}
+
+.analytics-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 16px;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 20px;
+  margin-bottom: 24px;
+}
+
+.analytics-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(99, 102, 241, 0.15);
+  color: var(--color-primary);
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 8px;
+}
+
+.analytics-header h2 {
+  font-size: 1.6rem;
+  margin: 0;
+  color: var(--text-main);
+}
+
+.analytics-subtitle {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  margin: 2px 0 0 0;
+}
+
+/* Tabs switcher (from graphs.html) */
+.analytics-tabs {
+  display: flex;
+  gap: 8px;
+  background: var(--bg-input);
+  padding: 4px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border-color);
+}
+
+.analytics-tab-btn {
+  background: transparent;
+  color: var(--text-secondary);
+  padding: 8px 16px;
+  border-radius: var(--radius-full);
+  font-size: 0.88rem;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.22, 0.61, 0.36, 1);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.analytics-tab-btn:hover {
+  color: var(--text-main);
+}
+
+.analytics-tab-btn.active {
+  background: var(--color-primary);
+  color: #fff;
+  box-shadow: 0 2px 10px var(--color-primary-glow);
+}
+
+/* Donut Chart (graphs2.html) */
+.analytics-view-grid {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: 32px;
+  align-items: center;
+}
+
+.donut-chart-wrapper {
+  position: relative;
+  width: 190px;
+  height: 190px;
+  margin: 0 auto;
+}
+
+.donut-svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+  overflow: visible;
+}
+
+.donut-segment {
+  transition: stroke-dasharray 0.6s cubic-bezier(0.4, 0.01, 0.165, 0.99),
+              stroke-dashoffset 0.6s cubic-bezier(0.4, 0.01, 0.165, 0.99);
+  cursor: pointer;
+}
+
+.donut-segment:hover {
+  stroke-width: 28px;
+  filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.5));
+}
+
+.donut-center-text {
+  transform: rotate(90deg);
+  transform-origin: 100px 100px;
+}
+
+.donut-center-label {
+  font-size: 11px;
+  fill: var(--text-muted);
+  font-family: inherit;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.donut-center-val {
+  font-size: 24px;
+  fill: var(--text-main);
+  font-family: 'Outfit', sans-serif;
+  font-weight: 800;
+}
+
+.donut-legend-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.legend-title {
+  font-size: 0.92rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 6px;
+}
+
+.legend-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  background: var(--bg-input);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  transition: all 0.2s ease;
+}
+
+.legend-item:hover {
+  background: var(--bg-surface);
+  transform: translateX(4px);
+  border-color: var(--border-highlight);
+}
+
+.legend-item-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.color-swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 4px;
+}
+
+.legend-user-name {
+  font-weight: 600;
+  color: var(--text-main);
+  font-size: 0.95rem;
+}
+
+.legend-item-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.legend-amount {
+  color: var(--text-main);
+  font-size: 1rem;
+}
+
+.legend-percent {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+/* KPI Box Row for Turni */
+.stats-kpi-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+.kpi-box {
+  background: var(--bg-input);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  text-align: center;
+}
+
+.kpi-num {
+  display: block;
+  font-size: 2.2rem;
+  font-family: 'Outfit', sans-serif;
+  font-weight: 800;
+  line-height: 1.1;
+  color: var(--color-primary);
+}
+
+.kpi-label {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+}
+
+.kpi-box.box-success .kpi-num {
+  color: var(--color-success);
+}
+.kpi-box.box-warning .kpi-num {
+  color: var(--color-warning);
+}
+
+/* Horizontal Bar Chart (graphs.html) */
+.bar-chart-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.bar-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.bar-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.bar-info {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.bar-name {
+  color: var(--text-main);
+}
+.bar-count {
+  color: var(--text-secondary);
+}
+
+.bar-track {
+  width: 100%;
+  height: 10px;
+  background: var(--bg-input);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+}
+
+.bar-fill {
+  height: 100%;
+  border-radius: var(--radius-full);
+  transition: width 0.7s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+/* Spesa Progress Card (progressStep.html) */
+.spesa-progress-card {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.spesa-progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.spesa-progress-header h4 {
+  font-size: 1.15rem;
+  margin-bottom: 2px;
+}
+
+.spesa-progress-header p {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.spesa-percent-badge {
+  font-size: 1.8rem;
+  font-family: 'Outfit', sans-serif;
+  font-weight: 800;
+  color: var(--color-accent);
+}
+
+.step-progress-track {
+  width: 100%;
+  height: 10px;
+  background: var(--bg-input);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+}
+
+.step-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--color-primary), var(--color-accent));
+  border-radius: var(--radius-full);
+  transition: width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 0 10px var(--color-accent-glow);
+}
+
+.step-checkpoints {
+  display: flex;
+  justify-content: space-between;
+  position: relative;
+  padding-top: 4px;
+}
+
+.step-checkpoint {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.step-checkpoint i {
+  font-size: 1.2rem;
+  transition: color 0.3s ease;
+}
+
+.step-checkpoint.reached {
+  color: var(--color-accent);
+}
+
+.spesa-summary-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-top: 6px;
+}
+
+.summary-pill {
+  padding: 12px 18px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  background: var(--bg-input);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.summary-pill.da-comprare .pill-val {
+  color: #0284c7;
+}
+.summary-pill.presi .pill-val {
+  color: var(--color-success);
+}
+
+.pill-val {
+  font-size: 1.5rem;
+  font-weight: 800;
+  font-family: 'Outfit', sans-serif;
+}
+
+.pill-txt {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.empty-notice {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  padding: 12px 0;
+}
+
+@media (max-width: 768px) {
+  .analytics-view-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  .donut-chart-wrapper {
+    width: 160px;
+    height: 160px;
+  }
+  .analytics-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .analytics-tabs {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .analytics-tab-btn {
+    flex: 1;
+    justify-content: center;
+    padding: 8px 10px;
+    font-size: 0.8rem;
+  }
+  .spesa-summary-grid {
+    grid-template-columns: 1fr;
+  }
+}
