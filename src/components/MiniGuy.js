@@ -98,7 +98,7 @@ export default function MiniGuy() {
   return (
     <div
       className="mini-guy-container"
-      title="Guybrush Threepwood fa la guardia alla casa 🏴‍☠️"
+      title="Mascotte Pirata fa la guardia alla casa 🏴‍☠️"
       style={{
         display: "inline-flex",
         alignItems: "center",

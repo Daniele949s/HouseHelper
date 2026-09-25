@@ -15,15 +15,18 @@ export default function MobileNavigation() {
     setIsOpen(false);
   }, [location.pathname]);
 
-  // Lock body scroll when mobile menu is open
+  // Lock body & html scroll completely when mobile menu is open
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden";
+      document.documentElement.style.overflow = "hidden";
     } else {
       document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
     }
     return () => {
       document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
     };
   }, [isOpen]);
 
@@ -60,7 +63,7 @@ export default function MobileNavigation() {
         type="button"
         className={`burger-container ${isOpen ? "burger-active" : ""}`}
         onClick={() => setIsOpen(!isOpen)}
-        aria-label="Menu di navigazione"
+        aria-label={isOpen ? "Chiudi menu" : "Apri menu di navigazione"}
         aria-expanded={isOpen}
       >
         <div id="burger">
@@ -69,18 +72,29 @@ export default function MobileNavigation() {
         </div>
       </button>
 
-      {/* Fullscreen Mobile Drawer with staged animation */}
+      {/* Fullscreen Mobile Drawer: 100% Solid Opaque (No transparency) */}
       <div className={`mobile-menu-overlay ${isOpen ? "menu-opened" : ""}`} aria-hidden={!isOpen}>
         <div className="mobile-menu-inner">
           <div className="mobile-menu-header">
-            <span className="mobile-menu-badge">
-              <i className="fas fa-home"></i> HouseHelper Mobile
-            </span>
-            {userData?.username && (
-              <span className="mobile-user-greeting">
-                Ciao, <strong>{userData.username}</strong>
+            <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+              <span className="mobile-menu-badge">
+                <i className="fas fa-home"></i> HouseHelper Menu
               </span>
-            )}
+              {userData?.username && (
+                <span className="mobile-user-greeting">
+                  Ciao, <strong>{userData.username}</strong>
+                </span>
+              )}
+            </div>
+
+            <button
+              type="button"
+              className="mobile-close-btn"
+              onClick={() => setIsOpen(false)}
+              aria-label="Chiudi menu"
+            >
+              <i className="fas fa-times"></i>
+            </button>
           </div>
 
           <ul className="mobile-menu-list">

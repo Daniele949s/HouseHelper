@@ -8,12 +8,18 @@ import { AuthProvider } from "./contexts/AuthContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
 
 // Import Visual & Interactive Components
-import ProtectedRoute from "./components/ProtectedRoute";
 import ThemeToggle from "./components/ThemeToggle";
 import MobileNavigation from "./components/MobileNavigation";
 import ScrollProgressBar from "./components/ScrollProgressBar";
 import BackgroundSlideshow from "./components/BackgroundSlideshow";
 import AppFooter from "./components/AppFooter";
+
+// Import Security Route Guards
+import {
+  HouseProtectedRoute,
+  HouseSelectRoute,
+  PublicOnlyRoute
+} from "./components/RouteGuards";
 
 // Import Auth Pages
 import HomeAutenticazione from "./pages/Autenticazione/homeAutenticazione";
@@ -23,6 +29,7 @@ import ViewRegistrazione from "./pages/Autenticazione/viewRegistrazione";
 // Import User & House Pages
 import HomeUtente from "./pages/homeUtente";
 import SceltaCasa from "./pages/SceltaCasa";
+import NotFound from "./pages/NotFound";
 
 // Import Cleaning Shifts Pages
 import ViewTurni from "./pages/TurniPulizia/viewTurni";
@@ -73,15 +80,21 @@ function App() {
           <div className="app-container">
             <AppHeader />
             <Routes>
-              {/* Public Routes */}
-              <Route path="/" element={<HomeAutenticazione />} />
-              <Route path="/login" element={<ViewLogin />} />
-              <Route path="/registrazione" element={<ViewRegistrazione />} />
+              {/* Public-Only Routes (Redirects if already authenticated) */}
+              <Route element={<PublicOnlyRoute />}>
+                <Route path="/" element={<HomeAutenticazione />} />
+                <Route path="/login" element={<ViewLogin />} />
+                <Route path="/registrazione" element={<ViewRegistrazione />} />
+              </Route>
 
-              {/* Protected Routes */}
-              <Route element={<ProtectedRoute />}>
-                <Route path="/home" element={<HomeUtente />} />
+              {/* House Setup Route (Authenticated users without a household) */}
+              <Route element={<HouseSelectRoute />}>
                 <Route path="/scelta-casa" element={<SceltaCasa />} />
+              </Route>
+
+              {/* Fully Protected Household Routes (Authenticated AND has casaId) */}
+              <Route element={<HouseProtectedRoute />}>
+                <Route path="/home" element={<HomeUtente />} />
 
                 {/* Turni Pulizia */}
                 <Route path="/turni" element={<ViewTurni />} />
@@ -104,6 +117,9 @@ function App() {
                 <Route path="/calendario" element={<ViewCalendario />} />
                 <Route path="/calendario/aggiungi" element={<AggiungiEvento />} />
               </Route>
+
+              {/* Catch-all 404 Route for URL manipulation / invalid links */}
+              <Route path="*" element={<NotFound />} />
             </Routes>
             <AppFooter />
           </div>

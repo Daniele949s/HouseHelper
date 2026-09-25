@@ -1,0 +1,91 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions for secure multi-tenant isolation
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    // Retrieve user's active household ID from their profile document
+    function getUserCasaId() {
+      return get(/databases/$(database)/documents/utenti/$(request.auth.uid)).data.casaId;
+    }
+
+    function belongsToSameHouse(casaId) {
+      return isSignedIn() && getUserCasaId() == casaId;
+    }
+
+    // ==========================================
+    // 1. UTENTI
+    // ==========================================
+    match /utenti/{userId} {
+      // Allow reading user profile if signed in (needed to show roommate names)
+      allow read: if isSignedIn();
+      // Allow creating/updating profile only by the account owner
+      allow create, update: if isOwner(userId);
+      allow delete: if false; // Profiles shouldn't be deleted directly
+    }
+
+    // ==========================================
+    // 2. CASE (Nuclei Abitativi)
+    // ==========================================
+    match /case/{casaId} {
+      // Anyone signed in can read case (needed for invite code matching)
+      allow read: if isSignedIn();
+      // Any authenticated user can create a new household
+      allow create: if isSignedIn();
+      // Only members of the household can update
+      allow update: if belongsToSameHouse(casaId);
+      allow delete: if false;
+    }
+
+    // ==========================================
+    // 3. TURNI PULIZIA
+    // ==========================================
+    match /turni/{turnoId} {
+      allow read: if isSignedIn() && belongsToSameHouse(resource.data.casaId);
+      allow create: if isSignedIn() && request.resource.data.casaId == getUserCasaId();
+      allow update, delete: if isSignedIn() && belongsToSameHouse(resource.data.casaId);
+    }
+
+    // ==========================================
+    // 4. SPESE & DEBITI
+    // ==========================================
+    match /debiti/{debitoId} {
+      allow read: if isSignedIn() && belongsToSameHouse(resource.data.casaId);
+      allow create: if isSignedIn() && request.resource.data.casaId == getUserCasaId()
+        && request.resource.data.importo is string
+        && float(request.resource.data.importo) > 0.0
+        && float(request.resource.data.importo) <= 50000.0;
+      allow update, delete: if isSignedIn() && belongsToSameHouse(resource.data.casaId);
+    }
+
+    // ==========================================
+    // 5. LISTA DELLA SPESA
+    // ==========================================
+    match /spesa/{spesaId} {
+      allow read: if isSignedIn() && belongsToSameHouse(resource.data.casaId);
+      allow create: if isSignedIn() && request.resource.data.casaId == getUserCasaId();
+      allow update, delete: if isSignedIn() && belongsToSameHouse(resource.data.casaId);
+    }
+
+    // ==========================================
+    // 6. BACHECA & EVENTI CALENDARIO
+    // ==========================================
+    match /note/{notaId} {
+      allow read: if isSignedIn() && belongsToSameHouse(resource.data.casaId);
+      allow create: if isSignedIn() && request.resource.data.casaId == getUserCasaId();
+      allow update, delete: if isSignedIn() && belongsToSameHouse(resource.data.casaId);
+    }
+
+    // Default deny for any unspecified path
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

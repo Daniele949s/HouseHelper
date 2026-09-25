@@ -997,6 +997,7 @@ button:active:not(:disabled) {
 /* Morphing into X on opened */
 .burger-container.burger-active {
   transform: rotate(90deg);
+  z-index: 1000000;
 }
 
 .burger-container.burger-active .bar.topBar {
@@ -1009,45 +1010,71 @@ button:active:not(:disabled) {
   background: var(--color-primary);
 }
 
-/* Fullscreen Menu Overlay from MobileMenu.scss */
+/* Fullscreen Menu Overlay: 100% Solid Opaque (No transparency) */
 .mobile-menu-overlay {
   position: fixed;
   inset: 0;
   width: 100vw;
   height: 100vh;
-  background: rgba(9, 9, 11, 0.96);
-  backdrop-filter: blur(28px);
-  -webkit-backdrop-filter: blur(28px);
-  z-index: 10000;
+  height: 100dvh;
+  background: #09090b !important; /* Fully solid, non-transparent dark */
+  z-index: 999999;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: center;
   opacity: 0;
+  visibility: hidden;
   pointer-events: none;
   transform: translateY(-100%);
-  transition: opacity 0.4s cubic-bezier(0.4, 0.01, 0.165, 0.99),
-              transform 0.45s cubic-bezier(0.4, 0.01, 0.165, 0.99);
+  transition: opacity 0.3s cubic-bezier(0.4, 0.01, 0.165, 0.99),
+              transform 0.35s cubic-bezier(0.4, 0.01, 0.165, 0.99),
+              visibility 0.35s;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .light-theme .mobile-menu-overlay {
-  background: rgba(243, 244, 248, 0.97);
+  background: #f8fafc !important; /* Fully solid, non-transparent light */
 }
 
 .mobile-menu-overlay.menu-opened {
   opacity: 1;
+  visibility: visible;
   pointer-events: auto;
   transform: translateY(0);
 }
 
 .mobile-menu-inner {
   width: 100%;
-  max-width: 420px;
-  padding: 80px 28px 40px 28px;
+  max-width: 440px;
+  padding: 32px 24px 40px 24px;
   display: flex;
   flex-direction: column;
-  height: 100%;
-  justify-content: space-between;
+  min-height: 100%;
+  justify-content: flex-start;
+  box-sizing: border-box;
+}
+
+.mobile-close-btn {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 1.15rem;
+  transition: all 0.2s ease;
+}
+
+.mobile-close-btn:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--color-danger);
+  color: var(--color-danger);
 }
 
 .mobile-menu-header {

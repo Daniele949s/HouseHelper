@@ -6,6 +6,7 @@ import { signOut } from "firebase/auth";
 import { useAuth } from "../contexts/AuthContext";
 import HouseAnalytics from "../components/HouseAnalytics";
 import MiniGuy from "../components/MiniGuy";
+import { safeFloat } from "../utils/security";
 import '../App.css';
 
 export default function HomeUtente() {
@@ -68,8 +69,9 @@ export default function HomeUtente() {
         debitiSnap.forEach(d => {
           const data = d.data();
           allDebiti.push({ id: d.id, ...data });
-          if (data.debitoreId === currentUser.uid) totale -= parseFloat(data.importo);
-          if (data.creditoreId === currentUser.uid) totale += parseFloat(data.importo);
+          const val = safeFloat(data.importo);
+          if (data.debitoreId === currentUser.uid) totale -= val;
+          if (data.creditoreId === currentUser.uid) totale += val;
         });
         setSaldo(totale);
         setDebitiList(allDebiti);
@@ -247,7 +249,7 @@ export default function HomeUtente() {
 
             <div>
               <h2 style={{ fontSize: '2.4rem', color: saldo >= 0 ? 'var(--color-success)' : 'var(--color-danger)', margin: 0, fontWeight: '800' }}>
-                {saldo >= 0 ? "+" : ""}{saldo.toFixed(2)} €
+                {saldo >= 0 ? "+" : ""}{safeFloat(saldo).toFixed(2)} €
               </h2>
               <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', margin: '6px 0 0 0' }}>
                 {saldo > 0 ? "Gli altri coinquilini ti devono dei soldi." : saldo < 0 ? "Hai debiti pendenti verso la casa." : "Siete tutti in parità!"}

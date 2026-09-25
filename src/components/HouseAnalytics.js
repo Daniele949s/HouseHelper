@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { safeFloat } from "../utils/security";
 import "./HouseAnalytics.css";
 
 export default function HouseAnalytics({
@@ -13,13 +14,13 @@ export default function HouseAnalytics({
   // ==========================================
   // 1. STATISTICHE SPESE & DEBITI
   // ==========================================
-  const totalVolumeSpese = debiti.reduce((acc, d) => acc + (parseFloat(d.importo) || 0), 0);
+  const totalVolumeSpese = debiti.reduce((acc, d) => acc + Math.max(0, safeFloat(d.importo)), 0);
   
   // Raggruppamento per creditore (chi ha speso/anticipato)
   const spesePerUtente = {};
   debiti.forEach(d => {
     const nome = utentiMap[d.creditoreId] || "Altro";
-    spesePerUtente[nome] = (spesePerUtente[nome] || 0) + (parseFloat(d.importo) || 0);
+    spesePerUtente[nome] = (spesePerUtente[nome] || 0) + Math.max(0, safeFloat(d.importo));
   });
 
   const pieColors = ["#6366f1", "#14b8a6", "#f59e0b", "#ec4899", "#8b5cf6", "#3b82f6"];
