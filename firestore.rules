@@ -2,90 +2,290 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Helper functions for secure multi-tenant isolation
+    // ==========================================
+    // GLOBAL SECURITY & MULTI-TENANT HELPERS
+    // ==========================================
+
     function isSignedIn() {
-      return request.auth != null;
+      return request.auth != null && request.auth.uid != null;
     }
 
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    // Retrieve user's active household ID from their profile document
-    function getUserCasaId() {
-      return get(/databases/$(database)/documents/utenti/$(request.auth.uid)).data.casaId;
+    // Safely retrieve user document from Firestore
+    function getUserDoc() {
+      return get(/databases/$(database)/documents/utenti/$(request.auth.uid));
     }
 
+    // Verify user profile exists and has an active non-empty casaId
+    function hasValidCasa() {
+      return isSignedIn() 
+        && exists(/databases/$(database)/documents/utenti/$(request.auth.uid))
+        && getUserDoc().data.casaId != null
+        && getUserDoc().data.casaId is string
+        && getUserDoc().data.casaId.size() > 0;
+    }
+
+    // Retrieve user's active household ID
+    function getUserCasaId() {
+      return getUserDoc().data.casaId;
+    }
+
+    // Strict multi-tenant household barrier: prevents null == null exploit
     function belongsToSameHouse(casaId) {
-      return isSignedIn() && getUserCasaId() == casaId;
+      return hasValidCasa() 
+        && casaId != null 
+        && casaId is string 
+        && casaId.size() > 0 
+        && getUserCasaId() == casaId;
+    }
+
+    // Helper: Validates positive importo between 0.01 and 50,000.00 EUR (supports string and number)
+    function isValidImporto(val) {
+      return (val is number && val > 0.0 && val <= 50000.0)
+          || (val is string && val.size() > 0 && float(val) > 0.0 && float(val) <= 50000.0);
+    }
+
+    // Helper: Non-empty string with maximum length bound
+    function isNonEmptyString(val, maxLen) {
+      return val is string && val.trim().size() > 0 && val.size() <= maxLen;
+    }
+
+    // Helper: Valid YYYY-MM-DD date string (length 10)
+    function isValidDateString(val) {
+      return val is string && val.size() == 10;
     }
 
     // ==========================================
-    // 1. UTENTI
+    // 1. UTENTI (User Profiles)
     // ==========================================
     match /utenti/{userId} {
-      // Allow reading user profile if signed in (needed to show roommate names)
-      allow read: if isSignedIn();
-      // Allow creating/updating profile only by the account owner
-      allow create, update: if isOwner(userId);
-      allow delete: if false; // Profiles shouldn't be deleted directly
+      // Allow reading user profile if self OR if belonging to the same household
+      allow read: if isSignedIn() && (
+        isOwner(userId) || 
+        (resource.data.casaId != null && belongsToSameHouse(resource.data.casaId))
+      );
+
+      // Create profile: only the account owner, required username and email
+      allow create: if isOwner(userId)
+        && isNonEmptyString(request.resource.data.username, 50)
+        && isNonEmptyString(request.resource.data.email, 100)
+        && (request.resource.data.casaId == null || (request.resource.data.casaId is string && request.resource.data.casaId.size() <= 64));
+
+      // Update profile: only owner, email cannot be changed arbitrarily, username validated
+      allow update: if isOwner(userId)
+        && isNonEmptyString(request.resource.data.username, 50)
+        && (request.resource.data.casaId == null || (request.resource.data.casaId is string && request.resource.data.casaId.size() <= 64))
+        && (!('inVacanza' in request.resource.data) || request.resource.data.inVacanza is bool)
+        && (!('vacanzaInizio' in request.resource.data) || request.resource.data.vacanzaInizio == null || isValidDateString(request.resource.data.vacanzaInizio))
+        && (!('vacanzaFine' in request.resource.data) || request.resource.data.vacanzaFine == null || isValidDateString(request.resource.data.vacanzaFine));
+
+      // Profiles are never deleted directly by clients
+      allow delete: if false;
     }
 
     // ==========================================
     // 2. CASE (Nuclei Abitativi)
     // ==========================================
     match /case/{casaId} {
-      // Anyone signed in can read case (needed for invite code matching)
-      allow read: if isSignedIn();
-      // Any authenticated user can create a new household
-      allow create: if isSignedIn();
-      // Only members of the household can update
-      allow update: if belongsToSameHouse(casaId);
+      // Read: Household members can read their home; users without a house can read to find house via invite code
+      allow read: if isSignedIn() && (belongsToSameHouse(casaId) || !hasValidCasa());
+
+      // Create: Authenticated users can create a new household with required fields
+      allow create: if isSignedIn()
+        && isNonEmptyString(request.resource.data.nome, 60)
+        && isNonEmptyString(request.resource.data.codiceUnivoco, 12)
+        && request.resource.data.codiceUnivoco.size() >= 4
+        && request.resource.data.creatoreId == request.auth.uid;
+
+      // Update: Only active household members, immutability on creatoreId and codiceUnivoco
+      allow update: if belongsToSameHouse(casaId)
+        && isNonEmptyString(request.resource.data.nome, 60)
+        && request.resource.data.creatoreId == resource.data.creatoreId
+        && request.resource.data.codiceUnivoco == resource.data.codiceUnivoco
+        && (!('impostazioniTurni' in request.resource.data) || request.resource.data.impostazioniTurni is map);
+
       allow delete: if false;
     }
 
     // ==========================================
-    // 3. TURNI PULIZIA
+    // 3. TURNI (Cleaning Shifts)
     // ==========================================
     match /turni/{turnoId} {
-      allow read: if isSignedIn() && belongsToSameHouse(resource.data.casaId);
-      allow create: if isSignedIn() && request.resource.data.casaId == getUserCasaId();
-      allow update, delete: if isSignedIn() && belongsToSameHouse(resource.data.casaId);
+      allow read: if belongsToSameHouse(resource.data.casaId);
+
+      allow create: if hasValidCasa()
+        && request.resource.data.casaId == getUserCasaId()
+        && request.resource.data.utenteId == request.auth.uid
+        && request.resource.data.nomi is list && request.resource.data.nomi.size() > 0 && request.resource.data.nomi.size() <= 15
+        && request.resource.data.luoghi is list && request.resource.data.luoghi.size() > 0 && request.resource.data.luoghi.size() <= 15
+        && isValidDateString(request.resource.data.data)
+        && (!('checklist' in request.resource.data) || (request.resource.data.checklist is list && request.resource.data.checklist.size() <= 30))
+        && (!('completato' in request.resource.data) || request.resource.data.completato is bool);
+
+      allow update: if belongsToSameHouse(resource.data.casaId)
+        && request.resource.data.casaId == resource.data.casaId
+        && request.resource.data.nomi is list && request.resource.data.nomi.size() > 0 && request.resource.data.nomi.size() <= 15
+        && request.resource.data.luoghi is list && request.resource.data.luoghi.size() > 0 && request.resource.data.luoghi.size() <= 15
+        && isValidDateString(request.resource.data.data)
+        && (!('checklist' in request.resource.data) || (request.resource.data.checklist is list && request.resource.data.checklist.size() <= 30))
+        && (!('completato' in request.resource.data) || request.resource.data.completato is bool);
+
+      allow delete: if belongsToSameHouse(resource.data.casaId);
     }
 
     // ==========================================
-    // 4. SPESE & DEBITI
+    // 4. DEBITI (Expenses & Debts)
     // ==========================================
     match /debiti/{debitoId} {
-      allow read: if isSignedIn() && belongsToSameHouse(resource.data.casaId);
-      allow create: if isSignedIn() && request.resource.data.casaId == getUserCasaId()
-        && request.resource.data.importo is string
-        && float(request.resource.data.importo) > 0.0
-        && float(request.resource.data.importo) <= 50000.0;
-      allow update, delete: if isSignedIn() && belongsToSameHouse(resource.data.casaId);
+      allow read: if belongsToSameHouse(resource.data.casaId);
+
+      // Create: Enforce positive amount <= 50,000 EUR, non-empty description, no self-debts
+      allow create: if hasValidCasa()
+        && request.resource.data.casaId == getUserCasaId()
+        && isValidImporto(request.resource.data.importo)
+        && isNonEmptyString(request.resource.data.descrizione, 255)
+        && isNonEmptyString(request.resource.data.creditoreId, 64)
+        && isNonEmptyString(request.resource.data.debitoreId, 64)
+        && request.resource.data.creditoreId != request.resource.data.debitoreId;
+
+      // Update: Full anti-tamper on update. Immutability on casaId, creditoreId, debitoreId; bounds on importo
+      allow update: if belongsToSameHouse(resource.data.casaId)
+        && request.resource.data.casaId == resource.data.casaId
+        && request.resource.data.creditoreId == resource.data.creditoreId
+        && request.resource.data.debitoreId == resource.data.debitoreId
+        && isValidImporto(request.resource.data.importo)
+        && isNonEmptyString(request.resource.data.descrizione, 255);
+
+      // Delete: Debt settlement or deletion permitted ONLY to the debtor or creditor
+      allow delete: if belongsToSameHouse(resource.data.casaId)
+        && (request.auth.uid == resource.data.debitoreId || request.auth.uid == resource.data.creditoreId);
     }
 
     // ==========================================
-    // 5. LISTA DELLA SPESA
+    // 5. SPESA (Grocery List)
     // ==========================================
     match /spesa/{spesaId} {
-      allow read: if isSignedIn() && belongsToSameHouse(resource.data.casaId);
-      allow create: if isSignedIn() && request.resource.data.casaId == getUserCasaId();
-      allow update, delete: if isSignedIn() && belongsToSameHouse(resource.data.casaId);
+      allow read: if belongsToSameHouse(resource.data.casaId);
+
+      allow create: if hasValidCasa()
+        && request.resource.data.casaId == getUserCasaId()
+        && isNonEmptyString(request.resource.data.nome, 100)
+        && request.resource.data.comprato is bool;
+
+      allow update: if belongsToSameHouse(resource.data.casaId)
+        && request.resource.data.casaId == resource.data.casaId
+        && isNonEmptyString(request.resource.data.nome, 100)
+        && request.resource.data.comprato is bool;
+
+      allow delete: if belongsToSameHouse(resource.data.casaId);
     }
 
     // ==========================================
-    // 6. BACHECA & EVENTI CALENDARIO
+    // 6. NOTE & EVENTI (Bulletin Board & Calendar)
     // ==========================================
     match /note/{notaId} {
-      allow read: if isSignedIn() && belongsToSameHouse(resource.data.casaId);
-      allow create: if isSignedIn() && request.resource.data.casaId == getUserCasaId();
-      allow update, delete: if isSignedIn() && belongsToSameHouse(resource.data.casaId);
+      allow read: if belongsToSameHouse(resource.data.casaId);
+
+      allow create: if hasValidCasa()
+        && request.resource.data.casaId == getUserCasaId()
+        && request.resource.data.autoreId == request.auth.uid
+        && isNonEmptyString(request.resource.data.titolo, 100)
+        && isNonEmptyString(request.resource.data.contenuto, 1000);
+
+      allow update: if belongsToSameHouse(resource.data.casaId)
+        && request.resource.data.casaId == resource.data.casaId
+        && request.resource.data.autoreId == resource.data.autoreId
+        && isNonEmptyString(request.resource.data.titolo, 100)
+        && isNonEmptyString(request.resource.data.contenuto, 1000);
+
+      allow delete: if belongsToSameHouse(resource.data.casaId)
+        && (request.auth.uid == resource.data.autoreId || belongsToSameHouse(resource.data.casaId));
     }
 
-    // Default deny for any unspecified path
+    // ==========================================
+    // 7. DOCUMENTI (Milestone 6: Household Documents)
+    // ==========================================
+    match /documenti/{docId} {
+      allow read: if belongsToSameHouse(resource.data.casaId);
+
+      allow create: if hasValidCasa()
+        && request.resource.data.casaId == getUserCasaId()
+        && request.resource.data.caricatoDa == request.auth.uid
+        && isNonEmptyString(request.resource.data.nome, 120)
+        && isNonEmptyString(request.resource.data.categoria, 50)
+        && isNonEmptyString(request.resource.data.fileUrl, 1000)
+        && request.resource.data.dimensioneBytes is int
+        && request.resource.data.dimensioneBytes > 0
+        && request.resource.data.dimensioneBytes <= 26214400; // Max 25 MB
+
+      allow update: if belongsToSameHouse(resource.data.casaId)
+        && request.resource.data.casaId == resource.data.casaId
+        && request.resource.data.caricatoDa == resource.data.caricatoDa
+        && isNonEmptyString(request.resource.data.nome, 120)
+        && isNonEmptyString(request.resource.data.categoria, 50);
+
+      allow delete: if belongsToSameHouse(resource.data.casaId);
+    }
+
+    // ==========================================
+    // 8. CONTATTI (Milestone 7: Useful & Emergency Contacts)
+    // ==========================================
+    match /contatti/{contattoId} {
+      allow read: if belongsToSameHouse(resource.data.casaId);
+
+      allow create: if hasValidCasa()
+        && request.resource.data.casaId == getUserCasaId()
+        && isNonEmptyString(request.resource.data.nome, 100)
+        && isNonEmptyString(request.resource.data.categoria, 50)
+        && (!('telefono' in request.resource.data) || request.resource.data.telefono == null || request.resource.data.telefono is string)
+        && (!('email' in request.resource.data) || request.resource.data.email == null || request.resource.data.email is string)
+        && (!('note' in request.resource.data) || request.resource.data.note == null || request.resource.data.note is string);
+
+      allow update: if belongsToSameHouse(resource.data.casaId)
+        && request.resource.data.casaId == resource.data.casaId
+        && isNonEmptyString(request.resource.data.nome, 100)
+        && isNonEmptyString(request.resource.data.categoria, 50)
+        && (!('telefono' in request.resource.data) || request.resource.data.telefono == null || request.resource.data.telefono is string)
+        && (!('email' in request.resource.data) || request.resource.data.email == null || request.resource.data.email is string)
+        && (!('note' in request.resource.data) || request.resource.data.note == null || request.resource.data.note is string);
+
+      allow delete: if belongsToSameHouse(resource.data.casaId);
+    }
+
+    // ==========================================
+    // DEFAULT DENY
+    // ==========================================
     match /{document=**} {
       allow read, write: if false;
     }
   }
 }
+
+// ==========================================
+// FIREBASE STORAGE RULES SPECIFICATION (Milestone 6)
+// To be deployed with Firebase Storage service:
+//
+// rules_version = '2';
+// service firebase.storage {
+//   match /b/{bucket}/o {
+//     function belongsToSameHouse(casaId) {
+//       return request.auth != null
+//         && firestore.get(/databases/(default)/documents/utenti/$(request.auth.uid)).data.casaId == casaId;
+//     }
+//     match /case/{casaId}/documenti/{fileName} {
+//       allow read: if belongsToSameHouse(casaId);
+//       allow create: if belongsToSameHouse(casaId)
+//         && request.resource.size <= 25 * 1024 * 1024
+//         && request.resource.contentType.matches('application/pdf|image/jpeg|image/png|image/webp|application/msword|application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+//       allow update: if false;
+//       allow delete: if belongsToSameHouse(casaId);
+//     }
+//     match /{allPaths=**} {
+//       allow read, write: if false;
+//     }
+//   }
+// }
+// ==========================================

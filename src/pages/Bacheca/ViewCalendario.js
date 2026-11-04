@@ -5,7 +5,6 @@ import 'react-calendar/dist/Calendar.css';
 import { db } from "../../firebase";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { useAuth } from "../../contexts/AuthContext";
-import '../../App.css';
 
 export default function ViewCalendario() {
   const navigate = useNavigate();
@@ -97,7 +96,7 @@ export default function ViewCalendario() {
     <div className="card" style={{ maxWidth: '820px', padding: '2.5rem' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '12px' }}>
         <div>
-          <h1 style={{ margin: 0, textAlign: 'left' }}>Calendario Casa 🗓️</h1>
+          <h1 style={{ margin: 0, textAlign: 'left' }}>Calendario Casa <i className="fas fa-calendar-alt" style={{ fontSize: '0.85em', marginLeft: '6px' }}></i></h1>
           <p style={{ margin: '4px 0 0 0', color: 'var(--text-secondary)', textAlign: 'left', fontSize: '0.92rem' }}>
             Visualizza tutti gli eventi, le scadenze e i turni pulizia
           </p>
@@ -129,8 +128,8 @@ export default function ViewCalendario() {
         </div>
 
         {itemsDelGiorno.length === 0 ? (
-          <div style={{ padding: '2.5rem', background: 'var(--bg-input)', borderRadius: 'var(--radius-md)', textAlign: 'center' }}>
-            <span style={{ fontSize: '2rem', opacity: 0.7 }}>☕</span>
+          <div className="agenda-empty-state">
+            <i className="fas fa-calendar-check agenda-empty-icon"></i>
             <p style={{ color: 'var(--text-secondary)', marginTop: '8px', margin: 0 }}>Nessun evento o turno in questa data. Tempo libero!</p>
           </div>
         ) : (
@@ -164,7 +163,14 @@ export default function ViewCalendario() {
                       </>
                     ) : (
                       <>
-                        <h4 style={{ margin: '0 0 6px 0', fontSize: '1.2rem', color: 'var(--text-main)' }}>{item.titolo}</h4>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', flexWrap: 'wrap' }}>
+                          <h4 style={{ margin: '0 0 6px 0', fontSize: '1.2rem', color: 'var(--text-main)' }}>{item.titolo}</h4>
+                          {item.categoria && (
+                            <span className="timeslot-pill" style={{ fontSize: '0.75rem' }}>
+                              <i className="fas fa-tag" style={{ fontSize: '0.75em' }}></i> {item.categoria}
+                            </span>
+                          )}
+                        </div>
                         <p style={{ margin: '2px 0', fontSize: '0.95rem', color: 'var(--text-secondary)' }}>{item.contenuto}</p>
                         <p style={{ margin: '6px 0 0 0', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
                           Creato da: <strong style={{ color: 'var(--text-main)' }}>{utentiMap[item.autoreId] || "Coinquilino"}</strong>
@@ -188,7 +194,7 @@ export default function ViewCalendario() {
       </div>
 
       <button className="btn-text" onClick={() => navigate('/home')} style={{ marginTop: '24px' }}>
-        ← Torna alla Dashboard
+        <i className="fas fa-arrow-left" style={{ marginRight: '6px' }}></i> Torna alla Dashboard
       </button>
     </div>
   );

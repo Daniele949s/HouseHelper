@@ -13,12 +13,19 @@ export function ThemeProvider({ children }) {
 
   useEffect(() => {
     const root = document.documentElement;
+    root.setAttribute("data-theme", theme);
     if (theme === "light") {
       root.classList.add("light-theme");
       root.classList.remove("dark-theme");
+      if (typeof document !== "undefined" && document.body) {
+        document.body.className = "light-mode";
+      }
     } else {
       root.classList.add("dark-theme");
       root.classList.remove("light-theme");
+      if (typeof document !== "undefined" && document.body) {
+        document.body.className = "dark-mode";
+      }
     }
     localStorage.setItem("househelper_theme", theme);
   }, [theme]);

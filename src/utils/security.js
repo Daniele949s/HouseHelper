@@ -224,3 +224,81 @@ export function isValidEmail(email) {
   const regex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
   return regex.test(trimmed);
 }
+
+/**
+ * Sanitizes phone numbers, stripping any illegal protocol characters or script attempts.
+ * Allowed characters: digits, spaces, hyphens, plus prefix, parentheses, dots.
+ *
+ * @param {any} input
+ * @param {number} maxLength
+ * @returns {string}
+ */
+export function sanitizePhone(input, maxLength = 30) {
+  if (input === null || input === undefined) return "";
+  let str = String(input);
+  // 1. Strip script and style tags along with their inner contents
+  str = str.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, "");
+  str = str.replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, "");
+  // 2. Strip any remaining HTML/XML tags
+  str = str.replace(/<[^>]*>/g, "");
+  // 3. Keep only digits, +, (, ), -, ., and spaces
+  const cleaned = str.replace(/[^0-9+()\-.\s]/g, "");
+  return cleaned.trim().slice(0, maxLength);
+}
+
+/**
+ * Returns a safe `tel:...` URL string or empty string if input is invalid.
+ * Strips formatting characters to produce a clean E.164-compatible dial string.
+ *
+ * @param {string} phone
+ * @returns {string}
+ */
+export function safeTelUrl(phone) {
+  if (!phone || typeof phone !== "string") return "";
+  const trimmed = phone.trim();
+  // Strip everything except leading + and digits
+  const hasLeadingPlus = trimmed.startsWith("+");
+  const digitsOnly = trimmed.replace(/\D/g, "");
+  if (!digitsOnly || digitsOnly.length < 3 || digitsOnly.length > 20) return "";
+  const dialString = hasLeadingPlus ? `+${digitsOnly}` : digitsOnly;
+  return `tel:${dialString}`;
+}
+
+/**
+ * Returns a safe `mailto:...` URL string or empty string if email is invalid.
+ *
+ * @param {string} email
+ * @returns {string}
+ */
+export function safeMailtoUrl(email) {
+  if (!isValidEmail(email)) return "";
+  return `mailto:${encodeURIComponent(email.trim())}`;
+}
+
+/**
+ * Sanitizes an array of checklist items for chores, stripping HTML/scripts and enforcing bounds.
+ *
+ * @param {Array} checklist
+ * @param {number} maxItems - Maximum items per shift (default 20)
+ * @param {number} maxTextLen - Maximum characters per item (default 100)
+ * @returns {Array<{ id: string, text: string, completed: boolean, completedBy: string|null, completedAt: string|null }>}
+ */
+export function sanitizeChecklist(checklist, maxItems = 20, maxTextLen = 100) {
+  if (!Array.isArray(checklist)) return [];
+  return checklist
+    .map((item, idx) => {
+      if (!item || typeof item !== "object") return null;
+      const text = sanitizeText(item.text, maxTextLen);
+      if (!text) return null;
+      return {
+        id: String(item.id || `chk_${Date.now()}_${idx}`).slice(0, 40),
+        text,
+        completed: Boolean(item.completed),
+        completedBy: item.completedBy ? sanitizeText(item.completedBy, 50) : null,
+        completedAt: item.completedAt ? String(item.completedAt).slice(0, 30) : null
+      };
+    })
+    .filter(Boolean)
+    .slice(0, maxItems);
+}
+

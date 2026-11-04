@@ -1,7 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
-import "../App.css";
 
 export default function NotFound() {
   const navigate = useNavigate();
@@ -20,7 +19,7 @@ export default function NotFound() {
   return (
     <div className="card" style={{ maxWidth: "560px", margin: "40px auto", textAlign: "center", padding: "3rem 2rem" }}>
       <div style={{ fontSize: "4.5rem", marginBottom: "12px", lineHeight: 1 }}>
-        🧭
+        <i className="fas fa-compass" style={{ color: "var(--color-primary)" }}></i>
       </div>
       <h1 style={{ fontSize: "2.4rem", marginBottom: "8px" }}>404</h1>
       <h2 style={{ fontSize: "1.3rem", color: "var(--text-main)", marginBottom: "12px" }}>

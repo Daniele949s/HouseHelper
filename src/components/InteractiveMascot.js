@@ -107,8 +107,8 @@ export default function InteractiveMascot({ targetInputRef, isError, errorMessag
             <circle cx="25" cy="21" r="2.5" fill="#fff" />
             <defs>
               <linearGradient id="pupil-grad" x1="0" x2="35" y1="17.5" y2="17.5" gradientUnits="userSpaceOnUse">
-                <stop offset=".3" stop-color="#8b5cf6" />
-                <stop offset="1" stop-color="#4f46e5" />
+                <stop offset=".3" stopColor="#8b5cf6" />
+                <stop offset="1" stopColor="#4f46e5" />
               </linearGradient>
             </defs>
           </svg>
@@ -126,8 +126,8 @@ export default function InteractiveMascot({ targetInputRef, isError, errorMessag
             <circle cx="25" cy="21" r="2.5" fill="#fff" />
             <defs>
               <linearGradient id="pupil-grad-r" x1="0" x2="35" y1="17.5" y2="17.5" gradientUnits="userSpaceOnUse">
-                <stop offset=".3" stop-color="#8b5cf6" />
-                <stop offset="1" stop-color="#4f46e5" />
+                <stop offset=".3" stopColor="#8b5cf6" />
+                <stop offset="1" stopColor="#4f46e5" />
               </linearGradient>
             </defs>
           </svg>
@@ -138,10 +138,10 @@ export default function InteractiveMascot({ targetInputRef, isError, errorMessag
           <svg width="232" height="172" viewBox="0 0 232 172" fill="none">
             <defs>
               <linearGradient id="face-grad" x1="118" x2="118" y1="0" y2="168" gradientUnits="userSpaceOnUse">
-                <stop stop-color="#a78bfa" />
-                <stop offset=".3" stop-color="#818cf8" />
-                <stop offset=".7" stop-color="#6366f1" />
-                <stop offset="1" stop-color="#4338ca" />
+                <stop stopColor="#a78bfa" />
+                <stop offset=".3" stopColor="#818cf8" />
+                <stop offset=".7" stopColor="#6366f1" />
+                <stop offset="1" stopColor="#4338ca" />
               </linearGradient>
             </defs>
             <path fill="url(#face-grad)" d="M115.972 0c18.723 0 36.111 5.717 50.512 15.501 8.836-12.564 25.962-16.522 39.52-8.694 14.349 8.284 19.264 26.631 10.98 40.98A29.875 29.875 0 0 1 201.197 61c3.096 9.1 4.775 18.853 4.775 29 0 49.706-40.294 78-90 78-49.705 0-90-28.294-90-78 0-11.353 2.103-22.215 5.939-32.218a29.86 29.86 0 0 1-12.888-11.994c-8.284-14.349-3.368-32.696 10.98-40.98 13.405-7.74 30.3-3.958 39.219 8.272C82.847 4.78 98.852 0 115.972 0ZM75.023 82.807c-10.493 0-19 12.536-19 28s8.507 28 19 28c10.494 0 19-12.536 19-28s-8.506-28-19-28Zm80 0c-10.493 0-19 12.536-19 28s8.507 28 19 28c10.494 0 19-12.536 19-28s-8.506-28-19-28Z"/>

@@ -3,9 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { db } from "../../firebase";
 import { collection, query, where, getDocs, addDoc, doc, updateDoc, deleteDoc } from "firebase/firestore";
 import { useAuth } from "../../contexts/AuthContext";
-import { triggerConfetti } from "../../components/Celebration";
+import { showToast } from "../../utils/feedback";
 import { sanitizeText } from "../../utils/security";
-import "../../App.css";
 
 export default function ViewSpesa() {
   const navigate = useNavigate();
@@ -73,9 +72,29 @@ export default function ViewSpesa() {
         createdAt: new Date()
       });
       setNewItem("");
+      showToast("Prodotto aggiunto alla lista", "success", 2000);
       fetchSpesaReload();
     } catch (error) {
       console.error("Errore aggiunta spesa:", error);
+    }
+  };
+
+  const handleAddStaple = async (stapleName) => {
+    const cleanedItem = sanitizeText(stapleName, 80);
+    if (!cleanedItem || !userData?.casaId) return;
+
+    try {
+      await addDoc(collection(db, "spesa"), {
+        nome: cleanedItem,
+        comprato: false,
+        casaId: userData.casaId,
+        autoreId: currentUser?.uid || "anonymous",
+        createdAt: new Date()
+      });
+      showToast(`"${cleanedItem}" aggiunto alla lista`, "success", 2000);
+      fetchSpesaReload();
+    } catch (err) {
+      console.error("Errore aggiunta staple:", err);
     }
   };
 
@@ -88,9 +107,6 @@ export default function ViewSpesa() {
       await updateDoc(doc(db, "spesa", id), {
         comprato: !statoAttuale
       });
-      if (!statoAttuale) {
-        triggerConfetti();
-      }
       fetchSpesaReload();
     } catch (error) {
       console.error("Errore toggle:", error);
@@ -104,6 +120,7 @@ export default function ViewSpesa() {
 
     try {
       await deleteDoc(doc(db, "spesa", id));
+      showToast("Prodotto rimosso", "info", 2000);
       fetchSpesaReload();
     } catch (error) {
       console.error("Errore eliminazione:", error);
@@ -126,7 +143,7 @@ export default function ViewSpesa() {
     <div className="card" style={{ maxWidth: "820px", padding: "2.5rem" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem", flexWrap: "wrap", gap: "10px" }}>
         <div>
-          <h1 style={{ margin: 0, textAlign: "left" }}>Lista della Spesa 🛒</h1>
+          <h1 style={{ margin: 0, textAlign: "left" }}>Lista della Spesa <i className="fas fa-shopping-cart" style={{ fontSize: "0.85em", marginLeft: "6px" }}></i></h1>
           <p style={{ margin: "4px 0 0 0", color: "var(--text-secondary)", textAlign: "left", fontSize: "0.92rem" }}>
             Condividi gli acquisti necessari in tempo reale
           </p>
@@ -134,7 +151,7 @@ export default function ViewSpesa() {
       </div>
 
       {/* Counter widgets */}
-      <div style={{ display: "flex", gap: "16px", marginBottom: "24px" }}>
+      <div style={{ display: "flex", gap: "16px", marginBottom: "16px" }}>
         <div style={{ flex: 1, background: "rgba(2, 132, 199, 0.12)", border: "1px solid rgba(2, 132, 199, 0.25)", padding: "16px", borderRadius: "var(--radius-md)", textAlign: "center" }}>
           <h3 style={{ margin: 0, color: "var(--color-primary)", fontSize: "2.2rem", fontWeight: "800" }}>{daComprare}</h3>
           <p style={{ margin: 0, fontSize: "0.85rem", color: "var(--text-secondary)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Da comprare</p>
@@ -143,6 +160,32 @@ export default function ViewSpesa() {
           <h3 style={{ margin: 0, color: "var(--color-success)", fontSize: "2.2rem", fontWeight: "800" }}>{comprati}</h3>
           <p style={{ margin: 0, fontSize: "0.85rem", color: "var(--text-secondary)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Presi</p>
         </div>
+      </div>
+
+      {/* Progress track */}
+      <div className="grocery-progress-track" style={{ marginBottom: "20px" }}>
+        <div
+          className="grocery-progress-fill"
+          style={{ width: `${items.length === 0 ? 0 : Math.round((comprati / items.length) * 100)}%` }}
+        />
+      </div>
+
+      {/* Quick staple suggestions */}
+      <div className="grocery-quick-chips">
+        <span style={{ fontSize: "0.82rem", color: "var(--text-muted)", alignSelf: "center", marginRight: "4px" }}>
+          Suggeriti:
+        </span>
+        {["Latte", "Caffè", "Pane", "Pasta", "Uova", "Detersivo"].map((staple) => (
+          <button
+            key={staple}
+            type="button"
+            className="grocery-staple-btn"
+            onClick={() => handleAddStaple(staple)}
+          >
+            <i className="fas fa-plus" style={{ fontSize: "0.75em", marginRight: "4px" }}></i>
+            {staple}
+          </button>
+        ))}
       </div>
 
       {/* Add item bar */}
@@ -177,7 +220,7 @@ export default function ViewSpesa() {
       <div className="sidemenu-list-container">
         {items.length === 0 ? (
           <div style={{ padding: "3rem 1rem", textAlign: "center", background: "var(--bg-input)", borderRadius: "var(--radius-md)" }}>
-            <span style={{ fontSize: "3rem", opacity: 0.7 }}>🍎</span>
+            <i className="fas fa-shopping-basket" style={{ fontSize: "3rem", opacity: 0.7 }}></i>
             <p className="subtitle" style={{ marginTop: "12px", marginBottom: 0 }}>
               Nessun prodotto in lista. Casa ben rifornita!
             </p>
@@ -225,7 +268,7 @@ export default function ViewSpesa() {
       </div>
 
       <button className="btn-text" onClick={() => navigate("/home")} style={{ marginTop: "30px" }}>
-        ← Torna alla Dashboard
+        <i className="fas fa-arrow-left" style={{ marginRight: "6px" }}></i> Torna alla Dashboard
       </button>
     </div>
   );

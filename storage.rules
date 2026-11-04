@@ -1,0 +1,79 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // ==========================================
+    // MULTI-TENANT HOUSEHOLD AUTHORIZATION HELPERS
+    // ==========================================
+
+    function isSignedIn() {
+      return request.auth != null && request.auth.uid != null;
+    }
+
+    // Retrieve user document from Firestore (cross-service lookup)
+    function getUserDoc() {
+      return firestore.get(/databases/(default)/documents/utenti/$(request.auth.uid));
+    }
+
+    // Check if the user document exists and has a non-empty string casaId
+    function hasValidCasa() {
+      return isSignedIn()
+        && firestore.exists(/databases/(default)/documents/utenti/$(request.auth.uid))
+        && getUserDoc().data.casaId != null
+        && getUserDoc().data.casaId is string
+        && getUserDoc().data.casaId.size() > 0;
+    }
+
+    // Strict multi-tenant barrier: ensures user's active casaId exactly matches path casaId
+    function belongsToSameHouse(casaId) {
+      return hasValidCasa()
+        && casaId != null
+        && casaId is string
+        && casaId.size() > 0
+        && getUserDoc().data.casaId == casaId;
+    }
+
+    // File size constraint: positive and strictly <= 15 MB (15,728,640 bytes)
+    function isValidFileSize() {
+      return request.resource.size > 0 
+        && request.resource.size <= 15 * 1024 * 1024;
+    }
+
+    // Whitelist permitted MIME types for household documents
+    function isValidContentType() {
+      return request.resource.contentType.matches(
+        'application/pdf|image/(jpeg|png|webp|heic)|application/msword|application/vnd\\.openxmlformats-officedocument\\.wordprocessingml\\.document|text/plain'
+      );
+    }
+
+    // ==========================================
+    // HOUSEHOLD DOCUMENT PATH RULES
+    // Path structure: /case/{casaId}/documenti/{allPaths=**}
+    // ==========================================
+    match /case/{casaId}/documenti/{allPaths=**} {
+      // READ: Only authenticated household members belonging to casaId
+      allow read: if belongsToSameHouse(casaId);
+
+      // CREATE: Only authenticated household members; enforce <= 15MB and safe MIME
+      allow create: if belongsToSameHouse(casaId)
+        && isValidFileSize()
+        && isValidContentType()
+        && (request.resource.metadata == null 
+            || request.resource.metadata.casaId == null 
+            || request.resource.metadata.casaId == casaId);
+
+      // UPDATE: Prevent file overwrite and payload tampering
+      allow update: if false;
+
+      // DELETE: Only authenticated household members belonging to casaId
+      allow delete: if belongsToSameHouse(casaId);
+    }
+
+    // ==========================================
+    // DEFAULT DENY
+    // ==========================================
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

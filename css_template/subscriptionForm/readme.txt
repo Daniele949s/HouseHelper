@@ -1,1 +1,0 @@
-necessario  canvas-confetti.js

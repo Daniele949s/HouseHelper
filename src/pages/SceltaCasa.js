@@ -4,10 +4,8 @@ import { auth, db } from "../firebase";
 import { collection, addDoc, doc, updateDoc, query, where, getDocs } from "firebase/firestore";
 import { useAuth } from "../contexts/AuthContext";
 import { signOut } from "firebase/auth";
-import { triggerConfetti } from "../components/Celebration";
-import InteractiveMascot from "../components/InteractiveMascot";
 import { sanitizeText, sanitizeAlphanumeric } from "../utils/security";
-import "../App.css";
+import { showToast } from "../utils/feedback";
 
 export default function SceltaCasa() {
   const navigate = useNavigate();
@@ -24,7 +22,8 @@ export default function SceltaCasa() {
     // Anti-Injection & text sanitization
     const cleanedNome = sanitizeText(nomeCasa, 50);
     if (!cleanedNome) {
-      setError("Inserisci un nome valido per la casa (massimo 50 caratteri).");
+      const err = "Inserisci un nome valido per la casa (massimo 50 caratteri).";
+      setError(err);
       return;
     }
 
@@ -49,12 +48,13 @@ export default function SceltaCasa() {
       await updateDoc(userDocRef, { casaId: casaRef.id });
 
       setUserData({ ...userData, casaId: casaRef.id });
-      triggerConfetti();
-      alert(`Casa creata con successo! Il tuo codice invito è: ${codice}`);
+      showToast(`Casa "${cleanedNome}" creata con successo! Codice invito: ${codice}`, "success", 5000);
       navigate("/home");
     } catch (e) {
       console.error(e);
-      setError("Errore nella creazione della casa. Riprova.");
+      const err = "Errore nella creazione della casa. Riprova.";
+      setError(err);
+      showToast(err, "error");
     } finally {
       setLoading(false);
     }
@@ -66,7 +66,8 @@ export default function SceltaCasa() {
     // Alphanumeric sanitization
     const cleanedCodice = sanitizeAlphanumeric(codiceCasa, 10);
     if (!cleanedCodice) {
-      setError("Inserisci un codice invito valido.");
+      const err = "Inserisci un codice invito valido.";
+      setError(err);
       return;
     }
 
@@ -78,7 +79,8 @@ export default function SceltaCasa() {
       const querySnapshot = await getDocs(q);
 
       if (querySnapshot.empty) {
-        setError("Codice casa non valido o non trovato. Verifica di averlo digitato correttamente.");
+        const err = "Codice casa non valido o non trovato. Verifica di averlo digitato correttamente.";
+        setError(err);
         setLoading(false);
         return;
       }
@@ -89,12 +91,13 @@ export default function SceltaCasa() {
       await updateDoc(userDocRef, { casaId: casaDoc.id });
 
       setUserData({ ...userData, casaId: casaDoc.id });
-      triggerConfetti();
-      alert(`Benvenuto in ${casaDoc.data().nome}! 🎉`);
+      showToast(`Benvenuto in ${casaDoc.data().nome}!`, "success", 3500);
       navigate("/home");
     } catch (e) {
       console.error(e);
-      setError("Errore durante l'accesso alla casa.");
+      const err = "Errore durante l'accesso alla casa.";
+      setError(err);
+      showToast(err, "error");
     } finally {
       setLoading(false);
     }
@@ -106,91 +109,127 @@ export default function SceltaCasa() {
   };
 
   return (
-    <div className="card" style={{ maxWidth: "580px" }}>
-      <InteractiveMascot isError={!!error} errorMessage={error} />
+    <div className="card scelta-casa-card" style={{ maxWidth: "620px" }}>
+      {/* Brand Header */}
+      <div className="auth-brand-badge" aria-hidden="true">
+        <i className="fas fa-house-chimney"></i>
+      </div>
 
-      <h1>Configurazione Casa 🏠</h1>
-      <p className="subtitle">Non fai ancora parte di un gruppo. Crea una casa o unisciti ai tuoi coinquilini!</p>
+      <div className="auth-header">
+        <h1>
+          Configurazione Casa <i className="fas fa-home" style={{ fontSize: "0.85em", marginLeft: "6px" }}></i>
+        </h1>
+        <p className="subtitle">Non fai ancora parte di un gruppo. Crea una casa o unisciti ai tuoi coinquilini!</p>
+      </div>
 
       {error && (
-        <div className="error-alert">
-          <i className="fas fa-exclamation-circle"></i>
+        <div className="error-alert" role="alert">
+          <i className="fas fa-exclamation-circle" aria-hidden="true"></i>
           <span>{error}</span>
         </div>
       )}
 
-      {/* SEZIONE 1: CREA */}
-      <div style={{ marginTop: "1.5rem", borderBottom: "1px solid var(--border-color)", paddingBottom: "2rem", textAlign: "left" }}>
-        <h3 style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          <i className="fas fa-plus-circle" style={{ color: "var(--color-primary)" }}></i>
-          Crea una nuova Casa
-        </h3>
-        <p className="subtitle" style={{ marginBottom: "14px", fontSize: "0.92rem" }}>
-          Genera un nuovo nucleo e riceverai un codice invito univoco.
-        </p>
-        <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
-          <input
-            type="text"
-            placeholder="Nome casa (es. Villa Arzilla, Appartamento 4B)"
-            value={nomeCasa}
-            maxLength={50}
-            onChange={(e) => setNomeCasa(e.target.value)}
-            style={{
-              flex: 1,
-              minWidth: "220px",
-              padding: "14px 18px",
-              borderRadius: "var(--radius-md)",
-              border: "1.5px solid var(--border-color)",
-              background: "var(--bg-input)",
-              color: "var(--text-main)",
-              outline: "none"
-            }}
-          />
-          <button className="btn-primary" onClick={creaCasa} disabled={loading} style={{ width: "auto", padding: "14px 24px" }}>
-            {loading ? <i className="fas fa-spinner fa-spin"></i> : "Crea Casa"}
-          </button>
+      {/* Modern Split Cards */}
+      <div className="scelta-casa-split-grid" style={{ display: "flex", flexDirection: "column", gap: "24px", marginTop: "1.5rem" }}>
+        {/* OPZIONE 1: CREA CASA */}
+        <div className="scelta-card scelta-crea" style={{ borderBottom: "1px solid var(--border-color)", paddingBottom: "2rem", textAlign: "left" }}>
+          <h3 style={{ display: "flex", alignItems: "center", gap: "8px", margin: "0 0 6px 0" }}>
+            <i className="fas fa-plus-circle" style={{ color: "var(--color-primary)" }} aria-hidden="true"></i>
+            <span>Crea una nuova Casa</span>
+          </h3>
+          <p className="scelta-desc" style={{ marginBottom: "14px", fontSize: "0.92rem", color: "var(--text-secondary)" }}>
+            Genera un nuovo nucleo e riceverai un codice invito univoco per i tuoi coinquilini.
+          </p>
+          <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+            <div className="input-with-icon" style={{ flex: 1, minWidth: "220px" }}>
+              <input
+                type="text"
+                placeholder="Nome casa (es. Villa Arzilla, Appartamento 4B)"
+                value={nomeCasa}
+                maxLength={50}
+                onChange={(e) => setNomeCasa(e.target.value)}
+                aria-label="Nome della casa da creare"
+                style={{
+                  width: "100%",
+                  padding: "14px 18px",
+                  borderRadius: "var(--radius-md)",
+                  border: "1.5px solid var(--border-color)",
+                  background: "var(--bg-input)",
+                  color: "var(--text-main)",
+                  outline: "none"
+                }}
+              />
+            </div>
+            <button
+              type="button"
+              className="btn-primary"
+              onClick={creaCasa}
+              disabled={loading}
+              style={{ width: "auto", padding: "14px 24px" }}
+            >
+              {loading ? (
+                <span><i className="fas fa-spinner fa-spin" aria-hidden="true"></i> Creazione...</span>
+              ) : (
+                <span><i className="fas fa-plus" aria-hidden="true"></i> Crea Casa</span>
+              )}
+            </button>
+          </div>
+        </div>
+
+        {/* OPZIONE 2: UNISCITI CON CODICE */}
+        <div className="scelta-card scelta-unisciti" style={{ textAlign: "left" }}>
+          <h3 style={{ display: "flex", alignItems: "center", gap: "8px", margin: "0 0 6px 0" }}>
+            <i className="fas fa-key" style={{ color: "var(--color-accent)" }} aria-hidden="true"></i>
+            <span>Unisciti con codice</span>
+          </h3>
+          <p className="scelta-desc" style={{ marginBottom: "14px", fontSize: "0.92rem", color: "var(--text-secondary)" }}>
+            Hai ricevuto un codice dal tuo coinquilino? Inseriscilo qui per accedere subito.
+          </p>
+          <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+            <div className="input-with-icon" style={{ flex: 1, minWidth: "220px" }}>
+              <input
+                type="text"
+                placeholder="Codice (es. X7K9P2)"
+                value={codiceCasa}
+                maxLength={10}
+                onChange={(e) => setCodiceCasa(e.target.value.toUpperCase())}
+                aria-label="Codice invito per accedere alla casa"
+                style={{
+                  width: "100%",
+                  padding: "14px 18px",
+                  borderRadius: "var(--radius-md)",
+                  border: "1.5px solid var(--border-color)",
+                  background: "var(--bg-input)",
+                  color: "var(--text-main)",
+                  outline: "none",
+                  letterSpacing: "2px",
+                  textTransform: "uppercase",
+                  fontWeight: "bold"
+                }}
+              />
+            </div>
+            <button
+              type="button"
+              className="btn-secondary"
+              onClick={uniscitiCasa}
+              disabled={loading}
+              style={{ width: "auto", padding: "14px 24px" }}
+            >
+              {loading ? (
+                <span><i className="fas fa-spinner fa-spin" aria-hidden="true"></i> Accesso...</span>
+              ) : (
+                <span><i className="fas fa-door-open" aria-hidden="true"></i> Unisciti</span>
+              )}
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* SEZIONE 2: UNISCITI */}
-      <div style={{ marginTop: "2rem", textAlign: "left" }}>
-        <h3 style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          <i className="fas fa-key" style={{ color: "var(--color-accent)" }}></i>
-          Unisciti con codice
-        </h3>
-        <p className="subtitle" style={{ marginBottom: "14px", fontSize: "0.92rem" }}>
-          Hai ricevuto un codice dal tuo coinquilino? Inseriscilo qui.
-        </p>
-        <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
-          <input
-            type="text"
-            placeholder="Codice (es. X7K9P2)"
-            value={codiceCasa}
-            maxLength={10}
-            onChange={(e) => setCodiceCasa(e.target.value.toUpperCase())}
-            style={{
-              flex: 1,
-              minWidth: "220px",
-              padding: "14px 18px",
-              borderRadius: "var(--radius-md)",
-              border: "1.5px solid var(--border-color)",
-              background: "var(--bg-input)",
-              color: "var(--text-main)",
-              outline: "none",
-              letterSpacing: "2px",
-              textTransform: "uppercase",
-              fontWeight: "bold"
-            }}
-          />
-          <button className="btn-secondary" onClick={uniscitiCasa} disabled={loading} style={{ width: "auto", padding: "14px 24px" }}>
-            {loading ? <i className="fas fa-spinner fa-spin"></i> : "Unisciti"}
-          </button>
-        </div>
-      </div>
-
+      {/* Account Logout Action */}
       <div style={{ marginTop: "36px", textAlign: "center" }}>
-        <button className="btn-text" onClick={handleLogout}>
-          <i className="fas fa-sign-out-alt"></i> Esci dall'account
+        <button type="button" className="btn-text" onClick={handleLogout}>
+          <i className="fas fa-sign-out-alt" aria-hidden="true"></i>
+          <span>Esci dall'account</span>
         </button>
       </div>
     </div>

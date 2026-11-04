@@ -5,24 +5,53 @@
 /.pnp
 .pnp.js
 
-# testing
+# testing & coverage
 /coverage
 
-# production
+# production builds
 /build
 
-# environment and secrets
+# environment configurations and secrets
 .env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
+.env*.local
 
-# misc
-.DS_Store
+# private keys, certificates and service account credentials
+*.pem
+*.key
+*.cert
+*.crt
+*.p12
+*.pfx
+*serviceAccount*.json
+*service-account*.json
+firebase-adminsdk*.json
+*credentials*.json
+
+# local databases and state files
+*.sqlite
+*.sqlite3
+*.db
+
+# debug and runtime logs
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+firebase-debug.log*
+firestore-debug.log*
+ui-debug.log*
+
+# system and IDE files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
 
 # design templates and scratch assets
 css_template/

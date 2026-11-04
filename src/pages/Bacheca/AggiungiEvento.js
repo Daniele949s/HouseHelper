@@ -3,9 +3,16 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { db } from "../../firebase";
 import { collection, addDoc } from "firebase/firestore";
 import { useAuth } from "../../contexts/AuthContext";
-import { triggerConfetti } from "../../components/Celebration";
+import { showToast } from "../../utils/feedback";
 import { sanitizeText, validateDate } from "../../utils/security";
-import "../../App.css";
+
+const EVENT_CATEGORIES = [
+  { id: "Generale", label: "Generale", icon: "fas fa-bookmark" },
+  { id: "Cena / Festa", label: "Cena / Festa", icon: "fas fa-utensils" },
+  { id: "Manutenzione", label: "Manutenzione", icon: "fas fa-wrench" },
+  { id: "Bollette / Scadenze", label: "Bollette", icon: "fas fa-receipt" },
+  { id: "Ospiti", label: "Ospiti", icon: "fas fa-user-friends" }
+];
 
 export default function AggiungiEvento() {
   const navigate = useNavigate();
@@ -15,6 +22,7 @@ export default function AggiungiEvento() {
   const [titolo, setTitolo] = useState("");
   const [contenuto, setContenuto] = useState("");
   const [dataEvento, setDataEvento] = useState("");
+  const [categoria, setCategoria] = useState("Generale");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -50,7 +58,7 @@ export default function AggiungiEvento() {
     }
 
     if (!dateValidation.isValid) {
-      setError(dateValidation.error || "Seleziona una data valida.");
+      setError(dateValidation.error || "Data non specificata.");
       return;
     }
 
@@ -65,13 +73,14 @@ export default function AggiungiEvento() {
       await addDoc(collection(db, "note"), {
         titolo: cleanedTitolo,
         contenuto: cleanedContenuto,
+        categoria: categoria || "Generale",
         data: dateValidation.date,
         autoreId: currentUser.uid,
         casaId: userData.casaId,
         createdAt: new Date(),
         isEvento: true
       });
-      triggerConfetti();
+      showToast("Evento aggiunto al calendario con successo!", "success");
       navigate("/calendario");
     } catch (e) {
       setError("Errore durante il salvataggio dell'evento.");
@@ -83,7 +92,7 @@ export default function AggiungiEvento() {
 
   return (
     <div className="card" style={{ maxWidth: "620px" }}>
-      <h1 style={{ marginBottom: "6px" }}>Nuovo Evento Calendario 🗓️</h1>
+      <h1 style={{ marginBottom: "6px" }}>Nuovo Evento Calendario <i className="fas fa-calendar-alt" style={{ fontSize: "0.85em", marginLeft: "6px" }}></i></h1>
       <p className="subtitle" style={{ marginBottom: "24px" }}>Aggiungi una data o un impegno per tutti gli abitanti</p>
 
       {error && (
@@ -95,7 +104,26 @@ export default function AggiungiEvento() {
 
       <form onSubmit={handleSubmit} className="auth-form" style={{ textAlign: "left" }}>
         <div className="input-group">
-          <label>Titolo Evento (massimo 80 caratteri)</label>
+          <label>Categoria evento</label>
+          <div className="pill-selector-group">
+            {EVENT_CATEGORIES.map((cat) => (
+              <button
+                key={cat.id}
+                type="button"
+                className={`pill-selector-btn ${categoria === cat.id ? "active" : ""}`}
+                onClick={() => setCategoria(cat.id)}
+              >
+                <i className={cat.icon}></i> {cat.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="input-group">
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <label>Titolo Evento (massimo 80 caratteri)</label>
+            <span className="char-counter">{titolo.length} / 80</span>
+          </div>
           <input
             type="text"
             value={titolo}
@@ -119,7 +147,10 @@ export default function AggiungiEvento() {
         </div>
 
         <div className="input-group">
-          <label>Dettagli / Note / Orario (massimo 1500 caratteri)</label>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <label>Dettagli / Note / Orario (massimo 1500 caratteri)</label>
+            <span className="char-counter">{contenuto.length} / 1500</span>
+          </div>
           <textarea
             value={contenuto}
             onChange={(e) => setContenuto(e.target.value)}

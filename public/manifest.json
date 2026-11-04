@@ -1,6 +1,7 @@
 {
   "short_name": "HouseHelper",
-  "name": "HouseHelper - Gestione Casa",
+  "name": "HouseHelper - Gestione Casa e Coinquilini",
+  "description": "Applicazione per la gestione condivisa di turni, spese, contatti e documenti della casa.",
   "icons": [
     {
       "src": "favicon.ico",
@@ -18,8 +19,10 @@
       "sizes": "512x512"
     }
   ],
-  "start_url": ".",
+  "start_url": "/",
+  "scope": "/",
   "display": "standalone",
-  "theme_color": "#ffffff",
-  "background_color": "#ffffff"
+  "orientation": "portrait",
+  "theme_color": "#2563eb",
+  "background_color": "#f8fafc"
 }

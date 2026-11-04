@@ -49,6 +49,8 @@ export default function MobileNavigation() {
         { label: "Lista Spesa", icon: "fa-shopping-cart", path: "/spesa" },
         { label: "Calendario Casa", icon: "fa-calendar-alt", path: "/calendario" },
         { label: "Bacheca", icon: "fa-thumbtack", path: "/bacheca" },
+        { label: "Documenti & Contratti", icon: "fa-folder-open", path: "/documenti" },
+        { label: "Contatti Utili", icon: "fa-address-book", path: "/contatti" },
       ]
     : [
         { label: "Home", icon: "fa-home", path: "/" },

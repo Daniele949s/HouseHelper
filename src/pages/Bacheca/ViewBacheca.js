@@ -3,7 +3,30 @@ import { useNavigate } from "react-router-dom";
 import { db } from "../../firebase";
 import { collection, query, where, getDocs, doc, deleteDoc } from "firebase/firestore";
 import { useAuth } from "../../contexts/AuthContext";
-import "../../App.css";
+import { showConfirm, showToast } from "../../utils/feedback";
+
+const PRIORITY_CONFIG = {
+  urgente: {
+    label: "Urgente",
+    icon: "fas fa-exclamation-triangle",
+    className: "priority-urgente"
+  },
+  importante: {
+    label: "Importante",
+    icon: "fas fa-star",
+    className: "priority-importante"
+  },
+  promemoria: {
+    label: "Promemoria",
+    icon: "fas fa-bell",
+    className: "priority-promemoria"
+  },
+  info: {
+    label: "Info",
+    icon: "fas fa-info-circle",
+    className: "priority-info"
+  }
+};
 
 export default function ViewBacheca() {
   const navigate = useNavigate();
@@ -65,22 +88,30 @@ export default function ViewBacheca() {
     // Multi-tenant & Authorization Checks
     const notaTarget = note.find((n) => n.id === id);
     if (!notaTarget || notaTarget.casaId !== userData?.casaId) {
-      alert("Operazione non autorizzata: avviso non appartenente alla tua abitazione.");
+      showToast("Operazione non autorizzata: avviso non appartenente alla tua abitazione.", "error");
       return;
     }
 
     if (autoreId !== currentUser.uid) {
-      alert("Puoi eliminare solo i tuoi avvisi!");
+      showToast("Puoi eliminare solo i tuoi avvisi!", "warning");
       return;
     }
 
-    if (!window.confirm("Sicuro di voler eliminare questa nota?")) return;
+    const confirmed = await showConfirm({
+      title: "Elimina Avviso",
+      message: "Sicuro di voler eliminare questa nota?",
+      confirmText: "Elimina",
+      cancelText: "Annulla",
+      isDanger: true
+    });
+    if (!confirmed) return;
 
     try {
       await deleteDoc(doc(db, "note", id));
+      showToast("Avviso rimosso dalla bacheca.", "success");
       fetchDatiReload();
     } catch (error) {
-      alert("Errore durante l'eliminazione.");
+      showToast("Errore durante l'eliminazione.", "error");
     }
   };
 
@@ -97,7 +128,7 @@ export default function ViewBacheca() {
     <div className="card" style={{ maxWidth: "820px", padding: "2.5rem" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2rem", flexWrap: "wrap", gap: "12px" }}>
         <div>
-          <h1 style={{ margin: 0, textAlign: "left" }}>Bacheca Condivisa 📌</h1>
+          <h1 style={{ margin: 0, textAlign: "left" }}>Bacheca Condivisa <i className="fas fa-thumbtack" style={{ fontSize: "0.85em", marginLeft: "6px" }}></i></h1>
           <p style={{ margin: "4px 0 0 0", color: "var(--text-secondary)", textAlign: "left", fontSize: "0.92rem" }}>
             Avvisi e messaggi importanti per la convivenza
           </p>
@@ -114,7 +145,7 @@ export default function ViewBacheca() {
       <div className="sidemenu-list-container">
         {note.length === 0 ? (
           <div style={{ padding: "3rem 1rem", textAlign: "center", background: "var(--bg-input)", borderRadius: "var(--radius-md)" }}>
-            <span style={{ fontSize: "3rem", opacity: 0.7 }}>📝</span>
+            <i className="fas fa-clipboard-list" style={{ fontSize: "3rem", opacity: 0.7 }}></i>
             <p className="subtitle" style={{ marginTop: "12px", marginBottom: 0 }}>
               Non ci sono comunicazioni attive.
             </p>
@@ -122,44 +153,26 @@ export default function ViewBacheca() {
         ) : (
           note.map((n) => {
             const isMia = n.autoreId === currentUser.uid;
+            const authorName = utentiMap[n.autoreId] || "Coinquilino";
+            const initial = (authorName.charAt(0) || "U").toUpperCase();
+            const prioKey = (n.priorita || "info").toLowerCase();
+            const prioConfig = PRIORITY_CONFIG[prioKey] || PRIORITY_CONFIG.info;
+
             return (
               <div
                 key={n.id}
-                className="widget-card"
-                style={{
-                  textAlign: "left",
-                  borderLeft: isMia ? "4px solid var(--color-primary)" : "4px solid var(--border-highlight)",
-                  position: "relative"
-                }}
+                className={`bacheca-card ${isMia ? "is-author" : ""}`}
               >
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "12px" }}>
-                  <div>
-                    <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "6px" }}>
-                      <span style={{ color: "var(--color-primary)", fontSize: "0.9rem" }}>
-                        <i className="fas fa-thumbtack"></i>
-                      </span>
-                      <h3 style={{ margin: 0, fontSize: "1.25rem", color: "var(--text-main)" }}>{n.titolo}</h3>
-                    </div>
-
-                    <p style={{ margin: "8px 0", fontSize: "1rem", color: "var(--text-secondary)", lineHeight: 1.55 }}>
-                      {n.contenuto}
-                    </p>
-
-                    {n.data && (
-                      <p style={{ margin: "10px 0 0 0", fontSize: "0.85rem", color: "var(--color-warning)", fontWeight: "600" }}>
-                        <i className="far fa-calendar-alt" style={{ marginRight: "6px" }}></i>
-                        Scadenza / Evento: {new Date(n.data).toLocaleDateString("it-IT")}
-                      </p>
-                    )}
-
-                    <p style={{ margin: "10px 0 0 0", fontSize: "0.82rem", color: "var(--text-muted)" }}>
-                      Scritto da: <strong style={{ color: "var(--text-main)" }}>{utentiMap[n.autoreId] || "Coinquilino"}</strong>
-                      {isMia && " (Tu)"}
-                    </p>
+                <div className="bacheca-card-header">
+                  <div className="bacheca-header-left">
+                    <span className={`bacheca-priority-tag ${prioConfig.className}`}>
+                      <i className={prioConfig.icon}></i> {prioConfig.label}
+                    </span>
+                    <h3 className="bacheca-card-title">{n.titolo}</h3>
                   </div>
 
                   {isMia && (
-                    <div style={{ display: "flex", gap: "8px" }}>
+                    <div className="bacheca-actions">
                       <button
                         className="btn-secondary"
                         onClick={() => navigate(`/bacheca/modifica/${n.id}`)}
@@ -179,6 +192,32 @@ export default function ViewBacheca() {
                     </div>
                   )}
                 </div>
+
+                <p className="bacheca-card-body">{n.contenuto}</p>
+
+                {n.data && (
+                  <p style={{ margin: "4px 0 0 0", fontSize: "0.85rem", color: "var(--color-warning)", fontWeight: "600" }}>
+                    <i className="far fa-calendar-alt" style={{ marginRight: "6px" }}></i>
+                    Scadenza / Evento: {new Date(n.data).toLocaleDateString("it-IT")}
+                  </p>
+                )}
+
+                <div className="bacheca-card-footer">
+                  <div className="bacheca-author-badge">
+                    <div className="bacheca-author-avatar">{initial}</div>
+                    <span>
+                      Scritto da: <strong style={{ color: "var(--text-main)" }}>{authorName}</strong>
+                      {isMia && " (Tu)"}
+                    </span>
+                  </div>
+
+                  {n.createdAt && (
+                    <span style={{ fontSize: "0.78rem", color: "var(--text-muted)" }}>
+                      <i className="far fa-clock" style={{ marginRight: "4px" }}></i>
+                      {new Date(n.createdAt?.toMillis ? n.createdAt.toMillis() : n.createdAt).toLocaleDateString("it-IT")}
+                    </span>
+                  )}
+                </div>
               </div>
             );
           })
@@ -186,7 +225,7 @@ export default function ViewBacheca() {
       </div>
 
       <button className="btn-text" onClick={() => navigate("/home")} style={{ marginTop: "30px" }}>
-        ← Torna alla Dashboard
+        <i className="fas fa-arrow-left" style={{ marginRight: "6px" }}></i> Torna alla Dashboard
       </button>
     </div>
   );

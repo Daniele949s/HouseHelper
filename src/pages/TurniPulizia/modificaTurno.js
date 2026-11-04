@@ -4,7 +4,7 @@ import { db } from "../../firebase";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { useAuth } from "../../contexts/AuthContext";
 import { sanitizeList, validateDate } from "../../utils/security";
-import "../../App.css";
+import { showToast } from "../../utils/feedback";
 
 const generaFasceOrarie = () => {
   const orari = [];
@@ -41,7 +41,7 @@ export default function ModificaTurno() {
       try {
         const turnoDoc = await getDoc(doc(db, "turni", id));
         if (!turnoDoc.exists()) {
-          alert("Turno non trovato o precedentemente rimosso.");
+          showToast("Turno non trovato o precedentemente rimosso.", "error");
           navigate("/turni");
           return;
         }
@@ -50,7 +50,7 @@ export default function ModificaTurno() {
 
         // Multi-tenant Security Check: Prevent accessing turni belonging to other households via URL
         if (data.casaId !== userData.casaId) {
-          alert("Accesso non consentito: questo turno appartiene a un'altra abitazione.");
+          showToast("Accesso non consentito: questo turno appartiene a un'altra abitazione.", "error");
           navigate("/turni");
           return;
         }
@@ -122,6 +122,7 @@ export default function ModificaTurno() {
 
     try {
       await updateDoc(doc(db, "turni", id), turnoAggiornato);
+      showToast("Turno aggiornato con successo!", "success");
       navigate("/turni");
     } catch (err) {
       console.error("Errore aggiornamento turno:", err);
@@ -134,7 +135,7 @@ export default function ModificaTurno() {
   if (loading) {
     return (
       <div className="card" style={{ maxWidth: "600px" }}>
-        <p><i className="fas fa-spinner fa-spin fa-2x"></i></p>
+        <p><i className="fas fa-spinner fa-spin fa-2x" aria-hidden="true"></i></p>
         <p style={{ marginTop: "10px" }}>Verifica autorizzazioni e caricamento turno...</p>
       </div>
     );
@@ -142,20 +143,23 @@ export default function ModificaTurno() {
 
   return (
     <div className="card" style={{ maxWidth: "620px" }}>
-      <h1 style={{ marginBottom: "6px" }}>Modifica Turno ✏️</h1>
+      <h1 style={{ marginBottom: "6px" }}>
+        Modifica Turno <i className="fas fa-pen" style={{ fontSize: "0.85em", marginLeft: "6px" }} aria-hidden="true"></i>
+      </h1>
       <p className="subtitle" style={{ marginBottom: "24px" }}>Aggiorna data, luogo o assegnatari del turno</p>
 
       {error && (
-        <div className="error-alert" style={{ marginBottom: "20px" }}>
-          <i className="fas fa-exclamation-circle"></i>
+        <div className="error-alert" role="alert" style={{ marginBottom: "20px" }}>
+          <i className="fas fa-exclamation-circle" aria-hidden="true"></i>
           <span>{error}</span>
         </div>
       )}
 
       <form onSubmit={handleSubmit} className="auth-form" style={{ textAlign: "left" }}>
         <div className="input-group">
-          <label>Operatori (separati da virgola, max 10 persone)</label>
+          <label htmlFor="edit-nomi">Operatori (separati da virgola, max 10 persone)</label>
           <input
+            id="edit-nomi"
             type="text"
             name="nomi"
             value={turno.nomi}
@@ -166,8 +170,9 @@ export default function ModificaTurno() {
         </div>
 
         <div className="input-group">
-          <label>Data</label>
+          <label htmlFor="edit-data">Data</label>
           <input
+            id="edit-data"
             type="date"
             name="data"
             value={turno.data}
@@ -179,8 +184,8 @@ export default function ModificaTurno() {
         </div>
 
         <div className="input-group">
-          <label>Fascia Oraria</label>
-          <select name="fasciaOraria" value={turno.fasciaOraria} onChange={handleChange} required>
+          <label htmlFor="edit-fascia">Fascia Oraria</label>
+          <select id="edit-fascia" name="fasciaOraria" value={turno.fasciaOraria} onChange={handleChange} required>
             <option value="">-- Seleziona orario --</option>
             {FASCE_DISPONIBILI.map((f) => (
               <option key={f} value={f}>{f}</option>
@@ -189,8 +194,9 @@ export default function ModificaTurno() {
         </div>
 
         <div className="input-group">
-          <label>Luoghi da pulire (separati da virgola)</label>
+          <label htmlFor="edit-luoghi">Luoghi da pulire (separati da virgola)</label>
           <input
+            id="edit-luoghi"
             type="text"
             name="luoghi"
             value={turno.luoghi}
@@ -201,8 +207,9 @@ export default function ModificaTurno() {
         </div>
 
         <div className="input-group">
-          <label>Istruzioni e Note (opzionale)</label>
+          <label htmlFor="edit-procedura">Istruzioni e Note (opzionale)</label>
           <textarea
+            id="edit-procedura"
             name="procedura"
             value={turno.procedura}
             onChange={handleChange}
@@ -213,7 +220,11 @@ export default function ModificaTurno() {
 
         <div style={{ display: "flex", gap: "12px", marginTop: "16px" }}>
           <button type="submit" className="btn-primary" disabled={saving}>
-            {saving ? <i className="fas fa-spinner fa-spin"></i> : "Salva Modifiche"}
+            {saving ? (
+              <span><i className="fas fa-spinner fa-spin" aria-hidden="true"></i> Salvataggio...</span>
+            ) : (
+              <span><i className="fas fa-check" aria-hidden="true"></i> Salva Modifiche</span>
+            )}
           </button>
           <button type="button" className="btn-secondary" onClick={() => navigate("/turni")}>
             Annulla

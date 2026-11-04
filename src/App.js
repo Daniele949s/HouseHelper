@@ -1,15 +1,15 @@
-import React from "react";
-import { BrowserRouter as Router, Routes, Route, useNavigate } from "react-router-dom";
+import React, { Suspense, lazy } from "react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import "./App.css";
-import logo from "./logo.png";
 
 // Import Providers
 import { AuthProvider } from "./contexts/AuthContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
 
 // Import Visual & Interactive Components
-import ThemeToggle from "./components/ThemeToggle";
-import MobileNavigation from "./components/MobileNavigation";
+import AppHeader from "./components/AppHeader";
+import ToastContainer from "./components/Toast";
+import ConfirmModal from "./components/ConfirmModal";
 import ScrollProgressBar from "./components/ScrollProgressBar";
 import BackgroundSlideshow from "./components/BackgroundSlideshow";
 import AppFooter from "./components/AppFooter";
@@ -37,36 +37,44 @@ import AggiuntaTurno from "./pages/TurniPulizia/aggiuntaTurno";
 import ModificaTurno from "./pages/TurniPulizia/modificaTurno";
 
 // Import Debts & Expenses Pages
-import ViewDebiti from "./pages/Debiti/ViewDebiti";
 import AggiungiDebito from "./pages/Debiti/AggiungiDebito";
 
 // Import Grocery List Pages
 import ViewSpesa from "./pages/Spesa/ViewSpesa";
 
 // Import Bulletin Board & Calendar Pages
-import ViewBacheca from "./pages/Bacheca/ViewBacheca";
 import AggiungiNota from "./pages/Bacheca/AggiungiNota";
 import ModificaNota from "./pages/Bacheca/ModificaNota";
-import ViewCalendario from "./pages/Bacheca/ViewCalendario";
 import AggiungiEvento from "./pages/Bacheca/AggiungiEvento";
 
-function AppHeader() {
-  const navigate = useNavigate();
+// Lazy-loaded secondary domain pages for code splitting & high responsiveness
+const ViewDebiti = lazy(() => import("./pages/Debiti/ViewDebiti"));
+const ViewBacheca = lazy(() => import("./pages/Bacheca/ViewBacheca"));
+const ViewCalendario = lazy(() => import("./pages/Bacheca/ViewCalendario"));
+const ViewDocumenti = lazy(() => import("./pages/Documenti/ViewDocumenti"));
+const ViewContatti = lazy(() => import("./pages/Contatti/ViewContatti"));
 
+function LoadingFallback() {
   return (
-    <header className="app-topbar">
-      <div className="brand-wrapper" onClick={() => navigate("/")}>
-        <div className="brand-icon-badge">
-          <img src={logo} alt="HouseHelper Logo" className="brand-logo-img" />
-        </div>
-        <span className="brand-title">HouseHelper</span>
-      </div>
-
-      <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-        <ThemeToggle />
-        <MobileNavigation />
-      </div>
-    </header>
+    <div
+      className="container text-center py-5"
+      style={{
+        minHeight: "50vh",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center"
+      }}
+    >
+      <i
+        className="fas fa-spinner fa-spin fa-2x"
+        style={{ color: "var(--color-primary, #2563eb)", marginBottom: "12px" }}
+        aria-hidden="true"
+      ></i>
+      <p style={{ color: "var(--color-text-muted, #6b7280)", fontSize: "14px", margin: 0 }}>
+        Caricamento in corso...
+      </p>
+    </div>
   );
 }
 
@@ -77,6 +85,8 @@ function App() {
         <Router>
           <ScrollProgressBar />
           <BackgroundSlideshow />
+          <ToastContainer />
+          <ConfirmModal />
           <div className="app-container">
             <AppHeader />
             <Routes>
@@ -102,20 +112,61 @@ function App() {
                 <Route path="/turni/modifica/:id" element={<ModificaTurno />} />
 
                 {/* Spese e Debiti */}
-                <Route path="/debiti" element={<ViewDebiti />} />
+                <Route
+                  path="/debiti"
+                  element={
+                    <Suspense fallback={<LoadingFallback />}>
+                      <ViewDebiti />
+                    </Suspense>
+                  }
+                />
                 <Route path="/debiti/aggiungi" element={<AggiungiDebito />} />
 
                 {/* Lista Spesa */}
                 <Route path="/spesa" element={<ViewSpesa />} />
 
                 {/* Bacheca */}
-                <Route path="/bacheca" element={<ViewBacheca />} />
+                <Route
+                  path="/bacheca"
+                  element={
+                    <Suspense fallback={<LoadingFallback />}>
+                      <ViewBacheca />
+                    </Suspense>
+                  }
+                />
                 <Route path="/bacheca/aggiungi" element={<AggiungiNota />} />
                 <Route path="/bacheca/modifica/:id" element={<ModificaNota />} />
 
                 {/* Calendario */}
-                <Route path="/calendario" element={<ViewCalendario />} />
+                <Route
+                  path="/calendario"
+                  element={
+                    <Suspense fallback={<LoadingFallback />}>
+                      <ViewCalendario />
+                    </Suspense>
+                  }
+                />
                 <Route path="/calendario/aggiungi" element={<AggiungiEvento />} />
+
+                {/* Gestione Documenti */}
+                <Route
+                  path="/documenti"
+                  element={
+                    <Suspense fallback={<LoadingFallback />}>
+                      <ViewDocumenti />
+                    </Suspense>
+                  }
+                />
+
+                {/* Rubrica Contatti Utili */}
+                <Route
+                  path="/contatti"
+                  element={
+                    <Suspense fallback={<LoadingFallback />}>
+                      <ViewContatti />
+                    </Suspense>
+                  }
+                />
               </Route>
 
               {/* Catch-all 404 Route for URL manipulation / invalid links */}
@@ -130,3 +181,4 @@ function App() {
 }
 
 export default App;
+

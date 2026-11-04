@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { auth, db } from '../firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
+import { purgeAllOfflineStorage } from '../utils/offlineStorage';
 
 const AuthContext = createContext();
 
@@ -28,6 +29,7 @@ export function AuthProvider({ children }) {
         }
       } else {
         setUserData(null);
+        purgeAllOfflineStorage();
       }
       setLoading(false);
     });

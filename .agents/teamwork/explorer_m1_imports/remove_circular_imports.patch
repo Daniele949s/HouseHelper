@@ -1,0 +1,187 @@
+diff --git a/src/pages/Autenticazione/homeAutenticazione.js b/src/pages/Autenticazione/homeAutenticazione.js
+--- a/src/pages/Autenticazione/homeAutenticazione.js
++++ b/src/pages/Autenticazione/homeAutenticazione.js
+@@ -2,7 +2,6 @@
+ import { useNavigate } from "react-router-dom";
+ import { useAuth } from "../../contexts/AuthContext";
+ import InteractiveMascot from "../../components/InteractiveMascot";
+-import '../../App.css';
+ 
+ export default function HomeAutenticazione() {
+   const navigate = useNavigate();
+diff --git a/src/pages/Autenticazione/viewLogin.js b/src/pages/Autenticazione/viewLogin.js
+--- a/src/pages/Autenticazione/viewLogin.js
++++ b/src/pages/Autenticazione/viewLogin.js
+@@ -6,7 +6,6 @@
+ import InteractiveMascot from "../../components/InteractiveMascot";
+ import { triggerConfetti } from "../../components/Celebration";
+ import { isValidEmail, sanitizeText } from "../../utils/security";
+-import "../../App.css";
+ 
+ export default function ViewLogin() {
+   const navigate = useNavigate();
+diff --git a/src/pages/Autenticazione/viewRegistrazione.js b/src/pages/Autenticazione/viewRegistrazione.js
+--- a/src/pages/Autenticazione/viewRegistrazione.js
++++ b/src/pages/Autenticazione/viewRegistrazione.js
+@@ -6,7 +6,6 @@
+ import InteractiveMascot from "../../components/InteractiveMascot";
+ import { triggerConfetti } from "../../components/Celebration";
+ import { sanitizeText, isValidEmail } from "../../utils/security";
+-import "../../App.css";
+ 
+ export default function ViewRegistrazione() {
+   const [email, setEmail] = useState("");
+diff --git a/src/pages/homeUtente.js b/src/pages/homeUtente.js
+--- a/src/pages/homeUtente.js
++++ b/src/pages/homeUtente.js
+@@ -7,7 +7,6 @@
+ import HouseAnalytics from "../components/HouseAnalytics";
+ import MiniGuy from "../components/MiniGuy";
+ import { safeFloat } from "../utils/security";
+-import '../App.css';
+ 
+ export default function HomeUtente() {
+   const navigate = useNavigate();
+diff --git a/src/pages/NotFound.js b/src/pages/NotFound.js
+--- a/src/pages/NotFound.js
++++ b/src/pages/NotFound.js
+@@ -1,7 +1,6 @@
+ import React from "react";
+ import { useNavigate } from "react-router-dom";
+ import { useAuth } from "../contexts/AuthContext";
+-import "../App.css";
+ 
+ export default function NotFound() {
+   const navigate = useNavigate();
+diff --git a/src/pages/SceltaCasa.js b/src/pages/SceltaCasa.js
+--- a/src/pages/SceltaCasa.js
++++ b/src/pages/SceltaCasa.js
+@@ -7,7 +7,6 @@
+ import { triggerConfetti } from "../components/Celebration";
+ import InteractiveMascot from "../components/InteractiveMascot";
+ import { sanitizeText, sanitizeAlphanumeric } from "../utils/security";
+-import "../App.css";
+ 
+ export default function SceltaCasa() {
+   const navigate = useNavigate();
+diff --git a/src/pages/TurniPulizia/aggiuntaTurno.js b/src/pages/TurniPulizia/aggiuntaTurno.js
+--- a/src/pages/TurniPulizia/aggiuntaTurno.js
++++ b/src/pages/TurniPulizia/aggiuntaTurno.js
+@@ -5,7 +5,6 @@
+ import { useAuth } from "../../contexts/AuthContext";
+ import { triggerConfetti } from "../../components/Celebration";
+ import { sanitizeList, validateDate } from "../../utils/security";
+-import "../../App.css";
+ 
+ const generaFasceOrarie = () => {
+   const orari = [];
+diff --git a/src/pages/TurniPulizia/viewTurni.js b/src/pages/TurniPulizia/viewTurni.js
+--- a/src/pages/TurniPulizia/viewTurni.js
++++ b/src/pages/TurniPulizia/viewTurni.js
+@@ -3,7 +3,6 @@
+ import { db } from "../../firebase";
+ import { collection, query, where, getDocs, doc, deleteDoc } from "firebase/firestore";
+ import { useAuth } from "../../contexts/AuthContext";
+-import "../../App.css";
+ 
+ export default function VisualizzaTurni() {
+   const navigate = useNavigate();
+diff --git a/src/pages/TurniPulizia/modificaTurno.js b/src/pages/TurniPulizia/modificaTurno.js
+--- a/src/pages/TurniPulizia/modificaTurno.js
++++ b/src/pages/TurniPulizia/modificaTurno.js
+@@ -4,7 +4,6 @@
+ import { doc, getDoc, updateDoc } from "firebase/firestore";
+ import { useAuth } from "../../contexts/AuthContext";
+ import { sanitizeList, validateDate } from "../../utils/security";
+-import "../../App.css";
+ 
+ const generaFasceOrarie = () => {
+   const orari = [];
+diff --git a/src/pages/Bacheca/ViewBacheca.js b/src/pages/Bacheca/ViewBacheca.js
+--- a/src/pages/Bacheca/ViewBacheca.js
++++ b/src/pages/Bacheca/ViewBacheca.js
+@@ -3,7 +3,6 @@
+ import { db } from "../../firebase";
+ import { collection, query, where, getDocs, doc, deleteDoc } from "firebase/firestore";
+ import { useAuth } from "../../contexts/AuthContext";
+-import "../../App.css";
+ 
+ export default function ViewBacheca() {
+   const navigate = useNavigate();
+diff --git a/src/pages/Bacheca/ModificaNota.js b/src/pages/Bacheca/ModificaNota.js
+--- a/src/pages/Bacheca/ModificaNota.js
++++ b/src/pages/Bacheca/ModificaNota.js
+@@ -4,7 +4,6 @@
+ import { doc, getDoc, updateDoc } from "firebase/firestore";
+ import { useAuth } from "../../contexts/AuthContext";
+ import { sanitizeText, validateDate } from "../../utils/security";
+-import "../../App.css";
+ 
+ export default function ModificaNota() {
+   const { id } = useParams();
+diff --git a/src/pages/Bacheca/AggiungiEvento.js b/src/pages/Bacheca/AggiungiEvento.js
+--- a/src/pages/Bacheca/AggiungiEvento.js
++++ b/src/pages/Bacheca/AggiungiEvento.js
+@@ -5,7 +5,6 @@
+ import { useAuth } from "../../contexts/AuthContext";
+ import { triggerConfetti } from "../../components/Celebration";
+ import { sanitizeText, validateDate } from "../../utils/security";
+-import "../../App.css";
+ 
+ export default function AggiungiEvento() {
+   const navigate = useNavigate();
+diff --git a/src/pages/Bacheca/ViewCalendario.js b/src/pages/Bacheca/ViewCalendario.js
+--- a/src/pages/Bacheca/ViewCalendario.js
++++ b/src/pages/Bacheca/ViewCalendario.js
+@@ -5,7 +5,6 @@
+ import { db } from "../../firebase";
+ import { collection, query, where, getDocs } from "firebase/firestore";
+ import { useAuth } from "../../contexts/AuthContext";
+-import '../../App.css';
+ 
+ export default function ViewCalendario() {
+   const navigate = useNavigate();
+diff --git a/src/pages/Bacheca/AggiungiNota.js b/src/pages/Bacheca/AggiungiNota.js
+--- a/src/pages/Bacheca/AggiungiNota.js
++++ b/src/pages/Bacheca/AggiungiNota.js
+@@ -5,7 +5,6 @@
+ import { useAuth } from "../../contexts/AuthContext";
+ import { triggerConfetti } from "../../components/Celebration";
+ import { sanitizeText, validateDate } from "../../utils/security";
+-import "../../App.css";
+ 
+ export default function AggiungiNota() {
+   const navigate = useNavigate();
+diff --git a/src/pages/Debiti/ViewDebiti.js b/src/pages/Debiti/ViewDebiti.js
+--- a/src/pages/Debiti/ViewDebiti.js
++++ b/src/pages/Debiti/ViewDebiti.js
+@@ -5,7 +5,6 @@
+ import { useAuth } from "../../contexts/AuthContext";
+ import { triggerConfetti } from "../../components/Celebration";
+ import { safeFloat } from "../../utils/security";
+-import "../../App.css";
+ 
+ export default function ViewDebiti() {
+   const navigate = useNavigate();
+diff --git a/src/pages/Debiti/AggiungiDebito.js b/src/pages/Debiti/AggiungiDebito.js
+--- a/src/pages/Debiti/AggiungiDebito.js
++++ b/src/pages/Debiti/AggiungiDebito.js
+@@ -5,7 +5,6 @@
+ import { useAuth } from "../../contexts/AuthContext";
+ import { triggerConfetti } from "../../components/Celebration";
+ import { validateNumber, sanitizeText } from "../../utils/security";
+-import "../../App.css";
+ 
+ export default function AggiungiDebito() {
+   const navigate = useNavigate();
+diff --git a/src/pages/Spesa/ViewSpesa.js b/src/pages/Spesa/ViewSpesa.js
+--- a/src/pages/Spesa/ViewSpesa.js
++++ b/src/pages/Spesa/ViewSpesa.js
+@@ -5,7 +5,6 @@
+ import { useAuth } from "../../contexts/AuthContext";
+ import { triggerConfetti } from "../../components/Celebration";
+ import { sanitizeText } from "../../utils/security";
+-import "../../App.css";
+ 
+ export default function ViewSpesa() {
+   const navigate = useNavigate();

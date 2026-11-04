@@ -3,8 +3,15 @@ import { useNavigate, useParams } from "react-router-dom";
 import { db } from "../../firebase";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { useAuth } from "../../contexts/AuthContext";
+import { showToast } from "../../utils/feedback";
 import { sanitizeText, validateDate } from "../../utils/security";
-import "../../App.css";
+
+const PRIORITY_OPTIONS = [
+  { id: "info", label: "Info", icon: "fas fa-info-circle" },
+  { id: "importante", label: "Importante", icon: "fas fa-star" },
+  { id: "urgente", label: "Urgente", icon: "fas fa-exclamation-triangle" },
+  { id: "promemoria", label: "Promemoria", icon: "fas fa-bell" }
+];
 
 export default function ModificaNota() {
   const { id } = useParams();
@@ -14,7 +21,7 @@ export default function ModificaNota() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
-  const [nota, setNota] = useState({ titolo: "", contenuto: "", data: "" });
+  const [nota, setNota] = useState({ titolo: "", contenuto: "", priorita: "info", data: "" });
 
   useEffect(() => {
     const fetchNota = async () => {
@@ -25,7 +32,7 @@ export default function ModificaNota() {
         const docSnap = await getDoc(docRef);
 
         if (!docSnap.exists()) {
-          alert("Avviso non trovato o rimosso.");
+          showToast("Avviso non trovato o rimosso.", "error");
           navigate("/bacheca");
           return;
         }
@@ -34,14 +41,14 @@ export default function ModificaNota() {
 
         // Multi-tenant Security Check: Prevent accessing note belonging to another house
         if (data.casaId !== userData.casaId) {
-          alert("Accesso non consentito: questo avviso appartiene a un'altra abitazione.");
+          showToast("Accesso non consentito: questo avviso appartiene a un'altra abitazione.", "error");
           navigate("/bacheca");
           return;
         }
 
         // Authorization Check: Only author can edit
         if (data.autoreId !== currentUser.uid) {
-          alert("Non sei l'autore di questo avviso!");
+          showToast("Non sei l'autore di questo avviso!", "warning");
           navigate("/bacheca");
           return;
         }
@@ -49,6 +56,7 @@ export default function ModificaNota() {
         setNota({
           titolo: data.titolo || "",
           contenuto: data.contenuto || "",
+          priorita: data.priorita || "info",
           data: data.data || ""
         });
       } catch (err) {
@@ -95,10 +103,12 @@ export default function ModificaNota() {
       await updateDoc(doc(db, "note", id), {
         titolo: cleanedTitolo,
         contenuto: cleanedContenuto,
+        priorita: nota.priorita || "info",
         data: validDate,
         casaId: userData.casaId, // Household integrity
         autoreId: currentUser.uid // Preserve author
       });
+      showToast("Avviso modificato con successo!", "success");
       navigate("/bacheca");
     } catch (err) {
       console.error("Errore aggiornamento nota:", err);
@@ -119,7 +129,7 @@ export default function ModificaNota() {
 
   return (
     <div className="card" style={{ maxWidth: "620px" }}>
-      <h1 style={{ marginBottom: "6px" }}>Modifica Avviso ✏️</h1>
+      <h1 style={{ marginBottom: "6px" }}>Modifica Avviso <i className="fas fa-pen" style={{ fontSize: "0.85em", marginLeft: "6px" }}></i></h1>
       <p className="subtitle" style={{ marginBottom: "24px" }}>Aggiorna il messaggio per i tuoi coinquilini</p>
 
       {error && (
@@ -131,7 +141,26 @@ export default function ModificaNota() {
 
       <form onSubmit={handleSubmit} className="auth-form" style={{ textAlign: "left" }}>
         <div className="input-group">
-          <label>Titolo (massimo 80 caratteri)</label>
+          <label>Priorità avviso</label>
+          <div className="pill-selector-group">
+            {PRIORITY_OPTIONS.map((opt) => (
+              <button
+                key={opt.id}
+                type="button"
+                className={`pill-selector-btn ${nota.priorita === opt.id ? "active" : ""}`}
+                onClick={() => setNota({ ...nota, priorita: opt.id })}
+              >
+                <i className={opt.icon}></i> {opt.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="input-group">
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <label>Titolo (massimo 80 caratteri)</label>
+            <span className="char-counter">{nota.titolo.length} / 80</span>
+          </div>
           <input
             type="text"
             value={nota.titolo}
@@ -142,7 +171,10 @@ export default function ModificaNota() {
         </div>
 
         <div className="input-group">
-          <label>Messaggio (massimo 1500 caratteri)</label>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <label>Messaggio (massimo 1500 caratteri)</label>
+            <span className="char-counter">{nota.contenuto.length} / 1500</span>
+          </div>
           <textarea
             value={nota.contenuto}
             onChange={(e) => setNota({ ...nota, contenuto: e.target.value })}
