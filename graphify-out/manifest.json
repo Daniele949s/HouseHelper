@@ -1956,9 +1956,9 @@
     "semantic_hash": ""
   },
   "src/services/documentiService.js": {
-    "mtime": 1793718511.0373886,
-    "seen": 1793718901.599324,
-    "ast_hash": "ac37a7b87372bbac5b317dba0d849ddd",
+    "mtime": 1793755614.8527424,
+    "seen": 1793755720.4004438,
+    "ast_hash": "b7a9a7d1dd332ee9d9b183f724f57556",
     "semantic_hash": ""
   },
   "src/test/tier1_features/documenti.test.jsx": {
@@ -2721,6 +2721,12 @@
     "mtime": 1793754560.284563,
     "seen": 1793754660.481261,
     "ast_hash": "37ec271e036aed298c24b831b3745f81",
+    "semantic_hash": ""
+  },
+  "firebase.json": {
+    "mtime": 1793755545.7632983,
+    "seen": 1793755720.4003673,
+    "ast_hash": "26021f7e0534cb7ff3142e54e4398065",
     "semantic_hash": ""
   },
   "package-lock.json": {

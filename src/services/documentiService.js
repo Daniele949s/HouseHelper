@@ -79,6 +79,15 @@ export function validateDocumentFile(file) {
   return { isValid: true };
 }
 
+export function fileToDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
 export async function caricaDocumento({ file, nome, categoria, note, casaId, currentUser, userData }) {
   const validation = validateDocumentFile(file);
   if (!validation.isValid) throw new Error(validation.error);
@@ -98,7 +107,9 @@ export async function caricaDocumento({ file, nome, categoria, note, casaId, cur
   const safeName = sanitizeFileName(file.name);
   const storagePath = `case/${casaId}/documenti/${timestamp}_${safeName}`;
 
-  const storageRef = ref(storage, storagePath);
+  let downloadUrl = "";
+  let finalStoragePath = "";
+
   const metadata = {
     contentType: file.type || "application/octet-stream",
     customMetadata: {
@@ -108,9 +119,22 @@ export async function caricaDocumento({ file, nome, categoria, note, casaId, cur
     }
   };
 
-  // 1. Upload to Storage
-  await uploadBytes(storageRef, file, metadata);
-  const downloadUrl = await getDownloadURL(storageRef);
+  // 1. Upload to Storage if available; fallback to Firestore Base64 if storage is not enabled (e.g. Free Spark plan)
+  try {
+    const storageRef = ref(storage, storagePath);
+    await uploadBytes(storageRef, file, metadata);
+    downloadUrl = await getDownloadURL(storageRef);
+    finalStoragePath = storagePath;
+  } catch (storageErr) {
+    if (file.size <= 800 * 1024) {
+      downloadUrl = await fileToDataUrl(file);
+      finalStoragePath = "";
+    } else {
+      throw new Error(
+        "Firebase Storage non e' attivo su questo progetto. Sul piano gratuito con Firestore puoi caricare file fino a 800 KB (es. bollette PDF, foto ricevute, scontrini)."
+      );
+    }
+  }
 
   // 2. Persist to Firestore with dual-key aliases
   const docPayload = {
@@ -119,7 +143,7 @@ export async function caricaDocumento({ file, nome, categoria, note, casaId, cur
     note: cleanNote,
     url: downloadUrl,
     fileUrl: downloadUrl,
-    storagePath,
+    storagePath: finalStoragePath,
     dimensione: file.size,
     dimensioneBytes: file.size,
     dimensioneFormatted: formatFileSize(file.size),
@@ -135,9 +159,12 @@ export async function caricaDocumento({ file, nome, categoria, note, casaId, cur
     return { id: docRef.id, ...docPayload };
   } catch (err) {
     // Rollback Storage object if Firestore metadata fails
-    try {
-      await deleteObject(storageRef);
-    } catch (_) {}
+    if (finalStoragePath) {
+      try {
+        const storageRef = ref(storage, finalStoragePath);
+        await deleteObject(storageRef);
+      } catch (_) {}
+    }
     throw err;
   }
 }
