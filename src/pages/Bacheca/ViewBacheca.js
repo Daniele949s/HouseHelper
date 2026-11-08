@@ -124,11 +124,108 @@ export default function ViewBacheca() {
     );
   }
 
+  const renderNoteCard = (n, isPinned = false) => {
+    const isMia = n.autoreId === currentUser.uid;
+    const authorName = utentiMap[n.autoreId] || "Coinquilino";
+    const initial = (authorName.charAt(0) || "U").toUpperCase();
+    const prioKey = (n.priorita || "info").toLowerCase();
+    const prioConfig = PRIORITY_CONFIG[prioKey] || PRIORITY_CONFIG.info;
+
+    return (
+      <div
+        key={n.id}
+        className={`bacheca-card ${isMia ? "is-author" : ""} ${isPinned ? "pinned-notice-card" : ""}`}
+      >
+        <div className="bacheca-card-header">
+          <div className="bacheca-header-left">
+            <span className={`bacheca-priority-tag ${prioConfig.className}`}>
+              <i className={prioConfig.icon} aria-hidden="true"></i> {prioConfig.label}
+            </span>
+            <h3 className="bacheca-card-title">{n.titolo}</h3>
+          </div>
+
+          {isMia && (
+            <div className="bacheca-actions">
+              <button
+                type="button"
+                className="btn-secondary"
+                onClick={() => navigate(`/bacheca/modifica/${n.id}`)}
+                style={{
+                  padding: "8px 14px",
+                  fontSize: "0.85rem",
+                  minWidth: "44px",
+                  minHeight: "44px",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  width: "auto"
+                }}
+                title="Modifica"
+                aria-label="Modifica avviso"
+              >
+                <i className="fas fa-edit" aria-hidden="true"></i>
+              </button>
+              <button
+                type="button"
+                className="btn-danger-outline"
+                onClick={() => eliminaNota(n.id, n.autoreId)}
+                style={{
+                  padding: "8px 14px",
+                  fontSize: "0.85rem",
+                  minWidth: "44px",
+                  minHeight: "44px",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  width: "auto"
+                }}
+                title="Elimina"
+                aria-label="Elimina avviso"
+              >
+                <i className="fas fa-trash" aria-hidden="true"></i>
+              </button>
+            </div>
+          )}
+        </div>
+
+        <p className="bacheca-card-body">{n.contenuto}</p>
+
+        {n.data && (
+          <p style={{ margin: "4px 0 0 0", fontSize: "0.85rem", color: "var(--color-warning)", fontWeight: "600" }}>
+            <i className="far fa-calendar-alt" style={{ marginRight: "6px" }} aria-hidden="true"></i>
+            Scadenza / Evento: {new Date(n.data).toLocaleDateString("it-IT")}
+          </p>
+        )}
+
+        <div className="bacheca-card-footer">
+          <div className="bacheca-author-badge">
+            <div className="bacheca-author-avatar">{initial}</div>
+            <span>
+              Scritto da: <strong style={{ color: "var(--text-main)" }}>{authorName}</strong>
+              {isMia && " (Tu)"}
+            </span>
+          </div>
+
+          {n.createdAt && (
+            <span style={{ fontSize: "0.78rem", color: "var(--text-muted)" }}>
+              <i className="far fa-clock" style={{ marginRight: "4px" }} aria-hidden="true"></i>
+              {new Date(n.createdAt?.toMillis ? n.createdAt.toMillis() : n.createdAt).toLocaleDateString("it-IT")}
+            </span>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  const isUrgent = (n) => (n.priorita === "urgente" || n.priorita === "importante");
+  const pinnedNotes = note.filter(isUrgent);
+  const routineNotes = note.filter((n) => !isUrgent(n));
+
   return (
     <div className="card domain-page-card" style={{ maxWidth: "820px" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2rem", flexWrap: "wrap", gap: "12px" }}>
         <div>
-          <h1 style={{ margin: 0, textAlign: "left" }}>Bacheca Condivisa <i className="fas fa-thumbtack" style={{ fontSize: "0.85em", marginLeft: "6px" }}></i></h1>
+          <h1 style={{ margin: 0, textAlign: "left" }}>Bacheca Condivisa</h1>
           <p style={{ margin: "4px 0 0 0", color: "var(--text-secondary)", textAlign: "left", fontSize: "0.92rem" }}>
             Avvisi e messaggi condivisi per la casa
           </p>
@@ -138,116 +235,52 @@ export default function ViewBacheca() {
           onClick={() => navigate("/bacheca/aggiungi")}
           style={{ width: "auto", padding: "12px 24px" }}
         >
-          <i className="fas fa-plus"></i> Nuovo Avviso
+          <i className="fas fa-plus" aria-hidden="true"></i> Nuovo Avviso
         </button>
       </div>
 
       <div className="sidemenu-list-container">
         {note.length === 0 ? (
           <div style={{ padding: "3rem 1rem", textAlign: "center", background: "var(--bg-input)", borderRadius: "var(--radius-md)" }}>
-            <i className="fas fa-clipboard-list" style={{ fontSize: "3rem", opacity: 0.7 }}></i>
+            <i className="fas fa-clipboard-list" style={{ fontSize: "3rem", opacity: 0.7 }} aria-hidden="true"></i>
             <p className="subtitle" style={{ marginTop: "12px", marginBottom: 0 }}>
               Non ci sono comunicazioni attive. Lascia il primo avviso per i tuoi coinquilini!
             </p>
           </div>
         ) : (
-          note.map((n) => {
-            const isMia = n.autoreId === currentUser.uid;
-            const authorName = utentiMap[n.autoreId] || "Coinquilino";
-            const initial = (authorName.charAt(0) || "U").toUpperCase();
-            const prioKey = (n.priorita || "info").toLowerCase();
-            const prioConfig = PRIORITY_CONFIG[prioKey] || PRIORITY_CONFIG.info;
-
-            return (
-              <div
-                key={n.id}
-                className={`bacheca-card ${isMia ? "is-author" : ""}`}
-              >
-                <div className="bacheca-card-header">
-                  <div className="bacheca-header-left">
-                    <span className={`bacheca-priority-tag ${prioConfig.className}`}>
-                      <i className={prioConfig.icon}></i> {prioConfig.label}
-                    </span>
-                    <h3 className="bacheca-card-title">{n.titolo}</h3>
-                  </div>
-
-                  {isMia && (
-                    <div className="bacheca-actions">
-                      <button
-                        type="button"
-                        className="btn-secondary"
-                        onClick={() => navigate(`/bacheca/modifica/${n.id}`)}
-                        style={{
-                          padding: "8px 14px",
-                          fontSize: "0.85rem",
-                          minWidth: "44px",
-                          minHeight: "44px",
-                          display: "inline-flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          width: "auto"
-                        }}
-                        title="Modifica"
-                        aria-label="Modifica avviso"
-                      >
-                        <i className="fas fa-edit" aria-hidden="true"></i>
-                      </button>
-                      <button
-                        type="button"
-                        className="btn-danger-outline"
-                        onClick={() => eliminaNota(n.id, n.autoreId)}
-                        style={{
-                          padding: "8px 14px",
-                          fontSize: "0.85rem",
-                          minWidth: "44px",
-                          minHeight: "44px",
-                          display: "inline-flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          width: "auto"
-                        }}
-                        title="Elimina"
-                        aria-label="Elimina avviso"
-                      >
-                        <i className="fas fa-trash" aria-hidden="true"></i>
-                      </button>
-                    </div>
-                  )}
+          <>
+            {/* Pinned Urgent Notice Signature Anchor */}
+            {pinnedNotes.length > 0 && (
+              <div className="bacheca-pinned-section">
+                <div className="bacheca-pinned-header">
+                  <span className="bacheca-pinned-dispatch-label">
+                    <i className="fas fa-thumbtack" aria-hidden="true"></i> Avviso in Evidenza
+                  </span>
+                  <span className="bacheca-pinned-sublabel">Comunicazioni prioritarie per la casa</span>
                 </div>
-
-                <p className="bacheca-card-body">{n.contenuto}</p>
-
-                {n.data && (
-                  <p style={{ margin: "4px 0 0 0", fontSize: "0.85rem", color: "var(--color-warning)", fontWeight: "600" }}>
-                    <i className="far fa-calendar-alt" style={{ marginRight: "6px" }}></i>
-                    Scadenza / Evento: {new Date(n.data).toLocaleDateString("it-IT")}
-                  </p>
-                )}
-
-                <div className="bacheca-card-footer">
-                  <div className="bacheca-author-badge">
-                    <div className="bacheca-author-avatar">{initial}</div>
-                    <span>
-                      Scritto da: <strong style={{ color: "var(--text-main)" }}>{authorName}</strong>
-                      {isMia && " (Tu)"}
-                    </span>
-                  </div>
-
-                  {n.createdAt && (
-                    <span style={{ fontSize: "0.78rem", color: "var(--text-muted)" }}>
-                      <i className="far fa-clock" style={{ marginRight: "4px" }}></i>
-                      {new Date(n.createdAt?.toMillis ? n.createdAt.toMillis() : n.createdAt).toLocaleDateString("it-IT")}
-                    </span>
-                  )}
+                <div className="bacheca-pinned-list">
+                  {pinnedNotes.map((n) => renderNoteCard(n, true))}
                 </div>
               </div>
-            );
-          })
+            )}
+
+            {/* Routine Notices Paper-Quiet List */}
+            {routineNotes.length > 0 && (
+              <div className="bacheca-routine-section">
+                {pinnedNotes.length > 0 && (
+                  <div className="bacheca-routine-heading">Altri avvisi</div>
+                )}
+                <div className="bacheca-routine-list">
+                  {routineNotes.map((n) => renderNoteCard(n, false))}
+                </div>
+              </div>
+            )}
+          </>
         )}
       </div>
 
       <button className="btn-text" onClick={() => navigate("/home")} style={{ marginTop: "30px" }}>
-        <i className="fas fa-arrow-left" style={{ marginRight: "6px" }}></i> Torna alla Dashboard
+        <i className="fas fa-arrow-left" style={{ marginRight: "6px" }} aria-hidden="true"></i> Torna alla Dashboard
       </button>
     </div>
   );

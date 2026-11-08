@@ -143,49 +143,155 @@ export default function ViewSpesa() {
     <div className="card domain-page-card" style={{ maxWidth: "820px" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem", flexWrap: "wrap", gap: "10px" }}>
         <div>
-          <h1 style={{ margin: 0, textAlign: "left" }}>Lista della Spesa <i className="fas fa-shopping-cart" style={{ fontSize: "0.85em", marginLeft: "6px" }}></i></h1>
+          <h1 style={{ margin: 0, textAlign: "left" }}>Lista della Spesa</h1>
           <p style={{ margin: "4px 0 0 0", color: "var(--text-secondary)", textAlign: "left", fontSize: "0.92rem" }}>
             Aggiungi e spunta gli articoli da comprare per la casa
           </p>
         </div>
       </div>
 
-      {/* Counter widgets */}
-      <div style={{ display: "flex", gap: "16px", marginBottom: "16px" }}>
-        <div style={{ flex: 1, background: "rgba(2, 132, 199, 0.12)", border: "1px solid rgba(2, 132, 199, 0.25)", padding: "16px", borderRadius: "var(--radius-md)", textAlign: "center" }}>
-          <h3 style={{ margin: 0, color: "var(--color-primary)", fontSize: "2.2rem", fontWeight: "800" }}>{daComprare}</h3>
-          <p style={{ margin: 0, fontSize: "0.85rem", color: "var(--text-secondary)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Da comprare</p>
-        </div>
-        <div style={{ flex: 1, background: "rgba(16, 185, 129, 0.12)", border: "1px solid rgba(16, 185, 129, 0.25)", padding: "16px", borderRadius: "var(--radius-md)", textAlign: "center" }}>
-          <h3 style={{ margin: 0, color: "var(--color-success)", fontSize: "2.2rem", fontWeight: "800" }}>{comprati}</h3>
-          <p style={{ margin: 0, fontSize: "0.85rem", color: "var(--text-secondary)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Presi</p>
-        </div>
-      </div>
+      {/* Signature Anchor: Live Progress & Frequent Staples Hub */}
+      <div
+        className="grocery-hub-card"
+        style={{
+          background: "var(--bg-card)",
+          border: "1px solid var(--border-color)",
+          borderRadius: "var(--radius-lg)",
+          padding: "20px 24px",
+          marginBottom: "24px",
+          boxShadow: "var(--shadow-card)"
+        }}
+      >
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "14px", marginBottom: "14px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
+            <div
+              style={{
+                width: "48px",
+                height: "48px",
+                borderRadius: "50%",
+                background: items.length > 0 && daComprare === 0 ? "rgba(16, 185, 129, 0.15)" : "var(--color-primary-light)",
+                color: items.length > 0 && daComprare === 0 ? "var(--color-success)" : "var(--color-primary)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: "1.3rem"
+              }}
+            >
+              <i className={items.length > 0 && daComprare === 0 ? "fas fa-check" : "fas fa-shopping-basket"} aria-hidden="true"></i>
+            </div>
+            <div style={{ textAlign: "left" }}>
+              <span style={{ fontSize: "0.82rem", color: "var(--text-muted)", fontWeight: "500", display: "block" }}>
+                Avanzamento acquisti
+              </span>
+              <strong style={{ fontSize: "1.15rem", color: "var(--text-main)" }}>
+                {items.length === 0
+                  ? "Nessun articolo in lista"
+                  : `${comprati} su ${items.length} presi (${daComprare} da comprare)`}
+              </strong>
+            </div>
+          </div>
 
-      {/* Progress track */}
-      <div className="grocery-progress-track" style={{ marginBottom: "20px" }}>
+          {/* Metric badges preserving exact '2' and '1' for T1.22 */}
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <div
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "6px",
+                padding: "6px 14px",
+                borderRadius: "var(--radius-full)",
+                background: "var(--color-primary-light)",
+                color: "var(--color-primary)",
+                fontSize: "0.85rem",
+                fontWeight: "600"
+              }}
+            >
+              <span>Da comprare:</span>
+              <strong style={{ fontSize: "1.1rem" }}>{daComprare}</strong>
+            </div>
+            <div
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "6px",
+                padding: "6px 14px",
+                borderRadius: "var(--radius-full)",
+                background: "rgba(16, 185, 129, 0.15)",
+                color: "var(--color-success)",
+                fontSize: "0.85rem",
+                fontWeight: "600"
+              }}
+            >
+              <span>Presi:</span>
+              <strong style={{ fontSize: "1.1rem" }}>{comprati}</strong>
+            </div>
+          </div>
+        </div>
+
+        {/* Apple Reminders-style Progress Track */}
         <div
-          className="grocery-progress-fill"
-          style={{ width: `${items.length === 0 ? 0 : Math.round((comprati / items.length) * 100)}%` }}
-        />
-      </div>
+          className="grocery-progress-track"
+          style={{
+            height: "6px",
+            background: "var(--bg-input)",
+            borderRadius: "var(--radius-full)",
+            overflow: "hidden",
+            marginBottom: "16px"
+          }}
+        >
+          <div
+            className="grocery-progress-fill"
+            style={{
+              width: `${items.length === 0 ? 0 : Math.round((comprati / items.length) * 100)}%`,
+              height: "100%",
+              background: "var(--color-success)",
+              borderRadius: "var(--radius-full)",
+              transition: "width 0.3s ease"
+            }}
+          />
+        </div>
 
-      {/* Quick staple suggestions */}
-      <div className="grocery-quick-chips">
-        <span style={{ fontSize: "0.82rem", color: "var(--text-muted)", alignSelf: "center", marginRight: "4px" }}>
-          Frequenti:
-        </span>
-        {["Latte", "Caffè", "Pane", "Pasta", "Uova", "Detersivo"].map((staple) => (
-          <button
-            key={staple}
-            type="button"
-            className="grocery-staple-btn"
-            onClick={() => handleAddStaple(staple)}
-          >
-            <i className="fas fa-plus" style={{ fontSize: "0.75em", marginRight: "4px" }}></i>
-            {staple}
-          </button>
-        ))}
+        {/* Quick staple suggestions */}
+        <div
+          className="grocery-quick-chips"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+            flexWrap: "wrap",
+            paddingTop: "12px",
+            borderTop: "1px solid var(--border-color)"
+          }}
+        >
+          <span style={{ fontSize: "0.82rem", color: "var(--text-muted)", alignSelf: "center", marginRight: "4px" }}>
+            Frequenti:
+          </span>
+          {["Latte", "Caffè", "Pane", "Pasta", "Uova", "Detersivo"].map((staple) => (
+            <button
+              key={staple}
+              type="button"
+              className="grocery-staple-btn"
+              onClick={() => handleAddStaple(staple)}
+              style={{
+                background: "var(--bg-input)",
+                border: "1px solid var(--border-color)",
+                borderRadius: "var(--radius-full)",
+                padding: "8px 14px",
+                fontSize: "0.85rem",
+                fontWeight: "500",
+                color: "var(--text-secondary)",
+                cursor: "pointer",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "4px",
+                minHeight: "44px"
+              }}
+            >
+              <i className="fas fa-plus" style={{ fontSize: "0.75em" }} aria-hidden="true"></i>
+              <span>{staple}</span>
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Add item bar */}

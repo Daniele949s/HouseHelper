@@ -92,7 +92,7 @@ export default function AggiungiEvento() {
 
   return (
     <div className="card" style={{ maxWidth: "620px" }}>
-      <h1 style={{ marginBottom: "6px" }}>Nuovo Evento Calendario <i className="fas fa-calendar-alt" style={{ fontSize: "0.85em", marginLeft: "6px" }}></i></h1>
+      <h1 style={{ marginBottom: "6px" }}>Nuovo Evento Calendario</h1>
       <p className="subtitle" style={{ marginBottom: "24px" }}>Aggiungi una data o un impegno per tutti gli abitanti</p>
 
       {error && (

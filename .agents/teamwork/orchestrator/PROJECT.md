@@ -1,95 +1,62 @@
-# Project: HouseHelper Modernization
+# Project: HouseHelper Modernization & Visual/Ergonomics Production Overhaul
 
 ## Architecture
 - **Framework & Libraries**: React 19 (`react@^19.2.3`), React DOM (`react-dom@^19.2.3`), React Router v7 (`react-router-dom@^7.10.1`), Create React App (`react-scripts@5.0.1`), Firebase SDK v12 (`firebase@^12.14.0`).
+- **Design Foundations**:
+  - `src/index.css`: Root design tokens, semantic color roles, light/dark themes, Apple HIG dynamic typography scale, elevation shadows, glass materials.
+  - `src/App.css`: Component styling, responsive shell layout, sticky header, mobile bottom bar, modals, toasts.
 - **Module Boundaries**:
-  - `src/contexts/`: `AuthContext.js` (Firebase Auth state, current user, `userData`, household `casaId`), `ThemeContext.js` (light/dark theme toggle).
-  - `src/components/`: Shared UI components (`AppHeader`, `DesktopNavigation`, `MobileNavigation`, `ThemeToggle`, `ProtectedRoute`, `RouteGuards`, `Toast`, `ConfirmModal`, `HouseholdStatus`).
+  - `src/contexts/`: `AuthContext.js` (Auth state, current user, `casaId`), `ThemeContext.js` (light/dark theme toggle).
+  - `src/components/`: Shared UI components (`AppHeader`, `DesktopNavigation`, `MobileNavigation`, `MobileBottomBar`, `ThemeToggle`, `ProtectedRoute`, `Toast`, `ConfirmModal`, `HouseholdStatus`).
   - `src/pages/`: Domain feature views:
     - `Autenticazione/`: `homeAutenticazione.js`, `viewLogin.js`, `viewRegistrazione.js`.
     - `SceltaCasa.js`: Household creation and join flow.
-    - `homeUtente.js`: Roommate dashboard.
+    - `homeUtente.js`: Central roommate dashboard.
     - `TurniPulizia/`: `viewTurni.js`, `aggiuntaTurno.js`, `modificaTurno.js`.
     - `Debiti/`: `ViewDebiti.js`, `AggiungiDebito.js`.
     - `Spesa/`: `ViewSpesa.js`.
     - `Bacheca/`: `ViewBacheca.js`, `AggiungiNota.js`, `ModificaNota.js`, `ViewCalendario.js`, `AggiungiEvento.js`.
-    - `Documenti/`: `ViewDocumenti.js`, `CaricaDocumentoModal.js` (Household documents: rent, utilities, receipts, with Firebase Storage).
+    - `Documenti/`: `ViewDocumenti.js`, `GestioneDocumenti.js`.
+    - `Contatti/`: `ViewContatti.js`.
     - `NotFound.js`: 404 fallback page.
-  - `src/utils/`: Security & validation helpers (`security.js`, `feedback.js`, `documentStorage.js`).
-  - `src/test/`: In-memory headless Firebase mock harness (`mockFirebase.js`), test utilities (`testUtils.jsx`), and 4-tier E2E test suites + security & document suites.
+  - `src/utils/`: Security & validation helpers (`security.js`, `feedback.js`, `debtSimplification.js`, `choreRotation.js`, `reportExport.js`, `offlineStorage.js`).
+  - `src/test/`: 41 test suites, 418 unit and adversarial stress tests.
   - `scripts/`: Verification scripts (`verify-zero-emojis.js`, `check-circular.js`, `audit-secrets.js`).
-  - Root Security & Storage Rules: `firestore.rules`, `storage.rules`.
-- **Data Flow**:
-  - Unidirectional: Firestore Collections (`utenti`, `case`, `turni`, `debiti`, `spesa`, `note`, `documenti`) & Firebase Storage (`case/{casaId}/documenti/{docId}`) <-> Firebase SDK <-> React Contexts & Page Hooks <-> View Presentation.
-  - Zero Circular JS Dependencies: App.js routes to Pages. Global styles loaded once at `src/App.js` / `src/index.css`. Pages do NOT re-import `App.css`.
 
 ## Feature Inventory
 | # | Feature | Description | Milestone | Source |
 |---|---------|-------------|-----------|--------|
-| 1 | Architecture & Circular Import Resolution | Remove redundant `App.css` imports from all 17 page files to break Graphify/AST cycles, verify 0 cycles with `madge` | M1 | Survey (Arch) |
-| 2 | Legacy Assets Cleanup | Delete unreferenced `css_template/` (99 files, 3.9 MB) and remove dead model `src/models/modelloTurno.js` | M1 | Survey (Arch) |
-| 3 | Automated Verification Scripts Setup | Add `scripts/check-circular.js` (madge) and `scripts/verify-zero-emojis.js` with npm script bindings | M1 | Survey (Arch, UI) |
-| 4 | Strict Zero-Emoji & Zero-Emoticon Replacement | Replace all 36 emojis across 14 files + `public/index.html` with vector/SVG icons; replace raw arrow/check characters | M2 | Survey (UI, Features) |
-| 5 | Modern Design System & CSS Tokens | Establish clean CSS variables for light/dark themes, spacing, typography scale, elevation, border-radius, and responsive containers | M2 | Survey (UI) |
-| 6 | Responsive Navigation System | Add desktop navigation links to `AppHeader` (resolving desktop nav void) and harmonize with mobile drawer | M2 | Survey (UI) |
-| 7 | Non-blocking Feedback System | Implement in-app `Toast` notifications and accessible `ConfirmModal` dialogs to replace blocking browser `alert()`/`confirm()` | M2 | Survey (UI) |
-| 8 | Modern Household Status Widget | Replace toy/retro mascots (`MiniGuy`, `InteractiveMascot`, lightsaber toggle) with clean modern household presence cards and sleek theme switch | M2 | Survey (UI, Features) |
-| 9 | Authentication Views Modernization | Redesign `homeAutenticazione`, `viewLogin`, `viewRegistrazione`, and `SceltaCasa` with modern card layouts, zero emojis, and inline validation | M3 | Survey (UI, Features) |
-| 10 | User Dashboard (`homeUtente`) Modernization | Redesign dashboard with quick summary cards (upcoming shift, debt balance, active groceries, latest note), invite code badge, and clean actions | M3 | Survey (UI, Features) |
-| 11 | Cleaning Shifts (`TurniPulizia`) Modernization | Redesign `viewTurni`, `aggiuntaTurno`, `modificaTurno` with calendar badge layout, frequency selector, zone tags, and assignment chips | M3 | Survey (UI, Features) |
-| 12 | Expenses & Debts (`Debiti`) Modernization | Redesign `ViewDebiti` and `AggiungiDebito` with debt settlement overview, split calculation cards, payer badges, and settlement confirmation | M3 | Survey (UI, Features) |
-| 13 | Grocery List (`Spesa`) Modernization | Redesign `ViewSpesa` with modern checklist cards, quantity counters, category filters, and quick-add forms | M3 | Survey (UI, Features) |
-| 14 | Bulletin Board & Calendar (`Bacheca`) Modernization | Redesign `ViewBacheca`, `AggiungiNota`, `ModificaNota`, `ViewCalendario`, `AggiungiEvento` with clean sticky notes, priority tags, and calendar grid | M3 | Survey (UI, Features) |
-| 15 | In-Memory Mock Firebase Harness | Create `src/test/mockFirebase.js` and `src/test/testUtils.jsx` for zero-credential deterministic testing | E2E Testing Track | Survey (Features) |
-| 16 | Tier 1: Feature Coverage Smoke Tests | Test suites covering all 6 domain areas in isolation (>=5 tests per feature area) | E2E Testing Track | Survey (Features) |
-| 17 | Tier 2: Boundary & Security Tests | Test edge cases, empty states, input sanitization, negative numbers, long strings, format validation | E2E Testing Track | Survey (Features) |
-| 18 | Tier 3: Cross-Feature Interaction Tests | Test state interactions across modules (expense added -> dashboard balance updated; chore completed -> analytics updated) | E2E Testing Track | Survey (Features) |
-| 19 | Tier 4: Real-World Household Scenarios | End-to-end multi-roommate workflow scenarios (full onboarding, chore week, grocery run + split, settlement) | E2E Testing Track | Survey (Features) |
-| 20 | Final Milestone: 100% E2E Test Suite Pass | Run full E2E test suite against modernized application, debug and fix any regressions until 100% pass | M4 | Survey (Features) |
-| 21 | Tier 5: Adversarial Coverage Hardening | Challenger-driven white-box adversarial testing, finding untested edge cases and hardening application code | M4 | Project Pattern |
-| 22 | Firestore Security Rules & Access Control Hardening | Comprehensive audit and hardening of `firestore.rules`: strict household scoping, anti-tamper constraints, schema validations | M5 | Phase 2 (R3) |
-| 23 | Public Repository & Git History Secret Audit | Deep scan and elimination of any private credentials, API keys, or sensitive data in repo files and git history | M5 | Phase 2 (R3) |
-| 24 | Household Document Management via Firebase Storage | Document upload, categorization (rent, utilities, receipts), viewing, and deletion strictly scoped to household | M6 | Phase 2 (R4) |
-| 25 | Advanced Cross-Device Ergonomics Optimization | Touch targets (>=44px), mobile layout enhancements, widescreen responsive layout, strict zero emojis | M6 | Phase 2 (R4) |
-| 26 | Document & Security Automated Test Coverage | Automated test suites for security rules, document upload/view/delete flows, and ergonomics constraints | M6 | Phase 2 (R4) |
+| 1-26 | Prior Milestones M1-M7 Features | Technical debt cleanup, core pages, security rules, document management, debt math, PWA | M1-M7 | Prior Survey |
+| 27 | Design Tokens & WCAG AA Contrast Calibration | Fix dark caption contrast (`#64748b` -> `#94a3b8`), error alert contrast (`var(--color-danger-text)`), analytics pills, tokenizing `--font-family-display` with Outfit and real monospace | M8 | Survey 1 |
+| 28 | Legacy Tailwind & Neon Purge | Purge all 30+ instances of `rgba(37, 99, 235)` and `rgba(239, 68, 68)`, hardcoded zinc `#09090b`; replace aggressive neon button glows with subtle ambient/directional shadows | M8 | Survey 1 |
+| 29 | Mobile Safe Area & Desktop Persistent Navigation | Add `calc(12px + env(safe-area-inset-top, 0px))` on mobile container; make `.app-topbar` sticky (`position: sticky; top: 12px; z-index: 900;`) for desktop persistent navigation and active Liquid Glass; fix 768px breakpoint collision | M8 | Survey 2 |
+| 30 | Touch Target Hardening & Desktop Multi-Column Expansion | Ensure CSS-level `min-height: 44px` on buttons; remove inline `maxWidth: 820px` clamping via `.domain-page-card { max-width: 1000px !important; }` for widescreen layouts | M8 | Survey 2 |
+| 31 | Primary Views Signature Elements | Dashboard (Household Command Center Hero), Turni (Turno in Evidenza Spotlight card), Debiti (Financial Ledger Hero & minimal settlement), Spesa (Live Progress Header & Frequent Staples Hub) | M9 | Survey 3 |
+| 32 | Icon De-cluttering & Sentence Case Copywriting | Remove duplicate icons from `<h1>` elements and generic `fa-arrow-right` links; convert uppercase shouting into natural Italian sentence case with active verbs | M9 | Survey 3 |
+| 33 | Secondary Views, Emergency Shelf & Modals Polish | Bacheca (Pinned Urgent Notice banner & 2-column calendar split), Documenti (House Vault & Category Cabinet), Contatti (Emergency Speed-Dial Priority Shelf >= 44px pills, modal Escape/backdrop dismiss) | M10 | Survey 3 |
+| 34 | Final Design Audit, Secret Scan & Pre-Release Verification | Verify 100% test pass (436+ tests), clean build, 0 emojis, strict Apple HIG accessibility, frontend-design distinctiveness, and exhaustive public repo secret scan (`npm run audit:secrets` across all files and commit history for zero credentials/keys/tokens) | M11 | Survey 1,2,3 & Sentinel Directive |
 
 ## Milestones
 | # | Name | Scope | Dependencies | Status |
 |---|------|-------|-------------|--------|
-| M1 | Architecture & Technical Debt Cleanup | Remove redundant `App.css` imports across 17 pages; delete `css_template/`; remove dead `src/models/modelloTurno.js`; configure `scripts/check-circular.js` and `scripts/verify-zero-emojis.js` | none | DONE |
-| M2 | Design System, Global Navigation & Zero-Emoji Replacement | Replace all 36 emojis across 14 files + HTML title; replace raw arrows/checks with SVG icons; implement desktop nav in `AppHeader`; create Toast and ConfirmModal; establish modern design system tokens | M1 | DONE |
-| M3 | Core Domain Pages UI/UX Modernization | Redesign all primary views (Auth, SceltaCasa, Dashboard, Turni, Debiti, Spesa, Bacheca, Calendario) with polished, responsive layouts using M2 design system and non-blocking dialogs | M2 | DONE |
-| M4 | Final Milestone: E2E Test Pass & Adversarial Hardening | 100% pass of E2E test suite (Tiers 1-4, 24 suites, 190 tests passed) + adversarial hardening verified | M3, E2E Testing Track | DONE |
-| M5 | Application Security Hardening & Public Repository Audit | Audit and overhaul `firestore.rules` (household-scoped access, anti-tamper validation, data sanitization) and perform deep repository / git history scan for sensitive keys | M4 | IN_PROGRESS |
-| M6 | Household Document Management & Advanced Ergonomics | Implement household documents with Firebase Storage, `storage.rules`, category organization (rent/utilities/receipts), mobile & desktop ergonomics optimization, automated test suite | M5 | PLANNED |
+| M1-M7 | Foundations & Prior Features | Circular dependencies, initial design system, core pages, E2E pass, security, documents, PWA | none | DONE |
+| M8 | Design Tokens, CSS Architecture, Ergonomics & Shell Layout | `src/index.css` token calibration (contrast, typography scale, layered elevation shadows, glass border), `src/App.css` Tailwind/neon purge, mobile top safe area insets, sticky topbar persistent desktop navigation, 768px breakpoint fix, touch target hardening, font stack cleanup in `public/index.html` | M7 | DONE |
+| M9 | Primary Views Modernization & Signature Elements | `homeUtente.js` (Household Command Center Hero), `viewTurni.js` (Spotlight Card), `ViewDebiti.js` (Financial Ledger Hero), `ViewSpesa.js` (Live Progress Hub, strictly zero "Dispensa"); icon de-cluttering & sentence case micro-copy | M8 | DONE |
+| M10 | Secondary Views, Emergency Shelf & Modals Polish | `ViewBacheca.js` / `ViewCalendario.js` (Pinned Notice & desktop 2-column split), `ViewDocumenti.js` (House Vault), `ViewContatti.js` (Emergency Speed-Dial Shelf), `Autenticazione` (Hearth Badge), `Toast.js` (mobile safe area) & `ConfirmModal.js` (`--shadow-modal`) | M9 | DONE |
+| M11 | Final Design Audit, Secret Security Audit & Pre-Release Verification | Full test suite (`npm test`), build check (`npm run build`), zero-emoji scan (`node scripts/verify-zero-emojis.js`), public repository secret scan (`npm run audit:secrets` / git history scan), Reviewers APPROVE, Challengers CONFIRMED, Auditor CLEAN | M10 | DONE |
 
 ## Interface Contracts
 
-### Firestore Security Rules Contract (M5)
-- **Helper Functions**:
-  - `isAuthenticated()`: `request.auth != null`
-  - `isHouseholdMember(casaId)`: authenticated user's `userData.casaId == casaId`
-  - `isOwner(userId)`: `request.auth.uid == userId`
-- **Scoping**:
-  - `/case/{casaId}/**`: read and write strictly restricted to authenticated members of `casaId`.
-  - Anti-tamper: write checks verify that immutable fields (`casaId`, `creatoreId`, `autoreId`, `timestamp`) are not altered on update.
-
-### Firebase Storage & Document Management Contract (M6)
-- **Storage Path**: `case/{casaId}/documenti/{documentId}_{filename}`
-- **Storage Rules**: Only users with authenticated `casaId` matching path can read/write objects under `/case/{casaId}/documenti/`.
-- **Document Metadata Collection (`documenti`)**:
-  - `id`: Firestore auto-id
-  - `casaId`: string (foreign key)
-  - `titolo`: string (1-80 chars)
-  - `categoria`: 'affitto' | 'bollette' | 'scontrini' | 'altro'
-  - `fileUrl`: string (download URL)
-  - `storagePath`: string
-  - `fileType`: string (MIME type)
-  - `fileSize`: number (max 10MB)
-  - `caricatoDa`: string (userId)
-  - `caricatoDaNome`: string (username)
-  - `dataCaricamento`: string (ISO date)
-- **Ergonomics Contract**:
-  - Touch target size: all interactive elements have minimum height/width of 44px with comfortable padding.
-  - Desktop widescreen: responsive multi-column layouts capped at `--container-max-width` (1280px) with centered container.
-  - Zero-emoji policy: FontAwesome vector icons (`fas fa-file-contract`, `fas fa-receipt`, `fas fa-file-invoice-dollar`, `fas fa-folder-open`, etc.).
+### Design System Tokens Contract (M8 ↔ M9, M10)
+- **Contrast Guarantee**: All text on cards must have contrast ratio >= 4.5:1 (WCAG AA).
+- **Elevation Tokens**: `--shadow-xs`, `--shadow-sm`, `--shadow-md`, `--shadow-lg`, `--shadow-glass`, `--shadow-modal`.
+- **Liquid Glass Materials**: Reserved exclusively for floating functional layers (`.app-topbar`, `.mobile-bottom-bar`, `.toast-item`, `.confirm-modal-backdrop`, `.modal-backdrop`). Content cards strictly maintain `backdrop-filter: none !important;`.
+- **Typography Tokens**:
+  - `--font-family-sans`: System font stack (`-apple-system, BlinkMacSystemFont, "SF Pro Text", ...`)
+  - `--font-family-display`: `'Outfit', var(--font-family-sans)`
+  - `--font-family-mono`: `ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace`
+- **Ergonomics Rules**:
+  - Minimum touch target dimension: `min-height: 44px; min-width: 44px;` for all buttons, links, toggles.
+  - Mobile bottom navigation: exactly 5 tabs ("Home", "Turni", "Spese", "Spesa", "Altro").
+  - Desktop navigation: exactly 8 links ("Dashboard", "Turni", "Debiti", "Spesa", "Bacheca", "Calendario", "Documenti", "Contatti").
+  - Test Invariant: NEVER use the word "Dispensa" in `ViewSpesa.js`.

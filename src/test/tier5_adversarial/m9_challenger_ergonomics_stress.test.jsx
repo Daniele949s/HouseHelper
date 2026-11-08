@@ -12,6 +12,7 @@ import ViewTurni from "../../pages/TurniPulizia/viewTurni";
 import AggiuntaTurno from "../../pages/TurniPulizia/aggiuntaTurno";
 import AggiungiDebito from "../../pages/Debiti/AggiungiDebito";
 import ViewSpesa from "../../pages/Spesa/ViewSpesa";
+import ViewDebiti from "../../pages/Debiti/ViewDebiti";
 
 describe("Milestone M9 Adversarial Challenger Suite: Ergonomics, Bottom Bar, Touch Targets & Desktop Navigation", () => {
   const alice = { uid: "u_alice", username: "Alice", email: "alice@test.com" };
@@ -607,6 +608,213 @@ describe("Milestone M9 Adversarial Challenger Suite: Ergonomics, Bottom Bar, Tou
 
         unmount();
       }
+    });
+  });
+
+  // =========================================================================
+  // 6. MODAL ERGONOMICS, ELEVATION & INVARIANTS STRESS (CHALLENGER 2)
+  // =========================================================================
+  describe("6. Modal Ergonomics, Elevation & Invariants Stress (Challenger 2)", () => {
+    test("CHALLENGE 6.1: ViewDebiti Export Modal: backdrop click dismisses modal and stopPropagation prevents inside dismissal", async () => {
+      seedHousehold({
+        houseId,
+        users: [alice, bob],
+        debiti: [
+          {
+            id: "d_erg1",
+            casaId: houseId,
+            descrizione: "Detersivi",
+            importo: 15.0,
+            pagatoDa: alice.uid,
+            divisoCon: [bob.uid],
+            createdAt: new Date().toISOString(),
+          },
+        ],
+      });
+
+      renderWithProviders(<ViewDebiti />, {
+        user: alice,
+        userData: { username: "Alice", casaId: houseId },
+      });
+
+      // 1. Wait for page load
+      const exportBtn = await screen.findByRole("button", { name: /Esporta Resoconto/i });
+      expect(exportBtn).toBeInTheDocument();
+
+      // 2. Click Export button to open modal
+      fireEvent.click(exportBtn);
+
+      const modalHeading = await screen.findByRole("heading", { name: /Esporta resoconto spese/i });
+      expect(modalHeading).toBeInTheDocument();
+
+      const backdrop = document.querySelector(".modal-backdrop");
+      expect(backdrop).toBeInTheDocument();
+      expect(backdrop).toHaveAttribute("role", "dialog");
+      expect(backdrop).toHaveAttribute("aria-modal", "true");
+
+      const modalCard = backdrop.querySelector(".modal-card");
+      expect(modalCard).toBeInTheDocument();
+
+      // 3. Click inside modal-card -> stopPropagation prevents backdrop dismiss
+      fireEvent.click(modalCard);
+      expect(screen.getByRole("heading", { name: /Esporta resoconto spese/i })).toBeInTheDocument();
+
+      // 4. Click backdrop outside modal-card -> closes modal
+      fireEvent.click(backdrop);
+      await waitFor(() => {
+        expect(screen.queryByRole("heading", { name: /Esporta resoconto spese/i })).toBeNull();
+      });
+    });
+
+    test("CHALLENGE 6.2: ViewDebiti Export Modal: Escape key dismisses modal, non-Escape key ignores, rapid closed Escape is safe", async () => {
+      seedHousehold({
+        houseId,
+        users: [alice],
+        debiti: [],
+      });
+
+      const { unmount } = renderWithProviders(<ViewDebiti />, {
+        user: alice,
+        userData: { username: "Alice", casaId: houseId },
+      });
+
+      // Rapid Escape key while modal is closed: must be safe no-op
+      fireEvent.keyDown(window, { key: "Escape" });
+      fireEvent.keyDown(window, { key: "Escape" });
+
+      const exportBtn = await screen.findByRole("button", { name: /Esporta Resoconto/i });
+      fireEvent.click(exportBtn);
+
+      await screen.findByRole("heading", { name: /Esporta resoconto spese/i });
+
+      // Non-Escape key (Enter, Tab, Space) must NOT close modal
+      fireEvent.keyDown(window, { key: "Enter" });
+      fireEvent.keyDown(window, { key: "Tab" });
+      fireEvent.keyDown(window, { key: " " });
+      expect(screen.getByRole("heading", { name: /Esporta resoconto spese/i })).toBeInTheDocument();
+
+      // Escape key closes modal
+      fireEvent.keyDown(window, { key: "Escape" });
+      await waitFor(() => {
+        expect(screen.queryByRole("heading", { name: /Esporta resoconto spese/i })).toBeNull();
+      });
+
+      // Rapid Escape keys after closed: still safe
+      fireEvent.keyDown(window, { key: "Escape" });
+
+      // Re-open and unmount while open -> effect cleanup must unbind without throwing
+      fireEvent.click(exportBtn);
+      await screen.findByRole("heading", { name: /Esporta resoconto spese/i });
+      expect(() => unmount()).not.toThrow();
+    });
+
+    test("CHALLENGE 6.3: ConfirmModal: backdrop click, Escape key, and box-shadow elevation contract", async () => {
+      const cssPath = path.resolve(__dirname, "../../App.css");
+      const cssContent = fs.readFileSync(cssPath, "utf8");
+
+      // Verify .confirm-modal-card uses var(--shadow-modal)
+      expect(cssContent).toMatch(/\.confirm-modal-card\s*\{[^}]*box-shadow:\s*var\(--shadow-modal\)/);
+
+      renderWithProviders(<ConfirmModal />);
+
+      act(() => {
+        showConfirm({
+          title: "Elimina Elemento",
+          message: "Sei sicuro di voler eliminare?",
+          confirmText: "Elimina",
+          cancelText: "Annulla",
+          isDanger: true,
+        });
+      });
+
+      const dialog = await screen.findByRole("dialog");
+      expect(dialog).toBeInTheDocument();
+      expect(dialog).toHaveClass("confirm-modal-card");
+
+      const backdrop = document.querySelector(".confirm-modal-backdrop");
+      expect(backdrop).toBeInTheDocument();
+
+      // Click card itself -> stopPropagation
+      fireEvent.click(dialog);
+      expect(screen.getByRole("dialog")).toBeInTheDocument();
+
+      // Escape key dismisses
+      fireEvent.keyDown(window, { key: "Escape" });
+      await waitFor(() => {
+        expect(screen.queryByRole("dialog")).toBeNull();
+      });
+
+      // Open again and test backdrop click dismiss
+      act(() => {
+        showConfirm({
+          title: "Seconda Conferma",
+          message: "Test backdrop click",
+        });
+      });
+
+      const dialog2 = await screen.findByRole("dialog");
+      expect(dialog2).toBeInTheDocument();
+      const backdrop2 = document.querySelector(".confirm-modal-backdrop");
+
+      fireEvent.click(backdrop2);
+      await waitFor(() => {
+        expect(screen.queryByRole("dialog")).toBeNull();
+      });
+    });
+
+    test("CHALLENGE 6.4: Toast Safe Area Insets in Mobile Media Query", () => {
+      const cssPath = path.resolve(__dirname, "../../App.css");
+      const cssContent = fs.readFileSync(cssPath, "utf8");
+
+      // Find mobile toast container definition
+      const mobileToastMatch = cssContent.match(/@media\s*\(\s*max-width:\s*600px\s*\)\s*\{[\s\S]*?\.toast-container\s*\{([^}]+)\}/);
+      expect(mobileToastMatch).not.toBeNull();
+      const toastRules = mobileToastMatch[1];
+      expect(toastRules).toMatch(/top:\s*calc\(\s*16px\s*\+\s*env\(\s*safe-area-inset-top\s*,\s*0px\s*\)\s*\)/);
+    });
+
+    test("CHALLENGE 6.5: Button Query Patterns Invariants (/Nuovo Turno/i, /Crea Turno/i, /Salva Spesa/i)", async () => {
+      seedHousehold({
+        houseId,
+        users: [alice],
+        turni: [], // Empty shifts state
+      });
+
+      // 1. In viewTurni (empty state): header has "Nuovo Turno", empty state has "Crea il primo turno"
+      // Verify findByRole("button", { name: /Nuovo Turno/i }) does NOT throw multiple elements error
+      const { unmount: uTurni } = renderWithProviders(<ViewTurni />, {
+        user: alice,
+        userData: { username: "Alice", casaId: houseId },
+      });
+
+      const nuovoTurnoBtn = await screen.findByRole("button", { name: /Nuovo Turno/i });
+      expect(nuovoTurnoBtn).toBeInTheDocument();
+
+      const creaPrimoBtn = screen.getByRole("button", { name: /Crea il primo turno/i });
+      expect(creaPrimoBtn).toBeInTheDocument();
+      uTurni();
+
+      // 2. In AggiuntaTurno: submit button matches /Crea Turno/i
+      const { unmount: uAddTurno } = renderWithProviders(<AggiuntaTurno />, {
+        user: alice,
+        userData: { username: "Alice", casaId: houseId },
+      });
+
+      const creaTurnoSubmit = await screen.findByRole("button", { name: /Crea Turno/i });
+      expect(creaTurnoSubmit).toBeInTheDocument();
+      expect(creaTurnoSubmit).toHaveAttribute("type", "submit");
+      uAddTurno();
+
+      // 3. In AggiungiDebito: submit button matches /Salva Spesa/i
+      const { unmount: uAddDebito } = renderWithProviders(<AggiungiDebito />, {
+        user: alice,
+        userData: { username: "Alice", casaId: houseId },
+      });
+
+      const salvaSpesaSubmit = await screen.findByRole("button", { name: /Salva Spesa/i });
+      expect(salvaSpesaSubmit).toBeInTheDocument();
+      expect(salvaSpesaSubmit).toHaveAttribute("type", "submit");
+      uAddDebito();
     });
   });
 });

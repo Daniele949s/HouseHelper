@@ -307,128 +307,254 @@ export default function HomeUtente() {
   const activeGroceriesCount = spesaList.filter((s) => !s.comprato).length;
   const userCurrentlyAway = isUserOnVacation(userData);
 
+  // Active roommate presence list
+  const roommatesList = useMemo(() => {
+    return Object.entries(utentiMap).map(([id, userVal]) => {
+      const name =
+        typeof userVal === "object" && userVal !== null
+          ? userVal.username || userVal.nome || "Coinquilino"
+          : typeof userVal === "string"
+          ? userVal
+          : "Coinquilino";
+      const initial =
+        name && typeof name === "string" && name.length > 0
+          ? name.charAt(0).toUpperCase()
+          : "C";
+      return {
+        id,
+        username: name,
+        initial
+      };
+    });
+  }, [utentiMap]);
+
+  // Quiet status pill computation
+  const choreStatusPill = useMemo(() => {
+    const oggi = new Date().toISOString().split("T")[0];
+    if (prossimoTurno) {
+      const isAssignedToMe =
+        (prossimoTurno.nomi && prossimoTurno.nomi.includes(userData?.username)) ||
+        prossimoTurno.utenteId === currentUser?.uid;
+      if (prossimoTurno.data === oggi && isAssignedToMe) {
+        return { text: "Tocca a te oggi", type: "urgent", icon: "fa-bell" };
+      }
+      if (prossimoTurno.data === oggi) {
+        return { text: `Oggi: ${prossimoTurno.mansione || "Turno"}`, type: "active", icon: "fa-broom" };
+      }
+      return {
+        text: `Prossimo: ${new Date(prossimoTurno.data).toLocaleDateString("it-IT", {
+          day: "numeric",
+          month: "short"
+        })}`,
+        type: "normal",
+        icon: "fa-calendar-check"
+      };
+    }
+    return { text: "Nessun turno oggi", type: "success", icon: "fa-check" };
+  }, [prossimoTurno, userData?.username, currentUser?.uid]);
+
   return (
     <div style={{ maxWidth: "880px", width: "100%", margin: "0 auto" }}>
-      {/* ================= 1. USER GREETING BANNER ================= */}
-      <div className="dashboard-welcome-banner" style={{ marginBottom: "16px", display: "flex", alignItems: "center", gap: "16px", flexWrap: "wrap" }}>
-        <div className="welcome-avatar" style={{ fontSize: "2.4rem", color: "var(--color-primary)" }}>
-          <i className="fas fa-user-circle" aria-hidden="true"></i>
-        </div>
-        <div className="welcome-text" style={{ flex: 1, minWidth: "180px", textAlign: "left" }}>
-          <span className="welcome-greeting" style={{ fontSize: "0.85rem", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
-            Panoramica della casa
-          </span>
-          <h1 className="welcome-username" style={{ margin: "2px 0 0 0", fontSize: "1.6rem" }}>
-            Bentornato, <strong style={{ color: "var(--text-main)" }}>{userData?.username || "Utente"}</strong>
-          </h1>
-        </div>
-        {isSyncing && (
-          <span
-            className="dashboard-sync-pill"
-            style={{
-              padding: "4px 10px",
-              borderRadius: "var(--radius-full)",
-              background: "rgba(37, 99, 235, 0.12)",
-              color: "var(--color-primary)",
-              fontWeight: "600",
-              fontSize: "0.82rem",
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "6px"
-            }}
-          >
-            <i className="fas fa-sync-alt fa-spin" aria-hidden="true"></i> Aggiornamento in corso...
-          </span>
-        )}
-        {userCurrentlyAway && (
-          <span
-            style={{
-              padding: "4px 10px",
-              borderRadius: "var(--radius-full)",
-              background: "rgba(245, 158, 11, 0.15)",
-              color: "#f59e0b",
-              fontWeight: "700",
-              fontSize: "0.82rem",
-              display: "flex",
-              alignItems: "center",
-              gap: "6px"
-            }}
-          >
-            <i className="fas fa-plane-departure" aria-hidden="true"></i> Fuori casa
-          </span>
-        )}
-      </div>
+      {/* ================= COMMAND CENTER HERO: PRESENCE & HOUSE IDENTITY ================= */}
+      <section className="household-command-center-hero" aria-label="Centro di Controllo Casa">
+        {/* User Greeting & Status Banner */}
+        <div className="dashboard-welcome-banner" style={{ marginBottom: "16px", display: "flex", alignItems: "center", gap: "16px", flexWrap: "wrap" }}>
+          <div className="welcome-avatar" style={{ fontSize: "2.4rem", color: "var(--color-primary)" }}>
+            <i className="fas fa-user-circle" aria-hidden="true"></i>
+          </div>
+          <div className="welcome-text" style={{ flex: 1, minWidth: "180px", textAlign: "left" }}>
+            <span className="welcome-greeting" style={{ fontSize: "0.85rem", color: "var(--text-muted)", letterSpacing: "0.02em" }}>
+              Panoramica della casa
+            </span>
+            <h1 className="welcome-username" style={{ margin: "2px 0 0 0", fontSize: "1.6rem" }}>
+              Bentornato, <strong style={{ color: "var(--text-main)" }}>{userData?.username || "Utente"}</strong>
+            </h1>
+          </div>
 
-      {/* ================= IN-APP NOTIFICATIONS & REMINDERS ================= */}
-      {activeReminders.length > 0 && (
-        <div style={{ marginBottom: "16px", display: "flex", flexDirection: "column", gap: "8px" }}>
-          {activeReminders.map((rem) => (
-            <div
-              key={rem.id}
+          <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+            {/* Quiet Status Pill */}
+            <span
+              className={`command-status-pill status-${choreStatusPill.type}`}
               style={{
-                display: "flex",
+                padding: "6px 12px",
+                borderRadius: "var(--radius-full)",
+                fontSize: "0.82rem",
+                fontWeight: "600",
+                display: "inline-flex",
                 alignItems: "center",
-                justifyContent: "space-between",
-                padding: "10px 16px",
-                borderRadius: "var(--radius-md)",
-                background: rem.type === "warning" ? "rgba(245, 158, 11, 0.12)" : "rgba(37, 99, 235, 0.08)",
-                border: rem.type === "warning" ? "1px solid rgba(245, 158, 11, 0.3)" : "1px solid rgba(37, 99, 235, 0.2)",
-                color: rem.type === "warning" ? "#b45309" : "#1d4ed8",
-                fontSize: "0.9rem"
+                gap: "6px"
               }}
             >
-              <div style={{ display: "flex", alignItems: "center", gap: "10px", textAlign: "left" }}>
-                <i className={`fas ${rem.icon}`} aria-hidden="true" style={{ fontSize: "1.1rem" }}></i>
-                <span>{rem.text}</span>
-              </div>
-              <button
-                type="button"
-                onClick={() => dismissReminder(rem.id)}
-                className="btn-text"
-                style={{ padding: "8px", minHeight: "44px", minWidth: "44px", display: "inline-flex", alignItems: "center", justifyContent: "center", color: "inherit", fontSize: "0.9rem" }}
-                aria-label="Ignora promemoria"
-              >
-                <i className="fas fa-times" aria-hidden="true"></i>
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
+              <i className={`fas ${choreStatusPill.icon}`} aria-hidden="true"></i> {choreStatusPill.text}
+            </span>
 
-      {/* ================= 2. HOUSEHOLD STATUS PRESENCE CARD ================= */}
-      {loading && !casa ? (
-        <div className="card dashboard-loading-skeleton" style={{ padding: "24px", textAlign: "center", marginBottom: "16px" }}>
-          <p style={{ color: "var(--color-primary)", marginBottom: "8px" }}>
-            <i className="fas fa-sync-alt fa-spin fa-2x" aria-hidden="true"></i>
-          </p>
-          <p style={{ margin: 0, color: "var(--text-secondary)", fontSize: "0.95rem" }}>
-            Caricamento dati della casa...
-          </p>
+            {isSyncing && (
+              <span
+                className="dashboard-sync-pill"
+                style={{
+                  padding: "6px 12px",
+                  borderRadius: "var(--radius-full)",
+                  background: "var(--color-primary-light)",
+                  color: "var(--color-primary)",
+                  fontWeight: "600",
+                  fontSize: "0.82rem",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "6px"
+                }}
+              >
+                <i className="fas fa-sync-alt fa-spin" aria-hidden="true"></i> Aggiornamento in corso...
+              </span>
+            )}
+            {userCurrentlyAway && (
+              <span
+                style={{
+                  padding: "6px 12px",
+                  borderRadius: "var(--radius-full)",
+                  background: "rgba(245, 158, 11, 0.15)",
+                  color: "#f59e0b",
+                  fontWeight: "700",
+                  fontSize: "0.82rem",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "6px"
+                }}
+              >
+                <i className="fas fa-plane-departure" aria-hidden="true"></i> Fuori casa
+              </span>
+            )}
+          </div>
         </div>
-      ) : (
-        <div
-          onClickCapture={(e) => {
-            const btn = e.target.closest('button[title*="codice invito"]');
-            if (btn && casa?.codiceUnivoco) {
-              if (navigator.clipboard && navigator.clipboard.writeText) {
-                navigator.clipboard.writeText(casa.codiceUnivoco);
+
+        {/* Roommate Presence Avatars row */}
+        {roommatesList.length > 0 && (
+          <div className="roommate-presence-bar" style={{ display: "flex", alignItems: "center", gap: "10px", margin: "12px 0 16px 0", flexWrap: "wrap" }}>
+            <span style={{ fontSize: "0.8rem", color: "var(--text-muted)", fontWeight: "500" }}>Coinquilini:</span>
+            <div style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
+              {roommatesList.map((r) => (
+                <div
+                  key={r.id}
+                  className="roommate-avatar-chip"
+                  title={r.username}
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "6px",
+                    padding: "4px 10px 4px 6px",
+                    borderRadius: "var(--radius-full)",
+                    background: "var(--bg-card)",
+                    border: "1px solid var(--border-color)",
+                    fontSize: "0.82rem",
+                    fontWeight: "500",
+                    color: "var(--text-secondary)"
+                  }}
+                >
+                  <span
+                    style={{
+                      width: "22px",
+                      height: "22px",
+                      borderRadius: "50%",
+                      background: "var(--color-primary-light)",
+                      color: "var(--color-primary)",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: "0.75rem",
+                      fontWeight: "700"
+                    }}
+                  >
+                    {r.initial}
+                  </span>
+                  <span>{r.username}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Quiet Active Reminders */}
+        {activeReminders.length > 0 && (
+          <div className="command-reminders-list" style={{ marginBottom: "16px", display: "flex", flexDirection: "column", gap: "8px" }}>
+            {activeReminders.map((r) => (
+              <div
+                key={r.id}
+                className={`command-reminder-pill reminder-${r.type}`}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  padding: "8px 14px",
+                  borderRadius: "var(--radius-md)",
+                  background: r.type === "warning" ? "rgba(245, 158, 11, 0.12)" : "rgba(14, 165, 233, 0.12)",
+                  color: r.type === "warning" ? "#d97706" : "var(--color-primary)",
+                  fontSize: "0.85rem",
+                  fontWeight: "500"
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                  <i className={`fas ${r.icon}`} aria-hidden="true"></i>
+                  <span>{r.text}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => dismissReminder(r.id)}
+                  aria-label="Nascondi promemoria"
+                  style={{
+                    background: "none",
+                    border: "none",
+                    color: "currentColor",
+                    opacity: 0.6,
+                    cursor: "pointer",
+                    padding: "8px",
+                    minHeight: "44px",
+                    minWidth: "44px",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center"
+                  }}
+                >
+                  <i className="fas fa-times" aria-hidden="true"></i>
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* HouseholdStatus Presence Card */}
+        {loading && !casa ? (
+          <div className="card dashboard-loading-skeleton" style={{ padding: "24px", textAlign: "center", marginBottom: "16px" }}>
+            <p style={{ color: "var(--color-primary)", marginBottom: "8px" }}>
+              <i className="fas fa-sync-alt fa-spin fa-2x" aria-hidden="true"></i>
+            </p>
+            <p style={{ margin: 0, color: "var(--text-secondary)", fontSize: "0.95rem" }}>
+              Caricamento dati della casa...
+            </p>
+          </div>
+        ) : (
+          <div
+            onClickCapture={(e) => {
+              const btn = e.target.closest('button[title*="codice invito"]');
+              if (btn && casa?.codiceUnivoco) {
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                  navigator.clipboard.writeText(casa.codiceUnivoco);
+                }
+                setCopiedCode(true);
+                setTimeout(() => setCopiedCode(false), 2000);
               }
-              setCopiedCode(true);
-              setTimeout(() => setCopiedCode(false), 2000);
-            }
-          }}
-        >
-          <HouseholdStatus
-            casa={casa}
-            roommateCount={Object.keys(utentiMap).length || 1}
-            prossimoTurno={prossimoTurno}
-            variant="full"
-          />
-          {copiedCode && (
-            <span style={{ position: "absolute", opacity: 0, pointerEvents: "none" }}>Copiato!</span>
-          )}
-        </div>
-      )}
+            }}
+          >
+            <HouseholdStatus
+              casa={casa}
+              roommateCount={Object.keys(utentiMap).length || 1}
+              prossimoTurno={prossimoTurno}
+              variant="full"
+            />
+            {copiedCode && (
+              <span style={{ position: "absolute", opacity: 0, pointerEvents: "none" }}>Copiato!</span>
+            )}
+          </div>
+        )}
+      </section>
 
       {/* ================= VACATION / AWAY MODE CONTROLS ================= */}
       <div
@@ -583,10 +709,9 @@ export default function HomeUtente() {
               <div>
                 <h3
                   style={{
-                    fontSize: "1rem",
+                    fontSize: "0.95rem",
                     color: "var(--text-secondary)",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.05em",
+                    fontWeight: "600",
                     margin: 0
                   }}
                 >
@@ -637,7 +762,6 @@ export default function HomeUtente() {
             style={{ alignSelf: "flex-start", padding: "8px 0", minHeight: "44px", display: "inline-flex", alignItems: "center", marginTop: "16px", color: "#f59e0b" }}
           >
             <span>Gestisci tutti i turni</span>
-            <i className="fas fa-arrow-right" style={{ marginLeft: "4px" }} aria-hidden="true"></i>
           </button>
         </div>
 
@@ -659,10 +783,9 @@ export default function HomeUtente() {
               <div>
                 <h3
                   style={{
-                    fontSize: "1rem",
+                    fontSize: "0.95rem",
                     color: "var(--text-secondary)",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.05em",
+                    fontWeight: "600",
                     margin: 0
                   }}
                 >
@@ -700,7 +823,6 @@ export default function HomeUtente() {
             style={{ alignSelf: "flex-start", padding: "8px 0", minHeight: "44px", display: "inline-flex", alignItems: "center", marginTop: "16px", color: "var(--color-primary)" }}
           >
             <span>Vedi spese e saldi</span>
-            <i className="fas fa-arrow-right" style={{ marginLeft: "4px" }} aria-hidden="true"></i>
           </button>
         </div>
 
@@ -722,10 +844,9 @@ export default function HomeUtente() {
               <div>
                 <h3
                   style={{
-                    fontSize: "1rem",
+                    fontSize: "0.95rem",
                     color: "var(--text-secondary)",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.05em",
+                    fontWeight: "600",
                     margin: 0
                   }}
                 >
@@ -740,7 +861,7 @@ export default function HomeUtente() {
               </h2>
               <p style={{ color: "var(--text-muted)", fontSize: "0.9rem", margin: "6px 0 0 0" }}>
                 {activeGroceriesCount === 0
-                  ? "Dispensa al completo! Nessun articolo da comprare."
+                  ? "Casa ben rifornita! Nessun articolo da comprare."
                   : activeGroceriesCount === 1
                   ? "1 articolo da comprare per la casa."
                   : `${activeGroceriesCount} articoli da comprare per la casa.`}
@@ -755,7 +876,6 @@ export default function HomeUtente() {
             style={{ alignSelf: "flex-start", padding: "8px 0", minHeight: "44px", display: "inline-flex", alignItems: "center", marginTop: "16px", color: "var(--color-primary)" }}
           >
             <span>Apri lista della spesa</span>
-            <i className="fas fa-arrow-right" style={{ marginLeft: "4px" }} aria-hidden="true"></i>
           </button>
         </div>
 
@@ -776,8 +896,7 @@ export default function HomeUtente() {
               style={{
                 fontSize: "0.95rem",
                 color: "var(--text-secondary)",
-                textTransform: "uppercase",
-                letterSpacing: "0.05em",
+                fontWeight: "600",
                 margin: 0
               }}
             >
@@ -812,7 +931,6 @@ export default function HomeUtente() {
             style={{ alignSelf: "flex-start", padding: "8px 0", minHeight: "44px", display: "inline-flex", alignItems: "center", marginTop: "16px", color: "var(--color-primary)" }}
           >
             <span>Apri la bacheca</span>
-            <i className="fas fa-arrow-right" style={{ marginLeft: "4px" }} aria-hidden="true"></i>
           </button>
         </div>
 

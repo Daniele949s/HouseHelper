@@ -30,12 +30,13 @@
   background: var(--bg-glass);
   backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);
-  border: 1px solid var(--border-color);
+  border: var(--glass-border);
   border-radius: var(--radius-full);
   box-shadow: var(--shadow-glass);
   transition: all var(--duration-normal) var(--ease-standard);
-  position: relative;
-  z-index: 100;
+  position: sticky;
+  top: 12px;
+  z-index: 900;
 }
 
 .brand-wrapper {
@@ -70,7 +71,7 @@
 }
 
 .brand-title {
-  font-family: 'Outfit', sans-serif;
+  font-family: var(--font-family-display);
   font-weight: 800;
   font-size: 1.25rem;
   letter-spacing: -0.03em;
@@ -130,9 +131,9 @@
 .desktop-nav-link.active {
   color: var(--color-primary);
   background: var(--color-primary-light);
-  border-color: rgba(37, 99, 235, 0.25);
+  border-color: var(--color-primary-border);
   font-weight: var(--font-weight-semibold);
-  box-shadow: 0 1px 4px rgba(37, 99, 235, 0.15);
+  box-shadow: var(--shadow-xs);
 }
 
 .desktop-nav-icon {
@@ -304,6 +305,109 @@
   margin-top: 10px;
 }
 
+/* ==========================================================================
+   THE HOUSE HEARTH BADGE & AUTH CARDS (M10 Signature Element)
+   ========================================================================== */
+.hero-brand-badge,
+.auth-brand-badge {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 16px auto;
+  border-radius: 20px;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.12), rgba(245, 158, 11, 0.12));
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.75rem;
+  color: var(--color-primary);
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.auth-brand-badge:hover,
+.hero-brand-badge:hover {
+  transform: scale(1.05);
+}
+
+.hero-welcome-card {
+  max-width: 540px;
+  padding: 36px 28px;
+}
+
+.hero-header-text {
+  margin-bottom: 24px;
+}
+
+.hero-cta-group .hero-btn {
+  min-height: 48px;
+  font-size: 1rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.hero-feature-pills {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin: 28px 0 20px 0;
+}
+
+.hero-feature-pills .feature-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-full);
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.hero-trust-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-top: 8px;
+}
+
+/* ==========================================================================
+   CLEAR TWO-LANE ONBOARDING CARD (SceltaCasa M10 Signature Element)
+   ========================================================================== */
+.scelta-casa-card {
+  max-width: 620px;
+  padding: 32px;
+}
+
+.scelta-card {
+  border-radius: var(--radius-md);
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-color);
+  padding: 20px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.scelta-card:hover {
+  border-color: var(--border-medium);
+  box-shadow: var(--shadow-sm);
+}
+
+.scelta-crea {
+  border-left: 4px solid var(--color-primary);
+}
+
+.scelta-unisciti {
+  border-left: 4px solid var(--color-accent);
+}
+
 /* Responsive card wrapper for primary domain pages */
 .domain-page-card {
   padding: 32px !important;
@@ -401,7 +505,7 @@
   font-size: 0.82rem;
   font-weight: 600;
   white-space: nowrap;
-  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+  box-shadow: var(--shadow-sm);
   animation: bounceAlert 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
   z-index: 10;
 }
@@ -464,8 +568,8 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.14), rgba(20, 184, 166, 0.08));
-  border: 1px solid rgba(99, 102, 241, 0.28);
+  background: linear-gradient(135deg, var(--color-primary-light), rgba(20, 184, 166, 0.08));
+  border: 1px solid var(--color-primary-border);
 }
 
 .bento-header-info h1 {
@@ -592,6 +696,7 @@ button {
   align-items: center;
   justify-content: center;
   gap: 10px;
+  min-height: 44px;
   transition: all 0.22s cubic-bezier(0.22, 0.61, 0.36, 1);
   user-select: none;
 }
@@ -604,16 +709,17 @@ button:active:not(:disabled) {
   background: linear-gradient(135deg, var(--color-primary), var(--color-primary-hover));
   color: #fff;
   padding: 14px 28px;
+  min-height: 44px;
   border-radius: var(--radius-md);
   font-size: 1rem;
-  box-shadow: 0 4px 18px var(--color-primary-glow);
+  box-shadow: var(--shadow-sm);
   width: 100%;
   position: relative;
   overflow: hidden;
 }
 
 .btn-primary:hover:not(:disabled) {
-  box-shadow: 0 6px 24px var(--color-primary-glow);
+  box-shadow: var(--shadow-md);
   transform: translateY(-2px);
   filter: brightness(1.08);
 }
@@ -622,6 +728,7 @@ button:active:not(:disabled) {
   background: var(--color-secondary);
   color: var(--text-main);
   padding: 14px 28px;
+  min-height: 44px;
   border-radius: var(--radius-md);
   font-size: 1rem;
   border: 1px solid var(--border-color);
@@ -653,13 +760,14 @@ button:active:not(:disabled) {
 .btn-danger-outline {
   background: transparent;
   color: var(--color-danger);
-  border: 1px solid rgba(239, 68, 68, 0.3);
+  border: 1px solid var(--color-danger-border);
   padding: 8px 16px;
+  min-height: 44px;
   border-radius: var(--radius-md);
 }
 
 .btn-danger-outline:hover {
-  background: rgba(239, 68, 68, 0.12);
+  background: var(--color-danger-light);
   border-color: var(--color-danger);
 }
 
@@ -729,8 +837,8 @@ button:active:not(:disabled) {
 .input-group select:focus,
 .input-group textarea:focus {
   border-color: var(--border-focus);
-  box-shadow: 0 0 0 4px var(--color-primary-glow);
-  transform: scale(1.008);
+  outline: 2px solid var(--border-focus);
+  outline-offset: 2px;
   background: var(--bg-surface);
 }
 
@@ -817,12 +925,12 @@ button:active:not(:disabled) {
 }
 
 .error-alert {
-  background: rgba(239, 68, 68, 0.12);
-  color: #f87171;
+  background: var(--color-danger-light);
+  color: var(--color-danger-text);
   padding: 14px 20px;
   border-radius: var(--radius-md);
   margin-bottom: 20px;
-  border: 1px solid rgba(239, 68, 68, 0.28);
+  border: 1px solid var(--color-danger-border);
   font-size: 0.95rem;
   font-weight: 500;
   display: flex;
@@ -855,7 +963,7 @@ button:active:not(:disabled) {
 
 .react-calendar__navigation button {
   color: var(--text-main);
-  font-family: 'Outfit', sans-serif;
+  font-family: var(--font-family-display);
   font-size: 1.15rem;
   font-weight: 700;
   border-radius: var(--radius-sm);
@@ -903,9 +1011,9 @@ button:active:not(:disabled) {
 }
 
 .react-calendar__tile--now {
-  background: rgba(20, 184, 166, 0.15) !important;
+  background: var(--color-accent-light) !important;
   color: var(--color-accent) !important;
-  border: 1px solid rgba(20, 184, 166, 0.4);
+  border: 1px solid var(--color-primary-border);
   font-weight: 700;
 }
 
@@ -949,7 +1057,7 @@ button:active:not(:disabled) {
 
 .agenda-date-badge .day-num {
   font-size: 2.2rem;
-  font-family: 'Outfit', sans-serif;
+  font-family: var(--font-family-display);
   font-weight: 800;
   line-height: 1;
 }
@@ -966,6 +1074,31 @@ button:active:not(:disabled) {
   padding: 16px 20px;
   flex: 1;
   text-align: left;
+}
+
+/* ==========================================================================
+   DESKTOP SPLIT VIEW: CALENDAR & AGENDA (M10 Signature Anchor)
+   ========================================================================== */
+.calendar-split-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+@media (min-width: 900px) {
+  .calendar-split-layout {
+    display: grid;
+    grid-template-columns: minmax(320px, 1fr) minmax(340px, 1.25fr);
+    gap: 32px;
+    align-items: start;
+  }
+
+  .calendar-split-right.calendar-agenda-pane {
+    border-top: none !important;
+    border-left: 1px solid var(--border-color);
+    padding-top: 0 !important;
+    padding-left: 28px;
+  }
 }
 
 /* ==========================================================================
@@ -1154,7 +1287,7 @@ button:active:not(:disabled) {
   width: 100vw;
   height: 100vh;
   height: 100dvh;
-  background: #09090b !important; /* Fully solid, non-transparent dark */
+  background: var(--bg-primary) !important; /* Fully solid, non-transparent dark */
   z-index: 999999;
   display: flex;
   flex-direction: column;
@@ -1172,7 +1305,7 @@ button:active:not(:disabled) {
 }
 
 .light-theme .mobile-menu-overlay {
-  background: #f8fafc !important; /* Fully solid, non-transparent light */
+  background: var(--bg-primary) !important; /* Fully solid, non-transparent light */
 }
 
 .mobile-menu-overlay.menu-opened {
@@ -1185,7 +1318,7 @@ button:active:not(:disabled) {
 .mobile-menu-inner {
   width: 100%;
   max-width: 440px;
-  padding: 32px 24px 40px 24px;
+  padding: calc(32px + env(safe-area-inset-top, 0px)) 24px calc(40px + env(safe-area-inset-bottom, 0px)) 24px;
   display: flex;
   flex-direction: column;
   min-height: 100%;
@@ -1332,16 +1465,17 @@ button:active:not(:disabled) {
 .mobile-logout-btn {
   width: 100%;
   padding: 14px;
+  min-height: 44px;
   border-radius: var(--radius-md);
-  background: rgba(239, 68, 68, 0.12);
+  background: var(--color-danger-light);
   color: var(--color-danger);
-  border: 1px solid rgba(239, 68, 68, 0.3);
+  border: 1px solid var(--color-danger-border);
   font-size: 0.95rem;
   font-weight: 600;
 }
 
 .mobile-logout-btn:hover {
-  background: rgba(239, 68, 68, 0.2);
+  background: var(--color-danger-border);
 }
 
 /* ==========================================================================
@@ -1357,7 +1491,7 @@ button:active:not(:disabled) {
   }
 
   .app-container {
-    padding: 12px 14px calc(84px + env(safe-area-inset-bottom, 0px)) 14px !important;
+    padding: calc(12px + env(safe-area-inset-top, 0px)) 14px calc(84px + env(safe-area-inset-bottom, 0px)) 14px !important;
   }
 
   .app-topbar {
@@ -1585,7 +1719,7 @@ button:active:not(:disabled) {
 
 @media (max-width: 600px) {
   .toast-container {
-    top: 16px;
+    top: calc(16px + env(safe-area-inset-top, 0px));
     right: 16px;
     left: 16px;
     width: auto;
@@ -1621,11 +1755,9 @@ button:active:not(:disabled) {
   width: 100%;
   max-width: 440px;
   background: var(--bg-card);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
-  box-shadow: var(--shadow-card);
+  box-shadow: var(--shadow-modal);
   padding: 24px;
   position: relative;
   animation: modalScaleUp 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
@@ -1661,12 +1793,12 @@ button:active:not(:disabled) {
 }
 
 .badge-danger {
-  background: rgba(239, 68, 68, 0.15);
+  background: var(--color-danger-light);
   color: var(--color-danger);
 }
 
 .badge-primary {
-  background: rgba(37, 99, 235, 0.15);
+  background: var(--color-primary-light);
   color: var(--color-primary);
 }
 
@@ -1936,8 +2068,56 @@ button:active:not(:disabled) {
 }
 
 /* ==========================================================================
-   MODERN HOUSEHOLD STATUS & PRESENCE (M2)
+   HOUSEHOLD COMMAND CENTER HERO (M9 Signature Anchor) & PRESENCE (M2)
    ========================================================================== */
+.household-command-center-hero {
+  margin-bottom: 24px;
+}
+
+.command-status-pill {
+  transition: all var(--duration-fast) var(--ease-apple);
+  font-family: var(--font-family-sans);
+}
+
+.command-status-pill.status-urgent {
+  background: rgba(245, 158, 11, 0.15);
+  color: #b45309;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.command-status-pill.status-active {
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+  border: 1px solid var(--color-primary-border);
+}
+
+.command-status-pill.status-normal {
+  background: var(--bg-surface);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+}
+
+.command-status-pill.status-success {
+  background: var(--color-success-light);
+  color: var(--color-success);
+  border: 1px solid var(--color-success-border);
+}
+
+.roommate-presence-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.roommate-avatar-chip {
+  transition: transform var(--duration-fast) var(--ease-apple), border-color var(--duration-fast) var(--ease-apple);
+}
+
+.roommate-avatar-chip:hover {
+  transform: translateY(-1px);
+  border-color: var(--color-primary);
+}
+
 .household-status-card {
   background: var(--bg-card);
   backdrop-filter: none !important;
@@ -2019,12 +2199,12 @@ button:active:not(:disabled) {
 
 .invite-code-card-btn:hover {
   border-color: var(--color-accent);
-  background: rgba(13, 148, 136, 0.08);
+  background: var(--color-accent-light);
 }
 
 .invite-code-card-btn.is-copied {
   border-color: var(--color-success);
-  background: rgba(16, 185, 129, 0.1);
+  background: var(--color-success-light);
 }
 
 .invite-label {
@@ -2053,7 +2233,7 @@ button:active:not(:disabled) {
 }
 
 .invite-code-val code {
-  font-family: 'Lexend', monospace;
+  font-family: var(--font-family-mono);
   font-size: 1.25rem;
   font-weight: 800;
   letter-spacing: 1.5px;
@@ -2093,12 +2273,12 @@ button:active:not(:disabled) {
 }
 
 .icon-roommates {
-  background: rgba(37, 99, 235, 0.15);
+  background: var(--color-primary-light);
   color: var(--color-primary);
 }
 
 .icon-chore {
-  background: rgba(245, 158, 11, 0.15);
+  background: var(--color-warning-light);
   color: var(--color-warning);
 }
 
@@ -2159,7 +2339,7 @@ button:active:not(:disabled) {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-family: 'Lexend', monospace;
+  font-family: var(--font-family-mono);
   font-size: 0.85rem;
   color: var(--color-accent);
   cursor: pointer;
@@ -2214,7 +2394,7 @@ button:active:not(:disabled) {
 .turni-filter-pill.active {
   background: var(--color-primary-light);
   color: var(--color-primary);
-  border-color: rgba(37, 99, 235, 0.3);
+  border-color: var(--color-primary-border);
 }
 
 .zone-chips-container {
@@ -2230,9 +2410,9 @@ button:active:not(:disabled) {
   gap: 6px;
   padding: 4px 10px;
   border-radius: var(--radius-sm);
-  background: rgba(37, 99, 235, 0.1);
+  background: var(--color-primary-light);
   color: var(--color-primary);
-  border: 1px solid rgba(37, 99, 235, 0.2);
+  border: 1px solid var(--color-primary-border);
   font-size: 0.8rem;
   font-weight: 600;
 }
@@ -2296,13 +2476,13 @@ button:active:not(:disabled) {
 }
 
 .debt-hero-card.balance-positive {
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.14), rgba(13, 148, 136, 0.05));
-  border-color: rgba(16, 185, 129, 0.35);
+  background: linear-gradient(135deg, var(--color-success-light), transparent);
+  border-color: var(--color-success-border);
 }
 
 .debt-hero-card.balance-negative {
-  background: linear-gradient(135deg, rgba(239, 68, 68, 0.14), rgba(220, 38, 38, 0.05));
-  border-color: rgba(239, 68, 68, 0.35);
+  background: linear-gradient(135deg, var(--color-danger-light), transparent);
+  border-color: var(--color-danger-border);
 }
 
 .debt-hero-card.balance-neutral {
@@ -2312,7 +2492,7 @@ button:active:not(:disabled) {
 
 .debt-hero-amount {
   font-size: 3.2rem;
-  font-family: 'Outfit', sans-serif;
+  font-family: var(--font-family-display);
   font-weight: 800;
   line-height: 1.1;
   margin: 8px 0;
@@ -2348,12 +2528,12 @@ button:active:not(:disabled) {
 }
 
 .debt-summary-icon-wrap.icon-receive {
-  background: rgba(16, 185, 129, 0.15);
+  background: var(--color-success-light);
   color: var(--color-success);
 }
 
 .debt-summary-icon-wrap.icon-give {
-  background: rgba(239, 68, 68, 0.15);
+  background: var(--color-danger-light);
   color: var(--color-danger);
 }
 
@@ -2415,8 +2595,8 @@ button:active:not(:disabled) {
 
 .split-preview-card {
   padding: 12px 16px;
-  background: rgba(37, 99, 235, 0.08);
-  border: 1px solid rgba(37, 99, 235, 0.2);
+  background: var(--color-primary-light);
+  border: 1px solid var(--color-primary-border);
   border-radius: var(--radius-md);
   margin-top: 10px;
   font-size: 0.92rem;
@@ -2495,25 +2675,25 @@ button:active:not(:disabled) {
 .priority-urgente {
   background: var(--color-danger-light);
   color: var(--color-danger);
-  border: 1px solid rgba(239, 68, 68, 0.25);
+  border: 1px solid var(--color-danger-border);
 }
 
 .priority-importante {
   background: var(--color-warning-light);
   color: var(--color-warning);
-  border: 1px solid rgba(245, 158, 11, 0.25);
+  border: 1px solid var(--color-warning-border);
 }
 
 .priority-info {
   background: var(--color-info-light);
   color: var(--color-info);
-  border: 1px solid rgba(59, 130, 246, 0.25);
+  border: 1px solid var(--color-primary-border);
 }
 
 .priority-promemoria {
   background: var(--color-accent-light);
   color: var(--color-accent);
-  border: 1px solid rgba(13, 148, 136, 0.25);
+  border: 1px solid var(--color-primary-border);
 }
 
 .bacheca-card {
@@ -2601,13 +2781,83 @@ button:active:not(:disabled) {
   justify-content: center;
   font-weight: var(--font-weight-bold);
   font-size: 0.75rem;
-  border: 1px solid rgba(37, 99, 235, 0.2);
+  border: 1px solid var(--color-primary-border);
 }
 
 .bacheca-actions {
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+/* ==========================================================================
+   PINNED URGENT NOTICE BANNER (M10 Signature Anchor)
+   ========================================================================== */
+.bacheca-pinned-section {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-left: 4px solid var(--color-warning);
+  border-radius: var(--radius-md);
+  padding: 20px;
+  margin-bottom: 24px;
+  box-shadow: var(--shadow-sm);
+}
+
+.bacheca-pinned-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.bacheca-pinned-dispatch-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--color-warning);
+}
+
+.bacheca-pinned-sublabel {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.bacheca-pinned-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.pinned-notice-card {
+  border-left: 3px solid var(--color-warning) !important;
+  background: var(--bg-card);
+  box-shadow: var(--shadow-xs);
+}
+
+.bacheca-routine-section {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.bacheca-routine-heading {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  margin: 8px 0 4px 0;
+  text-align: left;
+}
+
+.bacheca-routine-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
 }
 
 .pill-selector-group {
@@ -2646,7 +2896,7 @@ button:active:not(:disabled) {
   color: var(--color-primary);
   border-color: var(--color-primary);
   font-weight: var(--font-weight-semibold);
-  box-shadow: 0 0 10px var(--color-primary-glow);
+  box-shadow: var(--shadow-xs);
 }
 
 .char-counter {
@@ -2919,7 +3169,7 @@ a:focus-visible,
   background: var(--color-primary);
   color: #ffffff;
   border-color: var(--color-primary);
-  box-shadow: 0 2px 8px var(--color-primary-glow);
+  box-shadow: var(--shadow-xs);
 }
 
 .doc-filter-pill.active i {
@@ -3075,10 +3325,26 @@ a:focus-visible,
   flex-shrink: 0;
 }
 
-.doc-format-pdf { background: rgba(239, 68, 68, 0.12); color: var(--color-danger); }
-.doc-format-img { background: rgba(13, 148, 136, 0.12); color: var(--color-accent); }
-.doc-format-doc { background: rgba(37, 99, 235, 0.12); color: var(--color-primary); }
-.doc-format-alt { background: var(--bg-subtle); color: var(--text-secondary); }
+.doc-format-pdf {
+  background: rgba(244, 63, 94, 0.12);
+  color: #f43f5e;
+  border: 1px solid rgba(244, 63, 94, 0.25);
+}
+.doc-format-img {
+  background: rgba(139, 92, 246, 0.12);
+  color: #8b5cf6;
+  border: 1px solid rgba(139, 92, 246, 0.25);
+}
+.doc-format-doc {
+  background: rgba(59, 130, 246, 0.12);
+  color: #3b82f6;
+  border: 1px solid rgba(59, 130, 246, 0.25);
+}
+.doc-format-alt {
+  background: var(--bg-subtle);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-subtle);
+}
 
 .doc-card-info {
   flex: 1;
@@ -3098,12 +3364,10 @@ a:focus-visible,
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  padding: 3px 10px;
+  padding: 4px 10px;
   border-radius: var(--radius-full);
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+  font-size: 0.8rem;
+  font-weight: 500;
   background: var(--bg-subtle);
   border: 1px solid var(--border-color);
   color: var(--text-secondary);
@@ -3170,13 +3434,13 @@ a:focus-visible,
 }
 
 .doc-action-btn.btn-delete:hover {
-  background: rgba(239, 68, 68, 0.15);
+  background: var(--color-danger-light);
   color: var(--color-danger);
   border-color: var(--color-danger);
 }
 
 .doc-action-btn.btn-view:hover {
-  background: rgba(37, 99, 235, 0.15);
+  background: var(--color-primary-light);
   color: var(--color-primary);
   border-color: var(--color-primary);
 }
@@ -3438,7 +3702,7 @@ a:focus-visible,
   display: inline-block;
   padding: 3px 8px;
   border-radius: var(--radius-full);
-  background: rgba(37, 99, 235, 0.1);
+  background: var(--color-primary-light);
   color: var(--color-primary);
   font-size: 0.75rem;
   font-weight: 700;
@@ -3519,9 +3783,9 @@ a:focus-visible,
 }
 
 .btn-action-call {
-  background: rgba(16, 185, 129, 0.15);
+  background: var(--color-success-light);
   color: var(--color-success);
-  border: 1px solid rgba(16, 185, 129, 0.3);
+  border: 1px solid var(--color-success-border);
 }
 
 .btn-action-call:hover {
@@ -3530,9 +3794,9 @@ a:focus-visible,
 }
 
 .btn-action-email {
-  background: rgba(37, 99, 235, 0.12);
+  background: var(--color-primary-light);
   color: var(--color-primary);
-  border: 1px solid rgba(37, 99, 235, 0.3);
+  border: 1px solid var(--color-primary-border);
 }
 
 .btn-action-email:hover {
@@ -3570,6 +3834,83 @@ a:focus-visible,
 }
 
 /* ==========================================================================
+   EMERGENCY SPEED-DIAL PRIORITY SHELF (M10 Signature Element)
+   ========================================================================== */
+.emergency-priority-shelf {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-left: 4px solid var(--color-warning);
+  border-radius: var(--radius-md);
+  padding: 20px;
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 28px;
+}
+
+.emergency-shelf-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.emergency-shelf-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: var(--text-main);
+}
+
+.emergency-shelf-icon {
+  color: var(--color-warning);
+  font-size: 1.1rem;
+}
+
+.emergency-shelf-subtitle {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.emergency-shelf-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.emergency-card-highlight {
+  border-left: 3px solid var(--color-warning) !important;
+  background: var(--bg-card);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.emergency-card-highlight:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.priority-badge-active {
+  background: var(--color-warning-light) !important;
+  color: var(--color-warning) !important;
+  border-color: var(--color-warning-border) !important;
+}
+
+.routine-contacts-section {
+  margin-top: 12px;
+}
+
+.routine-contacts-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  margin: 0 0 16px 0;
+}
+
+/* ==========================================================================
    MOBILE BOTTOM BAR (Apple HIG Ergonomics)
    ========================================================================== */
 .mobile-bottom-bar {
@@ -3582,8 +3923,8 @@ a:focus-visible,
   background: var(--bg-glass);
   backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);
-  border-top: 1px solid var(--border-color);
-  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.2);
+  border-top: var(--glass-border);
+  box-shadow: var(--shadow-glass);
   display: flex;
   align-items: center;
   justify-content: space-around;
@@ -3593,6 +3934,13 @@ a:focus-visible,
 @media (min-width: 768px) {
   .mobile-bottom-bar {
     display: none !important;
+  }
+}
+
+/* Breakpoint Overlap Fix: Ensure mobile bottom bar remains visible on 768px portrait tablets */
+@media (max-width: 767.98px), (width: 768px) {
+  .mobile-bottom-bar {
+    display: flex !important;
   }
 }
 
@@ -3669,11 +4017,11 @@ a:focus-visible,
   .desktop-nav-link.active {
     background: var(--color-primary);
     color: #ffffff;
-    box-shadow: 0 2px 8px var(--color-primary-glow);
+    box-shadow: var(--shadow-xs);
   }
 
   .domain-page-card {
-    max-width: 1000px;
+    max-width: 1000px !important;
     padding: 40px !important;
   }
 }
@@ -3728,5 +4076,85 @@ a:focus-visible,
   font-weight: 600;
 }
 
+/* WCAG AA Contrast Calibration for Analytics Summary Pills */
+.summary-pill.da-comprare .pill-val {
+  color: var(--color-primary-text) !important;
+}
 
+/* ==========================================================================
+   MILESTONE M9 SIGNATURE ELEMENTS ("Spend Your Boldness in One Place")
+   ========================================================================== */
+
+/* 1. Household Command Center Hero (homeUtente.js) */
+.household-command-center-hero {
+  margin-bottom: 24px;
+}
+
+.command-status-pill.status-urgent {
+  background: rgba(239, 68, 68, 0.12);
+  color: var(--color-danger);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+}
+
+.command-status-pill.status-active {
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+  border: 1px solid var(--color-primary-border);
+}
+
+.command-status-pill.status-normal {
+  background: var(--bg-input);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+}
+
+.command-status-pill.status-success {
+  background: rgba(16, 185, 129, 0.12);
+  color: var(--color-success);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+}
+
+.roommate-avatar-chip {
+  transition: all 0.2s ease;
+}
+
+.roommate-avatar-chip:hover {
+  border-color: var(--color-primary);
+}
+
+/* 2. Cleaning Shifts Spotlight Card (viewTurni.js) */
+.chore-spotlight-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-left: 5px solid var(--color-primary);
+  border-radius: var(--radius-lg);
+  padding: 22px 24px;
+  box-shadow: var(--shadow-card);
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.chore-spotlight-card:hover {
+  box-shadow: var(--shadow-md);
+}
+
+/* 3. Financial Ledger Hero (ViewDebiti.js) */
+.debt-hero-card {
+  transition: box-shadow 0.2s ease;
+}
+
+/* 4. Grocery Live Progress & Frequent Staples Hub (ViewSpesa.js) */
+.grocery-hub-card {
+  transition: box-shadow 0.2s ease;
+}
+
+.grocery-staple-btn {
+  transition: background 0.15s ease, transform 0.15s ease, border-color 0.15s ease;
+}
+
+.grocery-staple-btn:hover {
+  background: var(--color-primary-light) !important;
+  color: var(--color-primary) !important;
+  border-color: var(--color-primary) !important;
+  transform: translateY(-1px);
+}
 

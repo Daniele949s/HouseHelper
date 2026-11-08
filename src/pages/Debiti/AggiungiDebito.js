@@ -232,7 +232,7 @@ export default function AggiungiDebito() {
   return (
     <div className="card" style={{ maxWidth: "680px", margin: "2rem auto" }}>
       <h1 style={{ marginBottom: "6px" }}>
-        Nuova Spesa <i className="fas fa-wallet" style={{ fontSize: "0.85em", marginLeft: "6px" }} aria-hidden="true"></i>
+        Nuova Spesa
       </h1>
       <p className="subtitle" style={{ marginBottom: "24px" }}>
         Inserisci una spesa e dividila con i coinquilini

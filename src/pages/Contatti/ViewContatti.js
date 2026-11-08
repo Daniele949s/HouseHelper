@@ -103,11 +103,22 @@ export default function ViewContatti() {
     setShowAddModal(true);
   };
 
-  const handleCloseModal = () => {
+  const handleCloseModal = useCallback(() => {
     if (isSubmitting) return;
     setShowAddModal(false);
     resetForm();
-  };
+  }, [isSubmitting]);
+
+  useEffect(() => {
+    if (!showAddModal) return;
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape" && !isSubmitting) {
+        handleCloseModal();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [showAddModal, isSubmitting, handleCloseModal]);
 
   const handleAddSubmit = async (e) => {
     e.preventDefault();
@@ -195,13 +206,84 @@ export default function ViewContatti() {
     });
   }, [contatti, selectedCategory, searchTerm]);
 
+  const isPriorityContact = (c) => c.categoria === "Emergenza" || c.categoria === "Proprietario";
+
+  const renderContactCard = (contact, isPriority = false) => {
+    const telUrl = safeTelUrl(contact.telefono);
+    const mailtoUrl = safeMailtoUrl(contact.email);
+    const catIcon = CATEGORY_ICONS[contact.categoria] || "fa-tag";
+
+    return (
+      <div key={contact.id} className={`card contact-card ${isPriority ? "emergency-card-highlight" : ""}`}>
+        <div className="contact-card-header">
+          <div className="contact-title-group">
+            <span className={`contact-category-badge ${isPriority ? "priority-badge-active" : ""}`}>
+              <i className={`fas ${catIcon}`} aria-hidden="true"></i> {contact.categoria}
+            </span>
+            <h2 className="contact-name">{contact.nome}</h2>
+          </div>
+          <button
+            type="button"
+            className="contact-delete-btn"
+            onClick={() => handleDeleteContact(contact)}
+            aria-label={`Elimina ${contact.nome}`}
+            title="Elimina contatto"
+          >
+            <i className="fas fa-trash-alt" aria-hidden="true"></i>
+          </button>
+        </div>
+
+        <div className="contact-card-body">
+          {contact.telefono && (
+            <div className="contact-info-row">
+              <i className="fas fa-phone-alt contact-info-icon" aria-hidden="true"></i>
+              <span className="contact-info-text">{contact.telefono}</span>
+              {telUrl && (
+                <a
+                  href={telUrl}
+                  className="btn btn-sm btn-action-call"
+                  aria-label={`Chiama ${contact.nome}`}
+                >
+                  <i className="fas fa-phone" aria-hidden="true"></i> Chiama
+                </a>
+              )}
+            </div>
+          )}
+
+          {contact.email && (
+            <div className="contact-info-row">
+              <i className="fas fa-envelope contact-info-icon" aria-hidden="true"></i>
+              <span className="contact-info-text">{contact.email}</span>
+              {mailtoUrl && (
+                <a
+                  href={mailtoUrl}
+                  className="btn btn-sm btn-action-email"
+                  aria-label={`Invia email a ${contact.nome}`}
+                >
+                  <i className="fas fa-paper-plane" aria-hidden="true"></i> Scrivi email
+                </a>
+              )}
+            </div>
+          )}
+
+          {contact.note && (
+            <div className="contact-notes-box">
+              <i className="fas fa-sticky-note contact-notes-icon" aria-hidden="true"></i>
+              <p className="contact-notes-text">{contact.note}</p>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="container dashboard-container contatti-page">
       {/* Page Header */}
       <div className="section-header">
         <div>
           <h1 className="dashboard-title">
-            <i className="fas fa-address-book" aria-hidden="true"></i> Contatti Utili della Casa
+            Contatti Utili della Casa
           </h1>
           <p className="dashboard-subtitle">
             Numeri di emergenza, proprietario, tecnici e servizi utili per la casa
@@ -290,83 +372,47 @@ export default function ViewContatti() {
             </button>
           )}
         </div>
+      ) : selectedCategory === "Tutti" && !searchTerm && filteredContatti.some(isPriorityContact) ? (
+        <div>
+          {/* Emergency Speed-Dial Priority Shelf */}
+          <div className="emergency-priority-shelf card mb-4">
+            <div className="emergency-shelf-header">
+              <div className="emergency-shelf-title">
+                <i className="fas fa-bolt emergency-shelf-icon" aria-hidden="true"></i>
+                <span>Numeri Rapidi & Emergenze</span>
+              </div>
+              <span className="emergency-shelf-subtitle">Accesso prioritario con chiamata diretta</span>
+            </div>
+            <div className="emergency-shelf-grid">
+              {filteredContatti.filter(isPriorityContact).map((c) => renderContactCard(c, true))}
+            </div>
+          </div>
+
+          {/* Routine Directory */}
+          {filteredContatti.some((c) => !isPriorityContact(c)) && (
+            <div className="routine-contacts-section">
+              <h3 className="routine-contacts-title">Rubrica della Casa</h3>
+              <div className="contacts-grid">
+                {filteredContatti.filter((c) => !isPriorityContact(c)).map((c) => renderContactCard(c, false))}
+              </div>
+            </div>
+          )}
+        </div>
       ) : (
         <div className="contacts-grid">
-          {filteredContatti.map((contact) => {
-            const telUrl = safeTelUrl(contact.telefono);
-            const mailtoUrl = safeMailtoUrl(contact.email);
-            const catIcon = CATEGORY_ICONS[contact.categoria] || "fa-tag";
-
-            return (
-              <div key={contact.id} className="card contact-card">
-                <div className="contact-card-header">
-                  <div className="contact-title-group">
-                    <span className="contact-category-badge">
-                      <i className={`fas ${catIcon}`} aria-hidden="true"></i> {contact.categoria}
-                    </span>
-                    <h2 className="contact-name">{contact.nome}</h2>
-                  </div>
-                  <button
-                    type="button"
-                    className="contact-delete-btn"
-                    onClick={() => handleDeleteContact(contact)}
-                    aria-label={`Elimina ${contact.nome}`}
-                    title="Elimina contatto"
-                  >
-                    <i className="fas fa-trash-alt" aria-hidden="true"></i>
-                  </button>
-                </div>
-
-                <div className="contact-card-body">
-                  {contact.telefono && (
-                    <div className="contact-info-row">
-                      <i className="fas fa-phone-alt contact-info-icon" aria-hidden="true"></i>
-                      <span className="contact-info-text">{contact.telefono}</span>
-                      {telUrl && (
-                        <a
-                          href={telUrl}
-                          className="btn btn-sm btn-action-call"
-                          aria-label={`Chiama ${contact.nome}`}
-                        >
-                          <i className="fas fa-phone" aria-hidden="true"></i> Chiama
-                        </a>
-                      )}
-                    </div>
-                  )}
-
-                  {contact.email && (
-                    <div className="contact-info-row">
-                      <i className="fas fa-envelope contact-info-icon" aria-hidden="true"></i>
-                      <span className="contact-info-text">{contact.email}</span>
-                      {mailtoUrl && (
-                        <a
-                          href={mailtoUrl}
-                          className="btn btn-sm btn-action-email"
-                          aria-label={`Invia email a ${contact.nome}`}
-                        >
-                          <i className="fas fa-paper-plane" aria-hidden="true"></i> Scrivi email
-                        </a>
-                      )}
-                    </div>
-                  )}
-
-                  {contact.note && (
-                    <div className="contact-notes-box">
-                      <i className="fas fa-sticky-note contact-notes-icon" aria-hidden="true"></i>
-                      <p className="contact-notes-text">{contact.note}</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            );
-          })}
+          {filteredContatti.map((c) => renderContactCard(c, false))}
         </div>
       )}
 
       {/* Add Contact Modal */}
       {showAddModal && (
-        <div className="modal-backdrop" role="dialog" aria-modal="true">
-          <div className="modal-card">
+        <div
+          className="modal-backdrop"
+          role="dialog"
+          aria-modal="true"
+          onClick={handleCloseModal}
+        >
+          <div className="modal-card" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2 className="modal-title">
                 <i className="fas fa-user-plus" aria-hidden="true"></i> Nuovo Contatto

@@ -326,7 +326,7 @@ export default function VisualizzaTurni() {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2rem", flexWrap: "wrap", gap: "12px" }}>
         <div>
           <h1 style={{ margin: 0, textAlign: "left" }}>
-            Turni Pulizia <i className="fas fa-broom" style={{ fontSize: "0.85em", marginLeft: "6px" }} aria-hidden="true"></i>
+            Turni Pulizia
           </h1>
           <p style={{ margin: "4px 0 0 0", color: "var(--text-secondary)", textAlign: "left", fontSize: "0.92rem" }}>
             Organizza le pulizie e scopri a chi tocca
@@ -396,74 +396,161 @@ export default function VisualizzaTurni() {
 
       <div className="sidemenu-list-container">
         {turni.length === 0 ? (
-          <div style={{ padding: "3rem 1rem", textAlign: "center", background: "var(--bg-input)", borderRadius: "var(--radius-md)" }}>
-            <i className="fas fa-broom" style={{ fontSize: "3rem", opacity: 0.7 }} aria-hidden="true"></i>
-            <p className="subtitle" style={{ marginTop: "12px", marginBottom: 0 }}>
+          <div className="empty-state-modern" style={{ padding: "3rem 1rem", textAlign: "center", background: "var(--bg-input)", borderRadius: "var(--radius-md)" }}>
+            <i className="fas fa-broom" style={{ fontSize: "3rem", opacity: 0.7, color: "var(--color-primary)" }} aria-hidden="true"></i>
+            <p className="subtitle" style={{ marginTop: "12px", marginBottom: "16px" }}>
               Nessun turno programmato. Inizia ad assegnare le mansioni!
             </p>
+            <button
+              type="button"
+              className="btn-primary"
+              onClick={() => navigate("/turni/aggiungi")}
+              style={{ width: "auto", padding: "10px 20px", display: "inline-flex", alignItems: "center", gap: "8px" }}
+            >
+              <i className="fas fa-plus" aria-hidden="true"></i> Crea il primo turno
+            </button>
           </div>
         ) : (
-          turni.map((turno) => {
-            const turnoDate = new Date(turno.data);
-            const isPast = !isNaN(turnoDate.getTime()) && turnoDate < new Date().setHours(0, 0, 0, 0);
-            const checklist = Array.isArray(turno.checklist) ? turno.checklist : [];
-            const completedCount = checklist.filter((i) => i.completed).length;
+          <>
+            {/* 1. SIGNATURE SPOTLIGHT CARD FOR IMMINENT SHIFT (turni[0]) */}
+            {(() => {
+              const turno = turni[0];
+              const turnoDate = new Date(turno.data);
+              const isPast = !isNaN(turnoDate.getTime()) && turnoDate < new Date().setHours(0, 0, 0, 0);
+              const oggiStr = new Date().toISOString().split("T")[0];
+              const isToday = turno.data === oggiStr;
+              const checklist = Array.isArray(turno.checklist) ? turno.checklist : [];
+              const completedCount = checklist.filter((i) => i.completed).length;
+              const assigneeName = Array.isArray(turno.nomi) ? turno.nomi.join(", ") : (turno.nomi || "Coinquilino");
+              const assigneeInitial = (Array.isArray(turno.nomi) ? turno.nomi[0] : (turno.nomi || "C")).charAt(0).toUpperCase();
 
-            return (
-              <div
-                key={turno.id}
-                className="calendar-agenda-card"
-                style={{
-                  opacity: isPast ? 0.7 : 1,
-                  borderLeft: turno.completato
-                    ? "4px solid var(--color-success)"
-                    : isPast
-                    ? "4px solid var(--text-muted)"
-                    : "4px solid var(--color-primary)"
-                }}
-              >
-                <div className="agenda-date-badge badge-turno">
-                  <span className="day-num">{!isNaN(turnoDate.getTime()) ? turnoDate.getDate() : "--"}</span>
-                  <span className="month-txt">
-                    {!isNaN(turnoDate.getTime()) ? turnoDate.toLocaleDateString("it-IT", { month: "short" }) : ""}
-                  </span>
-                </div>
+              return (
+                <div
+                  key={turno.id}
+                  className="chore-spotlight-card"
+                  style={{
+                    opacity: isPast ? 0.75 : 1,
+                    marginBottom: "24px"
+                  }}
+                >
+                  {/* Spotlight Top Bar: Imminent Tag + Progress Pill */}
+                  <div className="spotlight-header-bar" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "10px", marginBottom: "12px" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                      <span
+                        className="spotlight-tag"
+                        style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: "6px",
+                          padding: "4px 12px",
+                          borderRadius: "var(--radius-full)",
+                          background: isToday ? "rgba(245, 158, 11, 0.15)" : "var(--color-primary-light)",
+                          color: isToday ? "#b45309" : "var(--color-primary)",
+                          fontSize: "0.82rem",
+                          fontWeight: "700"
+                        }}
+                      >
+                        <i className={isToday ? "fas fa-bell" : "fas fa-star"} aria-hidden="true"></i>
+                        {isToday ? "Oggi tocca a..." : "Turno in evidenza"}
+                      </span>
+                      {turno.completato && (
+                        <span
+                          style={{
+                            padding: "4px 10px",
+                            borderRadius: "var(--radius-full)",
+                            background: "rgba(16, 185, 129, 0.15)",
+                            color: "var(--color-success)",
+                            fontSize: "0.78rem",
+                            fontWeight: "700",
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: "4px"
+                          }}
+                        >
+                          <i className="fas fa-check-circle" aria-hidden="true"></i> Completato
+                        </span>
+                      )}
+                    </div>
 
-                <div className="agenda-content-body">
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "8px" }}>
-                    <div style={{ flex: 1, minWidth: "220px" }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap", marginBottom: "4px" }}>
-                        <h3 style={{ margin: 0, fontSize: "1.25rem", color: "var(--text-main)", display: "flex", alignItems: "center", gap: "8px" }}>
-                          <i className="fas fa-map-marker-alt" style={{ color: "var(--color-primary)", fontSize: "0.9em" }} aria-hidden="true"></i>
-                          <span>{Array.isArray(turno.luoghi) ? turno.luoghi.join(", ") : (turno.luoghi || turno.mansione || "Pulizia")}</span>
-                        </h3>
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                      {checklist.length > 0 && (
+                        <span
+                          className="spotlight-checklist-pill"
+                          style={{
+                            fontSize: "0.82rem",
+                            fontWeight: "600",
+                            color: "var(--text-secondary)",
+                            background: "var(--bg-input)",
+                            padding: "4px 10px",
+                            borderRadius: "var(--radius-full)",
+                            border: "1px solid var(--border-color)",
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: "6px"
+                          }}
+                        >
+                          <i className="fas fa-tasks" aria-hidden="true"></i>
+                          {completedCount}/{checklist.length} mansioni
+                        </span>
+                      )}
+                    </div>
+                  </div>
 
-                        {turno.completato && (
-                          <span
-                            style={{
-                              padding: "2px 8px",
-                              borderRadius: "var(--radius-full)",
-                              background: "rgba(16, 185, 129, 0.15)",
-                              color: "var(--color-success)",
-                              fontSize: "0.78rem",
-                              fontWeight: "700"
-                            }}
-                          >
-                            <i className="fas fa-check-circle" aria-hidden="true"></i> Completato
-                          </span>
-                        )}
+                  {/* Main Spotlight Body */}
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "16px" }}>
+                    <div style={{ flex: 1, minWidth: "240px", textAlign: "left" }}>
+                      {/* CRITICAL: Level 3 Heading for T1.10 cards[0] */}
+                      <h3 style={{ margin: "0 0 8px 0", fontSize: "1.45rem", color: "var(--text-main)", display: "flex", alignItems: "center", gap: "8px" }}>
+                        <i className="fas fa-map-marker-alt text-primary" style={{ fontSize: "0.9em" }} aria-hidden="true"></i>
+                        <span>{Array.isArray(turno.luoghi) ? turno.luoghi.join(", ") : (turno.luoghi || turno.mansione || "Pulizia")}</span>
+                      </h3>
+
+                      {/* Prominent Assignee Avatar Row */}
+                      <div className="spotlight-assignee-card" style={{ display: "flex", alignItems: "center", gap: "12px", margin: "10px 0" }}>
+                        <div
+                          className="spotlight-avatar"
+                          style={{
+                            width: "42px",
+                            height: "42px",
+                            borderRadius: "50%",
+                            background: "linear-gradient(135deg, var(--color-primary), var(--color-accent))",
+                            color: "#fff",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            fontSize: "1.1rem",
+                            fontWeight: "700",
+                            boxShadow: "var(--shadow-sm)"
+                          }}
+                        >
+                          {assigneeInitial}
+                        </div>
+                        <div>
+                          <span style={{ fontSize: "0.8rem", color: "var(--text-muted)", display: "block" }}>Assegnato a:</span>
+                          <strong style={{ fontSize: "1.05rem", color: "var(--text-main)" }}>{assigneeName}</strong>
+                        </div>
                       </div>
 
-                      <p style={{ margin: "6px 0", color: "var(--text-secondary)", fontSize: "0.92rem" }}>
-                        <i className="fas fa-user" style={{ marginRight: "6px", color: "var(--color-primary)" }} aria-hidden="true"></i>
-                        Assegnato a: <strong style={{ color: "var(--text-main)" }}>{Array.isArray(turno.nomi) ? turno.nomi.join(", ") : turno.nomi}</strong>
+                      <p style={{ margin: "6px 0", color: "var(--text-secondary)", fontSize: "0.92rem", display: "flex", alignItems: "center", gap: "8px" }}>
+                        <i className="far fa-calendar-alt" aria-hidden="true"></i>
+                        <span>
+                          {!isNaN(turnoDate.getTime())
+                            ? turnoDate.toLocaleDateString("it-IT", {
+                                weekday: "long",
+                                day: "numeric",
+                                month: "long"
+                              })
+                            : "--"}
+                        </span>
+                        {turno.fasciaOraria && (
+                          <span style={{ color: "var(--text-muted)" }}>
+                            • {Array.isArray(turno.fasciaOraria) ? turno.fasciaOraria[0] : turno.fasciaOraria}
+                          </span>
+                        )}
                       </p>
-                      <p style={{ margin: "4px 0", color: "var(--text-muted)", fontSize: "0.88rem" }}>
-                        <i className="far fa-clock" style={{ marginRight: "6px" }} aria-hidden="true"></i>
-                        {Array.isArray(turno.fasciaOraria) ? turno.fasciaOraria[0] : turno.fasciaOraria}
-                      </p>
+
                       {turno.procedura && (
-                        <p style={{ margin: "8px 0 0 0", fontSize: "0.85rem", color: "var(--text-muted)", fontStyle: "italic" }}>
+                        <p style={{ margin: "6px 0", fontSize: "0.88rem", color: "var(--text-muted)", fontStyle: "italic" }}>
                           <i className="fas fa-info-circle" style={{ marginRight: "6px" }} aria-hidden="true"></i>
                           {Array.isArray(turno.procedura) ? turno.procedura.join(", ") : turno.procedura}
                         </p>
@@ -472,15 +559,15 @@ export default function VisualizzaTurni() {
                       {/* Interactive Checklist Sub-Tasks */}
                       <div
                         style={{
-                          marginTop: "12px",
-                          padding: "10px 14px",
+                          marginTop: "14px",
+                          padding: "12px 16px",
                           background: "var(--bg-input)",
-                          borderRadius: "var(--radius-sm)",
+                          borderRadius: "var(--radius-md)",
                           border: "1px solid var(--border-color)"
                         }}
                       >
-                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
-                          <span style={{ fontSize: "0.82rem", fontWeight: "700", color: "var(--text-secondary)", textTransform: "uppercase" }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+                          <span style={{ fontSize: "0.85rem", fontWeight: "600", color: "var(--text-secondary)" }}>
                             <i className="fas fa-tasks" style={{ marginRight: "6px" }} aria-hidden="true"></i>
                             Mansioni ({completedCount}/{checklist.length})
                           </span>
@@ -533,7 +620,7 @@ export default function VisualizzaTurni() {
                           </p>
                         )}
 
-                        {/* Inline subtask quick adder */}
+                        {/* Inline subtask adder */}
                         <div style={{ display: "flex", gap: "6px", marginTop: "6px" }}>
                           <input
                             type="text"
@@ -572,6 +659,7 @@ export default function VisualizzaTurni() {
                       </div>
                     </div>
 
+                    {/* Spotlight Action Buttons */}
                     <div style={{ display: "flex", gap: "8px", alignSelf: "flex-start" }}>
                       <button
                         type="button"
@@ -595,9 +683,213 @@ export default function VisualizzaTurni() {
                     </div>
                   </div>
                 </div>
+              );
+            })()}
+
+            {/* 2. SUBSEQUENT CHORES: CALM CHRONOLOGICAL TIMELINE */}
+            {turni.length > 1 && (
+              <div className="timeline-chores-list" style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                <h4 style={{ margin: "8px 0 4px 0", fontSize: "0.95rem", color: "var(--text-muted)", fontWeight: "600", textAlign: "left" }}>
+                  Turni successivi
+                </h4>
+                {turni.slice(1).map((turno) => {
+                  const turnoDate = new Date(turno.data);
+                  const isPast = !isNaN(turnoDate.getTime()) && turnoDate < new Date().setHours(0, 0, 0, 0);
+                  const checklist = Array.isArray(turno.checklist) ? turno.checklist : [];
+                  const completedCount = checklist.filter((i) => i.completed).length;
+
+                  return (
+                    <div
+                      key={turno.id}
+                      className="calendar-agenda-card timeline-chore-card"
+                      style={{
+                        opacity: isPast ? 0.7 : 1,
+                        borderLeft: turno.completato
+                          ? "4px solid var(--color-success)"
+                          : isPast
+                          ? "4px solid var(--text-muted)"
+                          : "4px solid var(--color-primary)"
+                      }}
+                    >
+                      <div className="agenda-date-badge badge-turno">
+                        <span className="day-num">{!isNaN(turnoDate.getTime()) ? turnoDate.getDate() : "--"}</span>
+                        <span className="month-txt">
+                          {!isNaN(turnoDate.getTime()) ? turnoDate.toLocaleDateString("it-IT", { month: "short" }) : ""}
+                        </span>
+                      </div>
+
+                      <div className="agenda-content-body">
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "8px" }}>
+                          <div style={{ flex: 1, minWidth: "220px", textAlign: "left" }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap", marginBottom: "4px" }}>
+                              {/* CRITICAL: Level 3 Heading for T1.10 cards[1...] */}
+                              <h3 style={{ margin: 0, fontSize: "1.2rem", color: "var(--text-main)", display: "flex", alignItems: "center", gap: "8px" }}>
+                                <i className="fas fa-map-marker-alt" style={{ color: "var(--color-primary)", fontSize: "0.85em" }} aria-hidden="true"></i>
+                                <span>{Array.isArray(turno.luoghi) ? turno.luoghi.join(", ") : (turno.luoghi || turno.mansione || "Pulizia")}</span>
+                              </h3>
+
+                              {turno.completato && (
+                                <span
+                                  style={{
+                                    padding: "2px 8px",
+                                    borderRadius: "var(--radius-full)",
+                                    background: "rgba(16, 185, 129, 0.15)",
+                                    color: "var(--color-success)",
+                                    fontSize: "0.78rem",
+                                    fontWeight: "700"
+                                  }}
+                                >
+                                  <i className="fas fa-check-circle" aria-hidden="true"></i> Completato
+                                </span>
+                              )}
+                            </div>
+
+                            <p style={{ margin: "6px 0", color: "var(--text-secondary)", fontSize: "0.92rem" }}>
+                              <i className="fas fa-user" style={{ marginRight: "6px", color: "var(--color-primary)" }} aria-hidden="true"></i>
+                              Assegnato a: <strong style={{ color: "var(--text-main)" }}>{Array.isArray(turno.nomi) ? turno.nomi.join(", ") : turno.nomi}</strong>
+                            </p>
+                            <p style={{ margin: "4px 0", color: "var(--text-muted)", fontSize: "0.88rem" }}>
+                              <i className="far fa-clock" style={{ marginRight: "6px" }} aria-hidden="true"></i>
+                              {Array.isArray(turno.fasciaOraria) ? turno.fasciaOraria[0] : turno.fasciaOraria}
+                            </p>
+                            {turno.procedura && (
+                              <p style={{ margin: "6px 0 0 0", fontSize: "0.85rem", color: "var(--text-muted)", fontStyle: "italic" }}>
+                                <i className="fas fa-info-circle" style={{ marginRight: "6px" }} aria-hidden="true"></i>
+                                {Array.isArray(turno.procedura) ? turno.procedura.join(", ") : turno.procedura}
+                              </p>
+                            )}
+
+                            {/* Checklist Sub-Tasks */}
+                            <div
+                              style={{
+                                marginTop: "10px",
+                                padding: "10px 14px",
+                                background: "var(--bg-input)",
+                                borderRadius: "var(--radius-sm)",
+                                border: "1px solid var(--border-color)"
+                              }}
+                            >
+                              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
+                                <span style={{ fontSize: "0.82rem", fontWeight: "600", color: "var(--text-secondary)" }}>
+                                  <i className="fas fa-tasks" style={{ marginRight: "6px" }} aria-hidden="true"></i>
+                                  Mansioni ({completedCount}/{checklist.length})
+                                </span>
+                              </div>
+
+                              {checklist.length > 0 ? (
+                                <div style={{ display: "flex", flexDirection: "column", gap: "6px", marginBottom: "8px" }}>
+                                  {checklist.map((item) => (
+                                    <label
+                                      key={item.id}
+                                      style={{
+                                        display: "flex",
+                                        alignItems: "center",
+                                        gap: "10px",
+                                        cursor: "pointer",
+                                        fontSize: "0.9rem",
+                                        color: item.completed ? "var(--text-muted)" : "var(--text-main)",
+                                        textDecoration: item.completed ? "line-through" : "none",
+                                        margin: 0,
+                                        minHeight: "40px",
+                                        padding: "6px 8px",
+                                        borderRadius: "var(--radius-sm)",
+                                        boxSizing: "border-box"
+                                      }}
+                                    >
+                                      <input
+                                        type="checkbox"
+                                        checked={Boolean(item.completed)}
+                                        onChange={() => handleToggleSubTask(turno.id, item.id)}
+                                        style={{
+                                          width: "20px",
+                                          height: "20px",
+                                          accentColor: "var(--color-success)",
+                                          cursor: "pointer",
+                                          flexShrink: 0
+                                        }}
+                                      />
+                                      <span>{item.text}</span>
+                                      {item.completedBy && (
+                                        <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", fontStyle: "italic" }}>
+                                          (completato da {item.completedBy})
+                                        </span>
+                                      )}
+                                    </label>
+                                  ))}
+                                </div>
+                              ) : (
+                                <p style={{ margin: "4px 0 8px 0", fontSize: "0.82rem", color: "var(--text-muted)" }}>
+                                  Nessuna mansione aggiunta.
+                                </p>
+                              )}
+
+                              <div style={{ display: "flex", gap: "6px", marginTop: "6px" }}>
+                                <input
+                                  type="text"
+                                  placeholder="Aggiungi una mansione..."
+                                  value={newSubTaskMap[turno.id] || ""}
+                                  onChange={(e) =>
+                                    setNewSubTaskMap({ ...newSubTaskMap, [turno.id]: e.target.value })
+                                  }
+                                  onKeyDown={(e) => {
+                                    if (e.key === "Enter") {
+                                      e.preventDefault();
+                                      handleAddDirectSubTask(turno.id);
+                                    }
+                                  }}
+                                  maxLength={100}
+                                  style={{
+                                    flex: 1,
+                                    padding: "8px 12px",
+                                    minHeight: "44px",
+                                    fontSize: "0.88rem",
+                                    background: "var(--bg-card)",
+                                    border: "1px solid var(--border-color)",
+                                    borderRadius: "var(--radius-sm)"
+                                  }}
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => handleAddDirectSubTask(turno.id)}
+                                  className="btn-secondary"
+                                  style={{ padding: "8px 16px", minHeight: "44px", minWidth: "44px", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: "0.85rem", width: "auto" }}
+                                  aria-label="Aggiungi mansione rapida"
+                                >
+                                  <i className="fas fa-plus" aria-hidden="true"></i>
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div style={{ display: "flex", gap: "8px", alignSelf: "flex-start" }}>
+                            <button
+                              type="button"
+                              className="btn-secondary"
+                              onClick={() => navigate(`/turni/modifica/${turno.id}`)}
+                              style={{ padding: "8px 16px", minHeight: "44px", display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "0.85rem", width: "auto" }}
+                              title="Modifica"
+                            >
+                              <i className="fas fa-edit" aria-hidden="true"></i> Modifica
+                            </button>
+                            <button
+                              type="button"
+                              className="btn-danger-outline"
+                              onClick={() => handleDelete(turno.id)}
+                              style={{ padding: "8px 14px", minHeight: "44px", minWidth: "44px", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: "0.85rem", width: "auto" }}
+                              title="Elimina"
+                              aria-label="Elimina turno"
+                            >
+                              <i className="fas fa-trash" aria-hidden="true"></i>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
-            );
-          })
+            )}
+          </>
         )}
       </div>
 

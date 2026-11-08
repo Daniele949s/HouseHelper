@@ -116,9 +116,7 @@ export default function SceltaCasa() {
       </div>
 
       <div className="auth-header">
-        <h1>
-          Configurazione Casa <i className="fas fa-home" style={{ fontSize: "0.85em", marginLeft: "6px" }}></i>
-        </h1>
+        <h1>Configurazione Casa</h1>
         <p className="subtitle">Non fai ancora parte di un gruppo. Crea una casa o unisciti ai tuoi coinquilini!</p>
       </div>
 

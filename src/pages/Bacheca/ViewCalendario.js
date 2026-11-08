@@ -100,101 +100,103 @@ export default function ViewCalendario() {
     <div className="card domain-page-card" style={{ maxWidth: '820px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '12px' }}>
         <div>
-          <h1 style={{ margin: 0, textAlign: 'left' }}>Calendario Casa <i className="fas fa-calendar-alt" style={{ fontSize: '0.85em', marginLeft: '6px' }}></i></h1>
+          <h1 style={{ margin: 0, textAlign: 'left' }}>Calendario Casa</h1>
           <p style={{ margin: '4px 0 0 0', color: 'var(--text-secondary)', textAlign: 'left', fontSize: '0.92rem' }}>
             Visualizza tutti gli eventi, le scadenze e i turni pulizia
           </p>
         </div>
       </div>
 
-      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '24px' }} className="custom-calendar-wrapper">
-        <Calendar
-          onChange={setDataSelezionata}
-          value={dataSelezionata}
-          tileContent={tileContent}
-          locale="it-IT"
-        />
-      </div>
-
-      <div style={{ textAlign: 'left', borderTop: '1px solid var(--border-color)', paddingTop: '24px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
-          <h3 style={{ margin: 0, fontSize: '1.2rem' }}>
-            Impegni del {dataSelezionata.toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
-          </h3>
-          <div style={{ display: 'flex', gap: '12px', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
-            <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-              <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', background: 'var(--color-warning)' }} /> Turno
-            </span>
-            <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-              <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', background: 'var(--color-purple)' }} /> Evento
-            </span>
-          </div>
+      <div className="calendar-split-layout">
+        <div className="calendar-split-left custom-calendar-wrapper">
+          <Calendar
+            onChange={setDataSelezionata}
+            value={dataSelezionata}
+            tileContent={tileContent}
+            locale="it-IT"
+          />
         </div>
 
-        {itemsDelGiorno.length === 0 ? (
-          <div className="agenda-empty-state">
-            <i className="fas fa-calendar-check agenda-empty-icon"></i>
-            <p style={{ color: 'var(--text-secondary)', marginTop: '8px', margin: 0 }}>Nessun evento o turno in questa data. Tempo libero!</p>
+        <div className="calendar-split-right calendar-agenda-pane" style={{ textAlign: 'left' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
+            <h3 style={{ margin: 0, fontSize: '1.2rem' }}>
+              Impegni del {dataSelezionata.toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+            </h3>
+            <div style={{ display: 'flex', gap: '12px', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', background: 'var(--color-warning)' }} /> Turno
+              </span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', background: 'var(--color-purple)' }} /> Evento
+              </span>
+            </div>
           </div>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {itemsDelGiorno.map(item => {
-              const isTurno = item.tipo === 'turno';
-              return (
-                <div key={item.id} className="calendar-agenda-card">
-                  <div className={`agenda-date-badge ${isTurno ? "badge-turno" : ""}`}>
-                    <span className="day-num">
-                      <i className={isTurno ? "fas fa-broom" : "fas fa-calendar-day"}></i>
-                    </span>
-                    <span className="month-txt">
-                      {isTurno ? "Turno" : "Evento"}
-                    </span>
-                  </div>
 
-                  <div className="agenda-content-body">
-                    {isTurno ? (
-                      <>
-                        <h4 style={{ margin: '0 0 6px 0', fontSize: '1.2rem', color: 'var(--text-main)' }}>
-                          {Array.isArray(item.luoghi) ? item.luoghi.join(", ") : (item.luoghi || item.mansione || "Pulizia")}
-                        </h4>
-                        <p style={{ margin: '2px 0', fontSize: '0.92rem', color: 'var(--text-secondary)' }}>
-                          Assegnato a: <strong style={{ color: 'var(--text-main)' }}>{Array.isArray(item.nomi) ? item.nomi.join(", ") : item.nomi}</strong>
-                        </p>
-                        <p style={{ margin: '2px 0', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-                          <i className="far fa-clock" style={{ marginRight: '6px' }}></i>
-                          {Array.isArray(item.fasciaOraria) ? item.fasciaOraria[0] : item.fasciaOraria}
-                        </p>
-                      </>
-                    ) : (
-                      <>
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', flexWrap: 'wrap' }}>
-                          <h4 style={{ margin: '0 0 6px 0', fontSize: '1.2rem', color: 'var(--text-main)' }}>{item.titolo}</h4>
-                          {item.categoria && (
-                            <span className="timeslot-pill" style={{ fontSize: '0.75rem' }}>
-                              <i className="fas fa-tag" style={{ fontSize: '0.75em' }}></i> {item.categoria}
-                            </span>
-                          )}
-                        </div>
-                        <p style={{ margin: '2px 0', fontSize: '0.95rem', color: 'var(--text-secondary)' }}>{item.contenuto}</p>
-                        <p style={{ margin: '6px 0 0 0', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
-                          Creato da: <strong style={{ color: 'var(--text-main)' }}>{utentiMap[item.autoreId] || "Coinquilino"}</strong>
-                        </p>
-                      </>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
+          {itemsDelGiorno.length === 0 ? (
+            <div className="agenda-empty-state">
+              <i className="fas fa-calendar-check agenda-empty-icon" aria-hidden="true"></i>
+              <p style={{ color: 'var(--text-secondary)', marginTop: '8px', margin: 0 }}>Nessun evento o turno in questa data. Tempo libero!</p>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {itemsDelGiorno.map(item => {
+                const isTurno = item.tipo === 'turno';
+                return (
+                  <div key={item.id} className="calendar-agenda-card">
+                    <div className={`agenda-date-badge ${isTurno ? "badge-turno" : ""}`}>
+                      <span className="day-num">
+                        <i className={isTurno ? "fas fa-broom" : "fas fa-calendar-day"} aria-hidden="true"></i>
+                      </span>
+                      <span className="month-txt">
+                        {isTurno ? "Turno" : "Evento"}
+                      </span>
+                    </div>
 
-        <button
-          className="btn-primary"
-          onClick={() => navigate('/calendario/aggiungi', { state: { dataPreimpostata: dataSelezionata } })}
-          style={{ marginTop: '24px', width: '100%' }}
-        >
-          <i className="fas fa-plus"></i> Aggiungi Evento a questa data
-        </button>
+                    <div className="agenda-content-body">
+                      {isTurno ? (
+                        <>
+                          <h4 style={{ margin: '0 0 6px 0', fontSize: '1.2rem', color: 'var(--text-main)' }}>
+                            {Array.isArray(item.luoghi) ? item.luoghi.join(", ") : (item.luoghi || item.mansione || "Pulizia")}
+                          </h4>
+                          <p style={{ margin: '2px 0', fontSize: '0.92rem', color: 'var(--text-secondary)' }}>
+                            Assegnato a: <strong style={{ color: 'var(--text-main)' }}>{Array.isArray(item.nomi) ? item.nomi.join(", ") : item.nomi}</strong>
+                          </p>
+                          <p style={{ margin: '2px 0', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                            <i className="far fa-clock" style={{ marginRight: '6px' }} aria-hidden="true"></i>
+                            {Array.isArray(item.fasciaOraria) ? item.fasciaOraria[0] : item.fasciaOraria}
+                          </p>
+                        </>
+                      ) : (
+                        <>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', flexWrap: 'wrap' }}>
+                            <h4 style={{ margin: '0 0 6px 0', fontSize: '1.2rem', color: 'var(--text-main)' }}>{item.titolo}</h4>
+                            {item.categoria && (
+                              <span className="timeslot-pill" style={{ fontSize: '0.75rem' }}>
+                                <i className="fas fa-tag" style={{ fontSize: '0.75em' }} aria-hidden="true"></i> {item.categoria}
+                              </span>
+                            )}
+                          </div>
+                          <p style={{ margin: '2px 0', fontSize: '0.95rem', color: 'var(--text-secondary)' }}>{item.contenuto}</p>
+                          <p style={{ margin: '6px 0 0 0', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
+                            Creato da: <strong style={{ color: 'var(--text-main)' }}>{utentiMap[item.autoreId] || "Coinquilino"}</strong>
+                          </p>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          <button
+            className="btn-primary"
+            onClick={() => navigate('/calendario/aggiungi', { state: { dataPreimpostata: dataSelezionata } })}
+            style={{ marginTop: '24px', width: '100%' }}
+          >
+            <i className="fas fa-plus" aria-hidden="true"></i> Aggiungi Evento a questa data
+          </button>
+        </div>
       </div>
 
       <button className="btn-text" onClick={() => navigate('/home')} style={{ marginTop: '24px' }}>

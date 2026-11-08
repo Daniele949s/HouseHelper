@@ -282,10 +282,7 @@ export default function ViewDocumenti() {
       {/* Page Header */}
       <div className="documents-header">
         <div className="documents-title-group">
-          <h1>
-            <i className="fas fa-folder-open" aria-hidden="true"></i>
-            Documenti & Contratti
-          </h1>
+          <h1>Documenti & Contratti</h1>
           <p className="documents-subtitle">
             Archivio condiviso di contratti, bollette, garanzie e ricevute della casa
           </p>

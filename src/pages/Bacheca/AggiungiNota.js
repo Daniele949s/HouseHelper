@@ -77,7 +77,7 @@ export default function AggiungiNota() {
 
   return (
     <div className="card" style={{ maxWidth: "620px" }}>
-      <h1 style={{ marginBottom: "6px" }}>Nuovo Avviso <i className="fas fa-thumbtack" style={{ fontSize: "0.85em", marginLeft: "6px" }}></i></h1>
+      <h1 style={{ marginBottom: "6px" }}>Nuovo Avviso</h1>
       <p className="subtitle" style={{ marginBottom: "24px" }}>Condividi una comunicazione con tutti i coinquilini</p>
 
       {error && (

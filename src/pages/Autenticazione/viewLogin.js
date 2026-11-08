@@ -95,9 +95,7 @@ export default function ViewLogin() {
       </div>
 
       <div className="auth-header">
-        <h1>
-          Bentornato <i className="fas fa-shield-alt" style={{ fontSize: "0.85em", marginLeft: "4px" }}></i>
-        </h1>
+        <h1>Bentornato</h1>
         <p className="subtitle">Accedi per gestire la tua casa condivisa</p>
       </div>
 

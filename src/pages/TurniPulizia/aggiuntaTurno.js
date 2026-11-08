@@ -189,7 +189,7 @@ export default function AggiuntaTurno() {
   return (
     <div className="card" style={{ maxWidth: "660px", margin: "2rem auto" }}>
       <h1 style={{ marginBottom: "6px" }}>
-        Nuovo Turno Pulizia <i className="fas fa-broom" style={{ fontSize: "0.85em", marginLeft: "6px" }} aria-hidden="true"></i>
+        Nuovo Turno Pulizia
       </h1>
       <p className="subtitle" style={{ marginBottom: "24px" }}>
         Assegna una mansione e pianifica le pulizie di casa

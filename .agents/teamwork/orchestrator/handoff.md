@@ -1,155 +1,129 @@
-# Orchestrator Soft Handoff (State Dump to Successor Gen 2)
+# Handoff Report: HouseHelper Production Visual, Ergonomic & Security Overhaul (Milestones M8–M11)
 
-**From**: Project Orchestrator Gen 1 (`5c90c77d-0b78-4385-a83f-30cb8ae783ac`)  
-**To**: Project Orchestrator Gen 2 (Successor)  
-**Date**: 2026-11-02  
-**Parent Sentinel Conversation ID**: `8197c1ee-026e-40b9-afd7-65de83979823`  
-**Working Directory**: `/home/daniele949/Desktop/Cose/HouseHelper/househelper/.agents/teamwork/orchestrator/`  
-**Handoff Type**: Soft Handoff (Succession Threshold 16 Reached)  
-
----
-
-## 1. Observation & Completed Work
-
-### Phase 0: Full Project Survey (Completed)
-- Spawned 3 Explorers (`explorer_survey_arch`, `explorer_survey_ui`, `explorer_survey_features`).
-- Produced comprehensive `PROJECT.md` at root and in working directory mapping all 21 features across 4 milestones and parallel E2E track.
-- Cataloged exact root cause of 17 circular import cycles: redundant `App.css` imports across 17 pages.
-- Cataloged all 36 emoji occurrences across 14 files + HTML title and 8 raw arrow characters.
-- Cataloged legacy assets in `css_template/` (76 files, 3.9 MB) and dead model `src/models/modelloTurno.js`.
-
-### E2E Testing Track (Completed & Test Ready)
-- Executed by `test_writer_e2e`.
-- Created headless in-memory Firebase harness (`src/test/mockFirebase.js`), test wrapper (`src/test/testUtils.jsx`), and canvas context/timer mocks (`src/setupTests.js`).
-- Authored 14 test suites with **91 tests passing (100% pass, 0 failures)** across all 4 tiers:
-  - Tier 1: Feature Coverage (auth_house, turni, debiti, spesa, bacheca)
-  - Tier 2: Boundary & Corner Cases (empty lists, invalid inputs, edge sanitization)
-  - Tier 3: Cross-Feature Interactions
-  - Tier 4: Real-World Multi-User Household Lifecycles
-- Published `TEST_INFRA.md` and `TEST_READY.md` at project root.
-
-### Milestone 1: Architecture & Technical Debt Cleanup (GATE PASSED)
-- Executed by `worker_m1`:
-  - Removed 17 redundant `App.css` import lines in `src/pages/**`.
-  - Deleted legacy assets in `css_template/` and dead code `src/models/modelloTurno.js`.
-  - Created automated verification scripts `scripts/check-circular.js` and `scripts/verify-zero-emojis.js`, bound to `npm run check:circular` and `npm run check:emojis`.
-- Gate Verification Results (All Passed):
-  - `reviewer_m1_1`: **APPROVE** (0 cycles, 0 legacy files, clean build).
-  - `reviewer_m1_2`: **APPROVE** (independent code review, cycle-injection test verified).
-  - `challenger_m1_1`: **CONFIRMED** (madge & dpdm confirm 0 cycles, build clean, 53/53 tests pass).
-  - `challenger_m1_2`: **CONFIRMED** (tested emoji scanner, discovered 8 raw arrow characters & regex expansion for M2).
-  - `auditor_m1_1`: **CLEAN** (forensic check: zero hardcoding/facades, clean git diff, clean execution).
-- Gate status recorded in `GATE_STATUS.md`: **PASS**.
-
-### Milestone 2: Exploration Phase (Completed)
-- Spawned 3 Explorers:
-  1. `explorer_m2_emoji`:
-     - Path: `.agents/teamwork/explorer_m2_emoji/`
-     - Created `zero_emoji.patch` (20.6 KB) replacing all 36 emojis, 8 raw arrow characters, raw checkmark, and updating `scripts/verify-zero-emojis.js` with hardened regex (`\u{1F1E6}-\u{1F1FF}`, `\u{2190}-\u{21FF}`, `\u{20E3}`).
-     - Dry-run verified: `node scripts/verify-zero-emojis.js` exits with **code 0**!
-  2. `explorer_m2_nav_tokens`:
-     - Path: `.agents/teamwork/explorer_m2_nav_tokens/`
-     - Designed `src/components/DesktopNavigation.js` and updated `src/components/AppHeader.js` with responsive navigation using FontAwesome vector icons (`fas fa-home`, `fas fa-broom`, `fas fa-wallet`, `fas fa-shopping-cart`, `fas fa-thumbtack`, `fas fa-calendar-alt`).
-     - Defined modern CSS design system tokens in `src/index.css` & `src/App.css` (primary `#2563eb`, accent `#0d9488`, modern cards, elevation, radii).
-     - Redesigned `ThemeToggle.js` with sleek pill switch and `fas fa-sun` / `fas fa-moon`.
-  3. `explorer_m2_feedback_mascot`:
-     - Path: `.agents/teamwork/explorer_m2_feedback_mascot/`
-     - Designed `src/utils/feedback.js` and `src/components/Toast.js` (non-blocking toast stack with fallback to `window.alert` in tests).
-     - Designed `src/components/ConfirmModal.js` (accessible modal dialog with backdrop blur and test fallback to `window.confirm`).
-     - Designed `src/components/HouseholdStatus.js` (clean household presence card replacing `MiniGuy.js`, `InteractiveMascot.js`, and `Celebration.js` canvas leaks).
+- **Author**: Teamwork Dispatch Orchestrator (`e169645e-9753-4a9d-a1c4-5a07a0406c31`)
+- **Recipient**: Parent Sentinel (`63667ab5-39ca-4d34-a845-be6eace8ea13`)
+- **Date**: 2026-11-09T00:20:00Z
+- **Repository**: HouseHelper (`/home/daniele949/Desktop/Cose/HouseHelper/househelper`)
+- **Type**: Hard Handoff (Project 100% Complete & Verified)
+- **Status**: ALL GATES PASSED (M8 PASS, M9 PASS, M10 PASS, M11 PASS)
 
 ---
 
-## 2. Milestone State
+## 1. Observation
 
-| # | Name | Status | Key Deliverables / Location |
-|---|------|--------|----------------------------|
-| M1 | Architecture & Technical Debt Cleanup | **DONE** | 0 cycles in madge/graphify; css_template purged; check-circular.js & verify-zero-emojis.js active |
-| E2E | E2E Testing Track | **TEST_READY** | TEST_READY.md published; 14 test suites, 91 tests passing |
-| M2 | Design System, Global Navigation & Zero-Emoji Replacement | **IN_PROGRESS** (Ready for Worker) | Exploration complete; patches & specs in `explorer_m2_*` folders |
-| M3 | Core Domain Pages UI/UX Modernization | **PLANNED** | Auth, SceltaCasa, Dashboard, Turni, Debiti, Spesa, Bacheca/Calendario modern cards & layout |
-| M4 | Final Milestone: 100% E2E Test Pass & Adversarial Hardening | **PLANNED** | Phase 1: 100% pass of E2E test suite. Phase 2: Tier 5 adversarial coverage hardening |
+All acceptance criteria from `ORIGINAL_REQUEST.md` and user directives were directly verified by 27 independent subagents across 4 implementation and gate phases:
 
----
+### 1.1 Public Repository Security & Secret Audit
+- **Command**: `npm run audit:secrets`
+- **Output**: 0 secrets, credentials, or private keys detected across all 128 working tree files and all 17 git commits.
+- **Git & Working Tree Inspection**: Verified that `.env`, private keys, GCP/Firebase service account keys, and personal access tokens are completely absent from HEAD and git commit history. Only `.env.example` placeholder template exists.
 
-## 3. Active Subagents
+### 1.2 Full Test Suite Execution
+- **Command**: `CI=true npm test -- --watchAll=false`
+- **Output**:
+  ```text
+  Test Suites: 44 passed, 44 total
+  Tests:       474 passed, 474 total
+  Snapshots:   0 total
+  Time:        22.361 s
+  ```
+  (100% passing with 0 failed, 0 skipped, 0 regressed).
 
-All 16 subagents spawned in Generation 1 have fully completed:
-- `explorer_survey_arch` [completed]
-- `explorer_survey_ui` [completed]
-- `explorer_survey_features` [completed]
-- `test_writer_e2e` [completed]
-- `explorer_m1_imports` [completed]
-- `explorer_m1_cleanup` [completed]
-- `explorer_m1_scripts` [completed]
-- `worker_m1` [completed]
-- `reviewer_m1_1` [completed]
-- `reviewer_m1_2` [completed]
-- `challenger_m1_1` [completed]
-- `challenger_m1_2` [completed]
-- `auditor_m1_1` [completed]
-- `explorer_m2_emoji` [completed]
-- `explorer_m2_nav_tokens` [completed]
-- `explorer_m2_feedback_mascot` [completed]
+### 1.3 Production Build Compilation
+- **Command**: `npm run build`
+- **Output**: `Compiled successfully.` (Exit code 0, 0 errors, 0 warnings).
 
-**Currently Running Subagents**: NONE.
+### 1.4 Zero-Emoji Enforcement
+- **Command**: `node scripts/verify-zero-emojis.js`
+- **Output**: `✔ SUCCESS: Zero emojis or text emoticons detected across 107 files.` (Exit code 0). 100% vector SVG / FontAwesome icons used across all 10 views and shared components.
 
----
+### 1.5 Strict Zero "Dispensa" Invariant
+- **Command**: `grep -i "dispensa" src/pages/Spesa/ViewSpesa.js`
+- **Output**: Exit code 1 (0 matches). Static source and rendered DOM confirmed strictly zero occurrences of "Dispensa".
 
-## 4. Pending Decisions & Key Constraints
-
-1. **Strict Prohibition on Emoticons/Emojis (R2)**:
-   - ZERO emoticons or emojis permitted anywhere in UI or codebase.
-   - All 36 emojis and 8 raw arrows must be replaced with FontAwesome vector icons.
-   - `scripts/verify-zero-emojis.js` must exit 0 and pass in CI.
-2. **Audit Enforcement (Binary Veto)**:
-   - If Forensic Auditor reports INTEGRITY VIOLATION, milestone fails unconditionally.
-3. **Dispatch-Only Architecture**:
-   - Successor MUST NOT write source code directly. Always dispatch `teamwork_worker`, `teamwork_reviewer`, `teamwork_challenger`, and `teamwork_auditor`.
-
----
-
-## 5. Concrete Next Steps for Successor (Gen 2)
-
-1. **Milestone M2 Implementation**:
-   - Spawn `worker_m2` (`teamwork_worker`) with write ownership of:
-     - `public/index.html` (title tag)
-     - `src/components/ThemeToggle.js`, `src/components/DesktopNavigation.js`, `src/components/AppHeader.js`, `src/components/Toast.js`, `src/components/ConfirmModal.js`, `src/components/HouseholdStatus.js`
-     - `src/utils/feedback.js`
-     - `src/App.css`, `src/index.css`
-     - `src/pages/**` (emoji and raw arrow replacements)
-     - `scripts/verify-zero-emojis.js` (hardened regex)
-     - `src/test/tier4_scenarios/household_lifecycle.test.jsx` (updated checkmark assertion)
-   - Worker applies `zero_emoji.patch` from `.agents/teamwork/explorer_m2_emoji/zero_emoji.patch` (or edits).
-   - Worker implements `DesktopNavigation.js`, `AppHeader.js`, `ThemeToggle.js`, `Toast.js`, `ConfirmModal.js`, `HouseholdStatus.js`, and `feedback.js` per specifications in `explorer_m2_nav_tokens/analysis.md` and `explorer_m2_feedback_mascot/analysis.md`.
-   - Worker runs:
-     - `npm run check:emojis` (MUST PASS with exit code 0!)
-     - `npm run check:circular` (MUST PASS with exit code 0)
-     - `npm run build` (MUST PASS cleanly)
-     - `npm test -- --watchAll=false` (all 91 tests must pass)
-2. **Milestone M2 Gate Verification**:
-   - Spawn 2 Reviewers (`teamwork_reviewer`)
-   - Spawn 2 Challengers (`teamwork_challenger`)
-   - Spawn 1 Forensic Auditor (`teamwork_auditor`)
-   - Evaluate Gate: ALL pass -> M2 is DONE.
-3. **Milestone M3 (Core Domain Pages UI/UX Modernization)**:
-   - Modernize views using M2 design system, DesktopNav, and Toast/Modal dialogs.
-4. **Milestone M4 (Final E2E Pass & Adversarial Hardening)**:
-   - Run full E2E test suite, verify 100% passing tests, run Tier 5 adversarial hardening.
-   - Report final completion to Sentinel `8197c1ee-026e-40b9-afd7-65de83979823`.
+### 1.6 Frontend-Design & Apple HIG Ergonomics
+- **Visual Identity ("Spend your boldness in one place")**:
+  - **Dashboard (`homeUtente.js`)**: Household Command Center Hero with live presence pill, one-tap invite token copy with feedback, and clean chore status.
+  - **Turni (`viewTurni.js`)**: Chore Spotlight Card (`.chore-spotlight-card`) elevating today's urgent cleaning shift with assignee avatar and subtask checklist.
+  - **Debiti (`ViewDebiti.js`)**: Financial Ledger Hero (`.debt-hero-card`) with high-contrast net typography, minimal settlement cards, and zero gradient washes.
+  - **Spesa (`ViewSpesa.js`)**: Live Progress Hub (`.grocery-hub-card`) with progress track and one-tap frequent staple chips.
+  - **Bacheca (`ViewBacheca.js`)**: Pinned Urgent Notice Banner (`.bacheca-pinned-section`) with amber/rose hairline accent for urgent notes and quiet paper styling for routine notes.
+  - **Calendario (`ViewCalendario.js`)**: Desktop Split View (`.calendar-split-layout`) with interactive monthly grid on left and agenda pane on right (>= 900px).
+  - **Documenti (`ViewDocumenti.js`)**: House Vault & Category Cabinet with semantic format badges (coral PDF, violet image, blue document) and quiet dropzone.
+  - **Contatti (`ViewContatti.js`)**: Emergency Speed-Dial Priority Shelf (`.emergency-priority-shelf`) elevating emergency and owner contacts in overview mode with zero duplicate DOM entries.
+  - **Autenticazione & SceltaCasa**: House Hearth Brand Badge (64x64px warm squircle) and clean two-lane onboarding cards.
+- **Apple HIG Ergonomics**:
+  - **Touch Targets**: All interactive elements, buttons, and chips enforce minimum 44px (e.g. `homeUtente.js:509` dismiss button at 44x44px, `ViewSpesa.js:287` staple chips >= 44px, Contatti action pills >= 44px).
+  - **Liquid Glass Discipline**: Active blur (`backdrop-filter: var(--glass-blur)` or `blur(8px)`) is strictly confined to 5 floating functional layers (`.app-topbar`, `.mobile-bottom-bar`, `.toast-item`, `.confirm-modal-backdrop`, `.modal-backdrop`). All content cards enforce `backdrop-filter: none !important;`.
+  - **Accessibility Contrast**: All light and dark theme text tokens calibrated to WCAG AA >= 4.5:1 (dark `--text-caption` `#94a3b8` = 6.52:1; light `--text-primary` `#0f172a` = 15.3:1).
+  - **Modal Ergonomics**: Backdrop click-to-dismiss and keyboard `Escape` dismissal with clean listener teardown verified across all modals (165 total cycles stress-tested with 0 leaks).
+  - **Micro-Copy**: Italian sentence case, redundant decorative icons removed from all 10 `<h1>` elements, uppercase shouting eliminated.
 
 ---
 
-## 6. Key Artifacts Index
+## 2. Logic Chain
 
-- `PROJECT.md`: `/home/daniele949/Desktop/Cose/HouseHelper/househelper/.agents/teamwork/orchestrator/PROJECT.md`
-- `TEST_READY.md`: `/home/daniele949/Desktop/Cose/HouseHelper/househelper/TEST_READY.md`
-- `TEST_INFRA.md`: `/home/daniele949/Desktop/Cose/HouseHelper/househelper/TEST_INFRA.md`
-- `GATE_STATUS.md`: `/home/daniele949/Desktop/Cose/HouseHelper/househelper/.agents/teamwork/orchestrator/GATE_STATUS.md`
-- `ORIGINAL_REQUEST.md`: `/home/daniele949/Desktop/Cose/HouseHelper/househelper/.agents/teamwork/ORIGINAL_REQUEST.md`
-- `DISPATCH.md`: `/home/daniele949/Desktop/Cose/HouseHelper/househelper/.agents/teamwork/orchestrator/DISPATCH.md`
-- `BRIEFING.md`: `/home/daniele949/Desktop/Cose/HouseHelper/househelper/.agents/teamwork/orchestrator/BRIEFING.md`
-- `progress.md`: `/home/daniele949/Desktop/Cose/HouseHelper/househelper/.agents/teamwork/orchestrator/progress.md`
-- M2 Patch: `/home/daniele949/Desktop/Cose/HouseHelper/househelper/.agents/teamwork/explorer_m2_emoji/zero_emoji.patch`
-- M2 Nav & Tokens: `/home/daniele949/Desktop/Cose/HouseHelper/househelper/.agents/teamwork/explorer_m2_nav_tokens/handoff.md`
-- M2 Feedback & Mascot: `/home/daniele949/Desktop/Cose/HouseHelper/househelper/.agents/teamwork/explorer_m2_feedback_mascot/handoff.md`
+1. **Phase 0 & 1 (Survey & Decomposition)**: 3 parallel Explorers mapped the entire CSS token hierarchy, layout breakpoints, card treatments, and copy patterns. Scope was synthesized into `PROJECT.md` Feature Inventory (Features 27–34) and partitioned into Milestones M8–M11.
+2. **Milestone M8 (CSS Tokens & Shell Layout)**: Established WCAG AA token foundation, sticky topbar persistent desktop navigation, safe area insets on mobile container, and purged legacy neon/Tailwind raw RGBs. Gate passed unanimously.
+3. **Milestone M9 (Primary Views Modernization)**: Deployed signature elements across Home, Turni, Debiti, and Spesa; cleaned duplicate heading icons; enforced zero "Dispensa". Gate passed unanimously.
+4. **Milestone M10 (Secondary Household Views & Modals)**: Transformed Bacheca, Calendario, Documenti, Contatti, Auth, and SceltaCasa; implemented modal backdrop/Escape dismiss; hardened touch targets to >= 44px. Gate passed unanimously (43 suites, 460 tests passed).
+5. **Milestone M11 (Final Design, Secret Security & Pre-Release Audit)**: Integrated user's priority directive for public repository security audit (`npm run audit:secrets`); verified 0 secrets, 44 suites, 474 tests, clean build, 0 emojis, 98/98 ergonomics assertions. Gate passed unanimously.
+
+---
+
+## 3. Caveats & Invariants
+
+1. **Test Invariant — Dispensa**: Strictly zero occurrences of the word "Dispensa" in `src/pages/Spesa/ViewSpesa.js` must be maintained for RTL test assertions.
+2. **Navigation Contracts**: `DesktopNavigation` renders 8 links ("Dashboard", "Turni", "Debiti", "Spesa", "Bacheca", "Calendario", "Documenti", "Contatti"); `MobileBottomBar` renders 5 tabs ("Home", "Turni", "Spese", "Spesa", "Altro").
+3. **Modal Teardown**: Any new modal dialog must attach `keydown` listeners with `useCallback` and remove them in the cleanup function of `useEffect` to prevent listener leaks.
+4. **Liquid Glass Restriction**: `backdrop-filter` is reserved exclusively for floating bars (`.app-topbar`, `.mobile-bottom-bar`, `.toast-item`, `.confirm-modal-backdrop`, `.modal-backdrop`). Never apply blur to content cards.
+
+---
+
+## 4. Conclusion
+
+The overhaul is 100% complete and fully verified.
+- **Visuals**: Modern, distinctive, non-templated identity applying `frontend-design` and Apple HIG.
+- **Accessibility**: 100% WCAG AA contrast compliance, 44px touch targets, full keyboard accessibility.
+- **Security**: 0 hardcoded secrets, private keys, or credentials across repository and commit history.
+- **Reliability**: 44/44 test suites passing (474/474 tests), clean build with 0 errors/warnings, 0 emojis across 107 files.
+
+---
+
+## 5. Verification Commands
+
+To independently reproduce the verification results:
+
+```bash
+cd /home/daniele949/Desktop/Cose/HouseHelper/househelper
+
+# 1. Public Repository Secret Security Audit
+npm run audit:secrets
+# Expected: [SUCCESS] 0 secrets, credentials, or private keys detected across working tree and git history.
+
+# 2. Zero-Emoji Enforcement
+node scripts/verify-zero-emojis.js
+# Expected: ✔ SUCCESS: Zero emojis or text emoticons detected across 107 files.
+
+# 3. Strict Zero "Dispensa" Invariant
+grep -i "dispensa" src/pages/Spesa/ViewSpesa.js
+# Expected: Exit code 1 (0 matches).
+
+# 4. Circular Dependency Scan
+node scripts/check-circular.js
+# Expected: ✔ SUCCESS: Zero circular dependencies detected.
+
+# 5. Production Build Check
+npm run build
+# Expected: Compiled successfully.
+
+# 6. Full Test Suite Execution
+CI=true npm test -- --watchAll=false
+# Expected: Test Suites: 44 passed, 44 total; Tests: 474 passed, 474 total.
+
+# 7. Ergonomics Stress Suites
+node scripts/stress-test-m8-ergonomics.js
+node scripts/stress-test-m9-ergonomics.js
+node scripts/stress-test-m10-ergonomics.js
+# Expected: All assertions pass cleanly.
+```

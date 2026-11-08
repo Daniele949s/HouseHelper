@@ -72,7 +72,7 @@ function LoadingFallback() {
         style={{ color: "var(--color-primary, #2563eb)", marginBottom: "12px" }}
         aria-hidden="true"
       ></i>
-      <p style={{ color: "var(--color-text-muted, #6b7280)", fontSize: "14px", margin: 0 }}>
+      <p style={{ color: "var(--text-muted, #6b7280)", fontSize: "14px", margin: 0 }}>
         Caricamento in corso...
       </p>
     </div>

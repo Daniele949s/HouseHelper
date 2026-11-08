@@ -31,7 +31,7 @@ body.dark-mode {
   --text-primary: #f8fafc;            /* Slate 50 (15.97:1 contrast on card) */
   --text-secondary: #94a3b8;          /* Slate 400 (6.52:1 contrast on card) */
   --text-muted: #94a3b8;              /* Fallback for body; 6.52:1 */
-  --text-caption: #64748b;            /* Non-critical captions/meta; 3.51:1 */
+  --text-caption: #94a3b8;            /* Calibrated for WCAG AA (6.52:1 on #151e2e) */
   --text-disabled: #475569;
 
   /* Indigo (Primary Brand & Navigation) */
@@ -93,7 +93,8 @@ body.dark-mode {
 
   /* Typography Stack */
   --font-family-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
-  --font-family-display: var(--font-family-sans);
+  --font-family-display: 'Outfit', var(--font-family-sans);
+  --font-family-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 
   /* Dynamic Type Scale */
   --font-size-xs: 0.75rem;

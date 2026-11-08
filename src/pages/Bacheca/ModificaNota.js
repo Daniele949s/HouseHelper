@@ -129,7 +129,7 @@ export default function ModificaNota() {
 
   return (
     <div className="card" style={{ maxWidth: "620px" }}>
-      <h1 style={{ marginBottom: "6px" }}>Modifica Avviso <i className="fas fa-pen" style={{ fontSize: "0.85em", marginLeft: "6px" }}></i></h1>
+      <h1 style={{ marginBottom: "6px" }}>Modifica Avviso</h1>
       <p className="subtitle" style={{ marginBottom: "24px" }}>Aggiorna il messaggio per i tuoi coinquilini</p>
 
       {error && (

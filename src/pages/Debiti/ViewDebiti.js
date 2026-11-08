@@ -100,6 +100,18 @@ export default function ViewDebiti() {
     fetchDati();
   }, [fetchDati]);
 
+  // Modal Escape key dismiss listener
+  useEffect(() => {
+    if (!showExportModal) return;
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") {
+        setShowExportModal(false);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [showExportModal]);
+
   const saldaDebito = async (id, isMyDebt) => {
     const debitoTarget = debiti.find((d) => d.id === id);
     if (!debitoTarget || debitoTarget.casaId !== userData?.casaId) {
@@ -234,7 +246,7 @@ export default function ViewDebiti() {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2rem", flexWrap: "wrap", gap: "12px" }}>
         <div>
           <h1 style={{ margin: 0, textAlign: "left" }}>
-            Spese & Debiti <i className="fas fa-wallet" style={{ fontSize: "0.85em", marginLeft: "6px" }} aria-hidden="true"></i>
+            Spese & Debiti
           </h1>
           <p style={{ margin: "4px 0 0 0", color: "var(--text-secondary)", textAlign: "left", fontSize: "0.92rem" }}>
             Tieni traccia delle spese condivise e dei saldi
@@ -267,35 +279,31 @@ export default function ViewDebiti() {
         </div>
       )}
 
-      {/* Widget Saldo Netto */}
+      {/* Signature Financial Ledger Hero */}
       <div
         className="widget-card debt-hero-card"
         style={{
           marginBottom: "20px",
           textAlign: "center",
-          background:
-            saldo > 0
-              ? "linear-gradient(135deg, rgba(16, 185, 129, 0.12), rgba(20, 184, 166, 0.05))"
-              : saldo < 0
-              ? "linear-gradient(135deg, rgba(239, 68, 68, 0.12), rgba(220, 38, 38, 0.05))"
-              : "var(--bg-input)",
+          background: "var(--bg-card)",
           border:
             saldo > 0
-              ? "1px solid rgba(16, 185, 129, 0.3)"
+              ? "1px solid rgba(16, 185, 129, 0.35)"
               : saldo < 0
-              ? "1px solid rgba(239, 68, 68, 0.3)"
+              ? "1px solid rgba(239, 68, 68, 0.35)"
               : "1px solid var(--border-color)",
-          padding: "24px",
+          boxShadow: "var(--shadow-card)",
+          padding: "28px 24px",
           borderRadius: "var(--radius-lg)"
         }}
       >
-        <p style={{ fontWeight: "600", color: "var(--text-secondary)", textTransform: "uppercase", fontSize: "0.85rem", letterSpacing: "0.05em", margin: "0 0 4px 0" }}>
+        <p style={{ fontWeight: "600", color: "var(--text-secondary)", fontSize: "0.85rem", letterSpacing: "0.02em", margin: "0 0 6px 0" }}>
           Il tuo bilancio
         </p>
-        <h2 style={{ fontSize: "3rem", margin: "4px 0", color: saldo > 0 ? "var(--color-success)" : saldo < 0 ? "var(--color-danger)" : "var(--text-main)", fontWeight: "800" }}>
+        <h2 style={{ fontSize: "3.2rem", margin: "6px 0", color: saldo > 0 ? "var(--color-success)" : saldo < 0 ? "var(--color-danger)" : "var(--text-main)", fontWeight: "800", letterSpacing: "-0.02em" }}>
           {saldo > 0 ? "+" : ""}{safeFloat(saldo).toFixed(2)} €
         </h2>
-        <p style={{ fontSize: "0.95rem", color: "var(--text-muted)", margin: "4px 0 0 0" }}>
+        <p style={{ fontSize: "0.95rem", color: "var(--text-muted)", margin: "6px 0 0 0" }}>
           {saldo > 0
             ? "Gli altri coinquilini ti devono dei soldi"
             : saldo < 0
@@ -311,7 +319,7 @@ export default function ViewDebiti() {
             <i className="fas fa-arrow-down" aria-hidden="true"></i>
           </div>
           <div>
-            <span style={{ fontSize: "0.78rem", color: "var(--text-muted)", textTransform: "uppercase", display: "block" }}>Da ricevere</span>
+            <span style={{ fontSize: "0.8rem", color: "var(--text-muted)", display: "block" }}>Da ricevere</span>
             <strong style={{ fontSize: "1.2rem", color: "var(--color-success)" }}>Crediti: {totaleCrediti.toFixed(2)} €</strong>
           </div>
         </div>
@@ -321,7 +329,7 @@ export default function ViewDebiti() {
             <i className="fas fa-arrow-up" aria-hidden="true"></i>
           </div>
           <div>
-            <span style={{ fontSize: "0.78rem", color: "var(--text-muted)", textTransform: "uppercase", display: "block" }}>Da restituire</span>
+            <span style={{ fontSize: "0.8rem", color: "var(--text-muted)", display: "block" }}>Da restituire</span>
             <strong style={{ fontSize: "1.2rem", color: "var(--color-danger)" }}>Debiti: {totaleDebiti.toFixed(2)} €</strong>
           </div>
         </div>
@@ -443,7 +451,7 @@ export default function ViewDebiti() {
 
             {/* Roommate Net Balances */}
             <div style={{ marginTop: "14px", textAlign: "left" }}>
-              <span style={{ fontSize: "0.78rem", color: "var(--text-muted)", textTransform: "uppercase", display: "block", marginBottom: "6px" }}>
+              <span style={{ fontSize: "0.82rem", color: "var(--text-muted)", fontWeight: "600", display: "block", marginBottom: "6px" }}>
                 Riepilogo saldi coinquilini
               </span>
               <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
@@ -523,8 +531,7 @@ export default function ViewDebiti() {
                         padding: "3px 10px",
                         borderRadius: "var(--radius-full)",
                         fontSize: "0.78rem",
-                        fontWeight: "700",
-                        textTransform: "uppercase"
+                        fontWeight: "600"
                       }}
                     >
                       {badgeText}
@@ -596,8 +603,17 @@ export default function ViewDebiti() {
 
       {/* Export Modal */}
       {showExportModal && (
-        <div className="modal-backdrop" role="dialog" aria-modal="true">
-          <div className="modal-card" style={{ maxWidth: "480px" }}>
+        <div
+          className="modal-backdrop"
+          onClick={() => setShowExportModal(false)}
+          role="dialog"
+          aria-modal="true"
+        >
+          <div
+            className="modal-card"
+            onClick={(e) => e.stopPropagation()}
+            style={{ maxWidth: "480px" }}
+          >
             <div className="modal-header">
               <h2 className="modal-title">
                 <i className="fas fa-file-export" aria-hidden="true"></i> Esporta resoconto spese

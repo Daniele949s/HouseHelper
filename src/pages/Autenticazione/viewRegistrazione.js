@@ -111,9 +111,7 @@ export default function ViewRegistrazione() {
       </div>
 
       <div className="auth-header">
-        <h1>
-          Crea Account <i className="fas fa-house-chimney-user" style={{ fontSize: "0.85em", marginLeft: "4px" }}></i>
-        </h1>
+        <h1>Crea Account</h1>
         <p className="subtitle">Unisciti alla gestione intelligente di HouseHelper</p>
       </div>
 
