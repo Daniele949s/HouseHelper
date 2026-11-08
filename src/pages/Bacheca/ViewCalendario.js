@@ -24,13 +24,19 @@ export default function ViewCalendario() {
       setLoading(true);
       try {
         const qUtenti = query(collection(db, "utenti"), where("casaId", "==", userData.casaId));
-        const snapUtenti = await getDocs(qUtenti);
+        const qNote = query(collection(db, "note"), where("casaId", "==", userData.casaId));
+        const qTurni = query(collection(db, "turni"), where("casaId", "==", userData.casaId));
+
+        const [snapUtenti, snapNote, snapTurni] = await Promise.all([
+          getDocs(qUtenti),
+          getDocs(qNote),
+          getDocs(qTurni)
+        ]);
+
         const map = {};
         snapUtenti.forEach(d => { map[d.id] = d.data().username || "Sconosciuto"; });
         setUtentiMap(map);
 
-        const qNote = query(collection(db, "note"), where("casaId", "==", userData.casaId));
-        const snapNote = await getDocs(qNote);
         const eventiC = [];
         snapNote.forEach(d => {
           const data = d.data();
@@ -40,8 +46,6 @@ export default function ViewCalendario() {
         });
         setEventi(eventiC);
 
-        const qTurni = query(collection(db, "turni"), where("casaId", "==", userData.casaId));
-        const snapTurni = await getDocs(qTurni);
         const turniC = [];
         snapTurni.forEach(d => {
           const data = d.data();
@@ -93,7 +97,7 @@ export default function ViewCalendario() {
   }
 
   return (
-    <div className="card" style={{ maxWidth: '820px', padding: '2.5rem' }}>
+    <div className="card domain-page-card" style={{ maxWidth: '820px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '12px' }}>
         <div>
           <h1 style={{ margin: 0, textAlign: 'left' }}>Calendario Casa <i className="fas fa-calendar-alt" style={{ fontSize: '0.85em', marginLeft: '6px' }}></i></h1>

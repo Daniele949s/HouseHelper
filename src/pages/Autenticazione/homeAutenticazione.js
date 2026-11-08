@@ -27,7 +27,7 @@ export default function HomeAutenticazione() {
       <div className="hero-header-text">
         <h1 className="main-title">HouseHelper</h1>
         <p className="subtitle">
-          La convivenza resa semplice e armoniosa. Gestisci turni, dividi le spese e mantieni la casa sincronizzata con un'estetica moderna.
+          La convivenza resa semplice e organizzata. Gestisci i turni di pulizia, dividi le spese e mantieni la casa sincronizzata tra coinquilini.
         </p>
       </div>
 

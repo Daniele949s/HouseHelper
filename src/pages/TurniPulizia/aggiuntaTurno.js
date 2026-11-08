@@ -192,7 +192,7 @@ export default function AggiuntaTurno() {
         Nuovo Turno Pulizia <i className="fas fa-broom" style={{ fontSize: "0.85em", marginLeft: "6px" }} aria-hidden="true"></i>
       </h1>
       <p className="subtitle" style={{ marginBottom: "24px" }}>
-        Assegna un incarico e pianifica la pulizia della casa
+        Assegna una mansione e pianifica le pulizie di casa
       </p>
 
       {error && (
@@ -205,7 +205,7 @@ export default function AggiuntaTurno() {
       <form onSubmit={handleSubmit} className="auth-form" style={{ textAlign: "left" }}>
         {/* Chi farà le pulizie */}
         <div className="input-group">
-          <label htmlFor="turno-nomi">Chi farà le pulizie? (separati da virgola)</label>
+          <label htmlFor="turno-nomi">A chi è assegnato il turno? (nomi separati da virgola)</label>
           {roommates.length > 0 && (
             <div className="roommate-chips-group" style={{ display: "flex", flexWrap: "wrap", gap: "6px", marginBottom: "8px" }}>
               {roommates.map((r) => {
@@ -237,12 +237,14 @@ export default function AggiuntaTurno() {
                           : "var(--border-color)"
                       }`,
                       borderRadius: "var(--radius-full)",
-                      padding: "4px 12px",
-                      fontSize: "0.82rem",
+                      padding: "8px 14px",
+                      minHeight: "40px",
+                      fontSize: "0.85rem",
                       cursor: "pointer",
                       display: "flex",
                       alignItems: "center",
-                      gap: "6px"
+                      justifyContent: "center",
+                      gap: "8px"
                     }}
                   >
                     <i
@@ -281,8 +283,8 @@ export default function AggiuntaTurno() {
             >
               <i className="fas fa-exclamation-triangle" aria-hidden="true"></i>
               <span>
-                Attenzione: {selectedVacationingRoommates.map((r) => r.username).join(", ")}{" "}
-                risulta in vacanza per la data selezionata.
+                Nota: {selectedVacationingRoommates.map((r) => r.username).join(", ")}{" "}
+                è in vacanza nella data selezionata.
               </span>
             </div>
           )}
@@ -327,7 +329,7 @@ export default function AggiuntaTurno() {
             required
             disabled={loading}
           >
-            <option value="">-- Seleziona orario indicativo --</option>
+            <option value="">Seleziona una fascia oraria</option>
             {FASCE_DISPONIBILI.map((f) => (
               <option key={f} value={f}>
                 {f}
@@ -351,9 +353,13 @@ export default function AggiuntaTurno() {
                   color: "var(--text-secondary)",
                   border: "1px solid var(--border-color)",
                   borderRadius: "var(--radius-sm)",
-                  padding: "3px 10px",
-                  fontSize: "0.8rem",
-                  cursor: "pointer"
+                  padding: "8px 14px",
+                  minHeight: "40px",
+                  fontSize: "0.85rem",
+                  cursor: "pointer",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center"
                 }}
               >
                 <i className="fas fa-plus" aria-hidden="true" style={{ fontSize: "0.75rem", marginRight: "4px" }}></i>
@@ -386,13 +392,13 @@ export default function AggiuntaTurno() {
         >
           <label style={{ margin: "0 0 8px 0", display: "flex", alignItems: "center", gap: "8px" }}>
             <i className="fas fa-tasks text-primary" aria-hidden="true"></i>
-            <span>Checklist Sotto-Mansioni Spuntabili (opzionale)</span>
+            <span>Checklist delle mansioni (opzionale)</span>
           </label>
 
           <div style={{ display: "flex", gap: "8px", marginBottom: "10px" }}>
             <input
               type="text"
-              placeholder="Es. Svuotare cestino, Disinfettare lavello..."
+              placeholder="es. Svuotare il cestino, lavare il lavello..."
               value={newChecklistText}
               onChange={(e) => setNewChecklistText(e.target.value)}
               onKeyDown={(e) => {
@@ -403,16 +409,16 @@ export default function AggiuntaTurno() {
               }}
               maxLength={100}
               disabled={loading}
-              style={{ flex: 1, padding: "6px 10px", fontSize: "0.9rem" }}
+              style={{ flex: 1, padding: "8px 12px", minHeight: "44px", fontSize: "0.9rem" }}
             />
             <button
               type="button"
               onClick={handleAddChecklistItem}
               disabled={loading || !newChecklistText.trim()}
               className="btn btn-secondary"
-              style={{ padding: "6px 14px", fontSize: "0.85rem", width: "auto" }}
+              style={{ padding: "8px 16px", minHeight: "44px", display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "0.85rem", width: "auto" }}
             >
-              <i className="fas fa-plus" aria-hidden="true"></i> Aggiungi
+              <i className="fas fa-plus" aria-hidden="true"></i> Aggiungi mansione
             </button>
           </div>
 
@@ -440,7 +446,7 @@ export default function AggiuntaTurno() {
                     type="button"
                     onClick={() => handleRemoveChecklistItem(item.id)}
                     className="btn-text"
-                    style={{ padding: "2px 6px", color: "var(--color-danger)" }}
+                    style={{ padding: "8px", minHeight: "44px", minWidth: "44px", display: "inline-flex", alignItems: "center", justifyContent: "center", color: "var(--color-danger)" }}
                     aria-label={`Rimuovi ${item.text}`}
                   >
                     <i className="fas fa-times" aria-hidden="true"></i>
@@ -453,7 +459,7 @@ export default function AggiuntaTurno() {
 
         {/* Procedura extra */}
         <div className="input-group">
-          <label htmlFor="turno-procedura">Istruzioni extra / Procedura (opzionale)</label>
+          <label htmlFor="turno-procedura">Note e istruzioni (opzionale)</label>
           <textarea
             id="turno-procedura"
             name="procedura"

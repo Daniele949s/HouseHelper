@@ -8,6 +8,7 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 
 // Import Visual & Interactive Components
 import AppHeader from "./components/AppHeader";
+import MobileBottomBar from "./components/MobileBottomBar";
 import ToastContainer from "./components/Toast";
 import ConfirmModal from "./components/ConfirmModal";
 import ScrollProgressBar from "./components/ScrollProgressBar";
@@ -173,6 +174,7 @@ function App() {
               <Route path="*" element={<NotFound />} />
             </Routes>
             <AppFooter />
+            <MobileBottomBar />
           </div>
         </Router>
       </AuthProvider>

@@ -98,7 +98,7 @@ export default function HouseAnalytics({
             className={`analytics-tab-btn ${activeTab === "spesa" ? "active" : ""}`}
             onClick={() => setActiveTab("spesa")}
           >
-            <i className="fas fa-shopping-basket"></i> Dispensa
+            <i className="fas fa-shopping-basket"></i> Lista spesa
           </button>
         </div>
       </div>
@@ -242,7 +242,7 @@ export default function HouseAnalytics({
             <div className="spesa-progress-card">
               <div className="spesa-progress-header">
                 <div>
-                  <h4>Stato Approvvigionamento</h4>
+                  <h4>Avanzamento della spesa</h4>
                   <p>{spesaPresi} su {totalSpesaItems} articoli acquistati</p>
                 </div>
                 <div className="spesa-percent-badge">{percentPresi}%</div>

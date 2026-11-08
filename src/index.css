@@ -1,76 +1,101 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=Lexend:wght@400;500;600;700&display=swap');
-
 /* ==========================================================================
-   THEME PALETTES (DARK & LIGHT)
+   APPLE HIG DESIGN TOKENS (HouseHelper M9)
    ========================================================================== */
+
+/* 1. DARK THEME TOKENS */
 :root,
 html.dark-theme,
 [data-theme="dark"],
 body.dark-mode {
-  /* Brand Palette (Primary: Modern Royal Blue) */
-  --color-primary: #2563eb;
-  --color-primary-hover: #1d4ed8;
-  --color-primary-light: rgba(37, 99, 235, 0.12);
-  --color-primary-glow: rgba(37, 99, 235, 0.35);
-
-  /* Brand Accent: Sophisticated Teal */
-  --color-accent: #0d9488;
-  --color-accent-hover: #0f766e;
-  --color-accent-light: rgba(13, 148, 136, 0.12);
-  --color-accent-glow: rgba(13, 148, 136, 0.35);
-
-  /* Semantic Feedback (Strict AA Contrast) */
-  --color-success: #10b981;
-  --color-success-light: rgba(16, 185, 129, 0.12);
-  --color-danger: #ef4444;
-  --color-danger-light: rgba(239, 68, 68, 0.12);
-  --color-warning: #f59e0b;
-  --color-warning-light: rgba(245, 158, 11, 0.12);
-  --color-info: #3b82f6;
-  --color-info-light: rgba(59, 130, 246, 0.12);
-  --color-purple: #8b5cf6;
-
-  /* Dark Theme Surfaces & Backgrounds */
-  --bg-primary: #09090b;
-  --bg-secondary: #121217;
-  --bg-card: rgba(22, 23, 31, 0.78);
-  --bg-card-hover: rgba(30, 32, 44, 0.92);
-  --bg-input: rgba(14, 15, 22, 0.7);
+  /* Slate Neutral Surfaces */
+  --bg-primary: #0b0f19;              /* Deep Slate canvas */
+  --bg-secondary: #111827;            /* Recessed containers */
+  --bg-card: #151e2e;                 /* 100% Opaque clean content card */
+  --bg-card-hover: #1e293b;           /* Interactive card hover */
+  --bg-input: #0f172a;                /* Form input surface */
   --bg-subtle: rgba(255, 255, 255, 0.04);
-  --bg-overlay: rgba(9, 9, 11, 0.85);
+  --bg-overlay: rgba(11, 15, 25, 0.80);
 
-  /* Dark Theme Borders */
-  --border-color: rgba(255, 255, 255, 0.09);
-  --border-subtle: rgba(255, 255, 255, 0.05);
-  --border-medium: rgba(255, 255, 255, 0.14);
-  --border-focus: var(--color-primary);
+  /* Liquid Glass (Strictly for Floating Functional Layer) */
+  --bg-glass: rgba(21, 30, 46, 0.82);
+  --glass-blur: blur(20px) saturate(140%);
+  --glass-border: 1px solid rgba(255, 255, 255, 0.12);
 
-  /* Dark Theme Typography Colors */
-  --text-primary: #f8fafc;
-  --text-secondary: #94a3b8;
-  --text-muted: #64748b;
+  /* Slate Hairline Borders */
+  --border-color: rgba(255, 255, 255, 0.08); /* 1px hairline border */
+  --border-subtle: rgba(255, 255, 255, 0.04);
+  --border-medium: rgba(255, 255, 255, 0.16);
+  --border-focus: #818cf8;
+
+  /* Typography Colors (WCAG AAA >= 7:1 & AA >= 4.5:1) */
+  --text-primary: #f8fafc;            /* Slate 50 (15.97:1 contrast on card) */
+  --text-secondary: #94a3b8;          /* Slate 400 (6.52:1 contrast on card) */
+  --text-muted: #94a3b8;              /* Fallback for body; 6.52:1 */
+  --text-caption: #64748b;            /* Non-critical captions/meta; 3.51:1 */
   --text-disabled: #475569;
 
-  /* Elevation Shadows (Dark) */
-  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.3);
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.45), 0 2px 4px -2px rgba(0, 0, 0, 0.35);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -4px rgba(0, 0, 0, 0.35);
-  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.6), 0 8px 10px -6px rgba(0, 0, 0, 0.4);
-  --shadow-card: 0 12px 32px -8px rgba(0, 0, 0, 0.55);
+  /* Indigo (Primary Brand & Navigation) */
+  --color-primary: #6366f1;           /* Indigo 500 (Prominent control BG) */
+  --color-primary-hover: #4f46e5;
+  --color-primary-text: #818cf8;      /* Indigo 400 (5.60:1 contrast text) */
+  --color-primary-light: rgba(99, 102, 241, 0.15); /* Soft pill BG */
+  --color-primary-border: rgba(99, 102, 241, 0.28);
+  --color-primary-glow: rgba(99, 102, 241, 0.25);
 
-  /* Radii Scale */
+  /* Brand Accent */
+  --color-accent: #6366f1;
+  --color-accent-hover: #4f46e5;
+  --color-accent-light: rgba(99, 102, 241, 0.15);
+  --color-accent-glow: rgba(99, 102, 241, 0.25);
+
+  /* Emerald (Success / Settled / Completed) */
+  --color-success: #10b981;          /* Emerald 500 */
+  --color-success-hover: #059669;
+  --color-success-text: #34d399;     /* Emerald 400 (8.69:1 contrast text) */
+  --color-success-light: rgba(16, 185, 129, 0.15);
+  --color-success-border: rgba(16, 185, 129, 0.28);
+
+  /* Rose (Danger / Expenses / Alerts) */
+  --color-danger: #f43f5e;           /* Rose 500 */
+  --color-danger-hover: #e11d48;
+  --color-danger-text: #fb7185;      /* Rose 400 (6.21:1 contrast text) */
+  --color-danger-light: rgba(244, 63, 94, 0.15);
+  --color-danger-border: rgba(244, 63, 94, 0.28);
+
+  /* Amber (Warning / Pending) */
+  --color-warning: #f59e0b;          /* Amber 500 (7.38:1 contrast text) */
+  --color-warning-hover: #d97706;
+  --color-warning-light: rgba(245, 158, 11, 0.15);
+  --color-warning-border: rgba(245, 158, 11, 0.28);
+
+  --color-info: #6366f1;
+  --color-info-light: rgba(99, 102, 241, 0.15);
+  --color-purple: #8b5cf6;
+
+  /* Layered Soft Elevation Shadows (Apple HIG) */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.25);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.35), 0 2px 4px -2px rgba(0, 0, 0, 0.25);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.45), 0 4px 6px -4px rgba(0, 0, 0, 0.3);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.55), 0 8px 10px -6px rgba(0, 0, 0, 0.35);
+  --shadow-card: 0 4px 20px -2px rgba(0, 0, 0, 0.40), 0 1px 3px rgba(0, 0, 0, 0.25);
+  --shadow-card-hover: 0 8px 28px -4px rgba(0, 0, 0, 0.50), 0 2px 6px rgba(0, 0, 0, 0.30);
+  --shadow-modal: 0 20px 40px -10px rgba(0, 0, 0, 0.65);
+  --shadow-glass: 0 4px 24px -2px rgba(0, 0, 0, 0.35);
+
+  /* Corner Radii Scale */
   --radius-xs: 4px;
-  --radius-sm: 6px;
-  --radius-md: 10px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
   --radius-lg: 16px;
-  --radius-xl: 24px;
+  --radius-xl: 22px;
   --radius-full: 9999px;
 
-  /* Typography Scale */
-  --font-family-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-family-display: 'Outfit', var(--font-family-sans);
+  /* Typography Stack */
+  --font-family-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  --font-family-display: var(--font-family-sans);
 
+  /* Dynamic Type Scale */
   --font-size-xs: 0.75rem;
   --font-size-sm: 0.875rem;
   --font-size-base: 1rem;
@@ -81,10 +106,11 @@ body.dark-mode {
   --font-size-4xl: 2.25rem;
 
   --font-weight-normal: 400;
+  --font-weight-regular: 400;
   --font-weight-medium: 500;
   --font-weight-semibold: 600;
   --font-weight-bold: 700;
-  --font-weight-extrabold: 800;
+  --font-weight-extrabold: 700;
 
   /* Layout Widths */
   --container-sm: 480px;
@@ -92,10 +118,11 @@ body.dark-mode {
   --container-lg: 960px;
   --container-xl: 1200px;
 
-  /* Transitions & Animation Timings */
+  /* Timings */
   --duration-fast: 150ms;
-  --duration-normal: 250ms;
+  --duration-normal: 240ms;
   --duration-slow: 350ms;
+  --ease-apple: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
   --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
 
@@ -112,54 +139,85 @@ body.dark-mode {
   --transition-bounce: var(--duration-slow) var(--ease-bounce);
 }
 
-/* Light Theme Tokens */
+/* 2. LIGHT THEME TOKENS */
 html.light-theme,
 [data-theme="light"],
 body.light-mode {
-  --color-primary: #2563eb;
-  --color-primary-hover: #1d4ed8;
-  --color-primary-light: rgba(37, 99, 235, 0.08);
-  --color-primary-glow: rgba(37, 99, 235, 0.2);
+  /* Slate Neutral Surfaces */
+  --bg-primary: #f8fafc;              /* Slate 50 canvas */
+  --bg-secondary: #f1f5f9;            /* Slate 100 recessed surface */
+  --bg-card: #ffffff;                 /* 100% Opaque pure white card */
+  --bg-card-hover: #f8fafc;           /* Subtle card hover */
+  --bg-input: #f8fafc;
+  --bg-subtle: rgba(15, 23, 42, 0.03);
+  --bg-overlay: rgba(15, 23, 42, 0.45);
 
-  --color-accent: #0d9488;
-  --color-accent-hover: #0f766e;
-  --color-accent-light: rgba(13, 148, 136, 0.08);
-  --color-accent-glow: rgba(13, 148, 136, 0.2);
+  /* Liquid Glass (Strictly for Floating Functional Layer) */
+  --bg-glass: rgba(255, 255, 255, 0.78);
+  --glass-blur: blur(20px) saturate(140%);
+  --glass-border: 1px solid rgba(15, 23, 42, 0.08);
 
-  --color-success: #059669;
-  --color-success-light: rgba(5, 150, 105, 0.08);
-  --color-danger: #dc2626;
-  --color-danger-light: rgba(220, 38, 38, 0.08);
-  --color-warning: #d97706;
-  --color-warning-light: rgba(217, 119, 6, 0.08);
-  --color-info: #2563eb;
-  --color-info-light: rgba(37, 99, 235, 0.08);
+  /* Slate Hairline Borders */
+  --border-color: rgba(15, 23, 42, 0.08); /* 1px hairline border */
+  --border-subtle: rgba(15, 23, 42, 0.04);
+  --border-medium: rgba(15, 23, 42, 0.16);
+  --border-focus: #4f46e5;
+
+  /* Typography Colors (WCAG AAA >= 7:1 & AA >= 4.5:1) */
+  --text-primary: #0f172a;            /* Slate 900 (17.85:1 contrast) */
+  --text-secondary: #475569;          /* Slate 600 (7.58:1 contrast) */
+  --text-muted: #64748b;              /* Slate 500 (4.76:1 contrast - PASS) */
+  --text-caption: #64748b;
+  --text-disabled: #94a3b8;
+
+  /* Indigo (Primary Brand & Navigation) */
+  --color-primary: #4f46e5;           /* Indigo 600 (6.29:1 with white text) */
+  --color-primary-hover: #4338ca;     /* Indigo 700 */
+  --color-primary-text: #4338ca;      /* 7.90:1 contrast on white */
+  --color-primary-light: rgba(79, 70, 229, 0.08); /* Soft pill BG */
+  --color-primary-border: rgba(79, 70, 229, 0.20);
+  --color-primary-glow: rgba(79, 70, 229, 0.20);
+
+  /* Brand Accent */
+  --color-accent: #4f46e5;
+  --color-accent-hover: #4338ca;
+  --color-accent-light: rgba(79, 70, 229, 0.08);
+  --color-accent-glow: rgba(79, 70, 229, 0.20);
+
+  /* Emerald (Success / Settled / Completed) */
+  --color-success: #047857;          /* Emerald 700 (5.48:1 contrast - PASS) */
+  --color-success-hover: #065f46;    /* Emerald 800 */
+  --color-success-text: #047857;     /* 5.48:1 contrast on white */
+  --color-success-light: rgba(4, 120, 87, 0.08);
+  --color-success-border: rgba(4, 120, 87, 0.20);
+
+  /* Rose (Danger / Expenses / Alerts) */
+  --color-danger: #e11d48;           /* Rose 600 (4.70:1 with white text) */
+  --color-danger-hover: #be123c;     /* Rose 700 */
+  --color-danger-text: #be123c;      /* 6.29:1 contrast on white */
+  --color-danger-light: rgba(225, 29, 72, 0.08);
+  --color-danger-border: rgba(225, 29, 72, 0.20);
+
+  /* Amber (Warning / Pending) */
+  --color-warning: #b45309;          /* Amber 700 (4.55:1 contrast - PASS) */
+  --color-warning-hover: #92400e;
+  --color-warning-light: rgba(180, 83, 9, 0.08);
+  --color-warning-border: rgba(180, 83, 9, 0.20);
+
+  --color-info: #4f46e5;
+  --color-info-light: rgba(79, 70, 229, 0.08);
   --color-purple: #7c3aed;
 
-  --bg-primary: #f8fafc;
-  --bg-secondary: #f1f5f9;
-  --bg-card: rgba(255, 255, 255, 0.88);
-  --bg-card-hover: #ffffff;
-  --bg-input: #f1f5f9;
-  --bg-subtle: rgba(0, 0, 0, 0.03);
-  --bg-overlay: rgba(15, 23, 42, 0.6);
-
-  --border-color: rgba(0, 0, 0, 0.08);
-  --border-subtle: rgba(0, 0, 0, 0.04);
-  --border-medium: rgba(0, 0, 0, 0.12);
-  --border-focus: var(--color-primary);
-
-  --text-primary: #0f172a;
-  --text-secondary: #475569;
-  --text-muted: #94a3b8;
-  --text-disabled: #cbd5e1;
-
-  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -2px rgba(0, 0, 0, 0.04);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
-  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
-  --shadow-card: 0 12px 32px -8px rgba(15, 23, 42, 0.08);
+  /* Layered Soft Elevation Shadows (Apple HIG) */
+  --shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-sm: 0 2px 4px rgba(15, 23, 42, 0.04);
+  --shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.06), 0 2px 4px -2px rgba(15, 23, 42, 0.04);
+  --shadow-lg: 0 10px 15px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -4px rgba(15, 23, 42, 0.04);
+  --shadow-xl: 0 20px 25px -5px rgba(15, 23, 42, 0.10), 0 8px 10px -6px rgba(15, 23, 42, 0.05);
+  --shadow-card: 0 4px 20px -2px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
+  --shadow-card-hover: 0 8px 28px -4px rgba(15, 23, 42, 0.10), 0 2px 6px rgba(15, 23, 42, 0.06);
+  --shadow-modal: 0 20px 40px -10px rgba(15, 23, 42, 0.18);
+  --shadow-glass: 0 4px 24px -2px rgba(15, 23, 42, 0.06);
 
   --bg-main: var(--bg-primary);
   --bg-surface: var(--bg-secondary);
@@ -181,7 +239,7 @@ body.light-mode {
 }
 
 body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: var(--font-family-sans);
   background-color: var(--bg-main);
   color: var(--text-main);
   min-height: 100vh;
@@ -189,18 +247,30 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   line-height: 1.5;
-  transition: background-color 0.4s ease, color 0.4s ease;
+  transition: background-color var(--duration-normal) var(--ease-standard),
+              color var(--duration-normal) var(--ease-standard);
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: 'Outfit', sans-serif;
+  font-family: var(--font-family-display);
   letter-spacing: -0.025em;
   font-weight: 700;
   color: var(--text-main);
 }
 
+/* Universal Apple HIG Focus Rings */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
 /* ==========================================================================
-   DYNAMIC BACKGROUND SLIDESHOW (From GeneralTemplate)
+   DYNAMIC BACKGROUND SLIDESHOW
    ========================================================================== */
 .dynamic-bg-container {
   position: fixed;
@@ -258,13 +328,13 @@ h1, h2, h3, h4, h5, h6 {
   inset: 0;
   background: radial-gradient(circle at 50% 10%, rgba(99, 102, 241, 0.15) 0%, transparent 60%),
               radial-gradient(circle at 90% 85%, rgba(20, 184, 166, 0.1) 0%, transparent 50%),
-              linear-gradient(to bottom, rgba(9, 9, 11, 0.4) 0%, var(--bg-main) 90%);
+              linear-gradient(to bottom, rgba(11, 15, 25, 0.5) 0%, var(--bg-main) 90%);
 }
 
 .light-theme .dynamic-bg-overlay {
   background: radial-gradient(circle at 50% 10%, rgba(99, 102, 241, 0.08) 0%, transparent 60%),
               radial-gradient(circle at 90% 85%, rgba(20, 184, 166, 0.06) 0%, transparent 50%),
-              linear-gradient(to bottom, rgba(243, 244, 248, 0.6) 0%, var(--bg-main) 90%);
+              linear-gradient(to bottom, rgba(248, 250, 252, 0.6) 0%, var(--bg-main) 90%);
 }
 
 /* ==========================================================================

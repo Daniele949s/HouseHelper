@@ -209,7 +209,7 @@ export default function ViewDocumenti() {
   const handleDelete = async (docItem) => {
     const confirmed = await showConfirm({
       title: "Elimina Documento",
-      message: `Sei sicuro di voler eliminare "${docItem.nome}"? Il documento verra rimosso per tutti i coinquilini.`,
+      message: `Sei sicuro di voler eliminare "${docItem.nome}"? Il documento verrà rimosso per tutti i coinquilini.`,
       confirmText: "Elimina",
       cancelText: "Annulla",
       isDanger: true
@@ -514,7 +514,7 @@ export default function ViewDocumenti() {
             onChange={(e) => setSortBy(e.target.value)}
             aria-label="Ordina documenti"
           >
-            <option value="date-desc">Piu recenti</option>
+            <option value="date-desc">Più recenti</option>
             <option value="date-asc">Meno recenti</option>
             <option value="name-asc">Nome (A - Z)</option>
             <option value="size-desc">Dimensione</option>

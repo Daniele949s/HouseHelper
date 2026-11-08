@@ -137,9 +137,35 @@ describe("Milestone 2 Adversarial Stress Suite", () => {
       fireEvent.click(burgerBtn);
       expect(document.body.style.overflow).toBe("hidden");
 
-      // Click close button inside drawer
+      // Verify exactly ONE close button exists when drawer is open
       const closeButtons = screen.getAllByRole("button", { name: /chiudi menu/i });
+      expect(closeButtons).toHaveLength(1);
+      expect(closeButtons[0]).toHaveClass("mobile-close-btn");
+
+      // Click close button inside drawer
       fireEvent.click(closeButtons[0]);
+      expect(document.body.style.overflow).toBe("");
+    });
+
+    test("dismisses drawer on Escape key and backdrop click", async () => {
+      renderWithProviders(<MobileNavigation />, {
+        user: { uid: "user_esc", email: "esc@test.com" },
+        userData: { username: "EscTester", casaId: "casa_1" },
+      });
+
+      const burgerBtn = await screen.findByRole("button", { name: /apri menu di navigazione/i });
+      fireEvent.click(burgerBtn);
+      expect(document.body.style.overflow).toBe("hidden");
+
+      // Press Escape
+      fireEvent.keyDown(window, { key: "Escape" });
+      expect(document.body.style.overflow).toBe("");
+
+      // Open again and click backdrop overlay
+      fireEvent.click(burgerBtn);
+      expect(document.body.style.overflow).toBe("hidden");
+      const overlay = document.querySelector(".mobile-menu-overlay");
+      fireEvent.click(overlay);
       expect(document.body.style.overflow).toBe("");
     });
   });

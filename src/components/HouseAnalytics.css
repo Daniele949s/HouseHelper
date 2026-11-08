@@ -4,12 +4,12 @@
 .analytics-card {
   grid-column: span 12;
   background: var(--bg-card);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
   padding: 26px 28px;
-  box-shadow: var(--shadow-subtle);
+  box-shadow: var(--shadow-card);
   transition: all 0.3s ease;
   text-align: left;
 }
@@ -73,14 +73,17 @@
   background: transparent;
   color: var(--text-secondary);
   padding: 8px 16px;
+  min-height: 44px;
+  box-sizing: border-box;
   border-radius: var(--radius-full);
   font-size: 0.88rem;
   font-weight: 600;
   border: none;
   cursor: pointer;
   transition: all 0.25s cubic-bezier(0.22, 0.61, 0.36, 1);
-  display: flex;
+  display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
 }
 
@@ -436,6 +439,7 @@
     flex: 1;
     justify-content: center;
     padding: 8px 10px;
+    min-height: 44px;
     font-size: 0.8rem;
   }
   .spesa-summary-grid {

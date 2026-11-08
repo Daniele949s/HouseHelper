@@ -138,7 +138,7 @@ export default function SceltaCasa() {
             <span>Crea una nuova Casa</span>
           </h3>
           <p className="scelta-desc" style={{ marginBottom: "14px", fontSize: "0.92rem", color: "var(--text-secondary)" }}>
-            Genera un nuovo nucleo e riceverai un codice invito univoco per i tuoi coinquilini.
+            Dai un nome alla casa e riceverai un codice invito da condividere con i coinquilini.
           </p>
           <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
             <div className="input-with-icon" style={{ flex: 1, minWidth: "220px" }}>

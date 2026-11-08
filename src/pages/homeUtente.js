@@ -9,23 +9,32 @@ import HouseholdStatus from "../components/HouseholdStatus";
 import { safeFloat, validateDate } from "../utils/security";
 import { showToast, showConfirm } from "../utils/feedback";
 import { isUserOnVacation } from "../utils/choreRotation";
+import { getOfflineData, saveOfflineData } from "../utils/offlineStorage";
 
 export default function HomeUtente() {
   const navigate = useNavigate();
   const { currentUser, userData, setUserData } = useAuth();
 
-  const [casa, setCasa] = useState(null);
-  const [prossimoTurno, setProssimoTurno] = useState(null);
-  const [saldo, setSaldo] = useState(0);
-  const [ultimoAvviso, setUltimoAvviso] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const cachedInitial = useMemo(() => {
+    if (userData?.casaId) {
+      return getOfflineData(userData.casaId, "dashboard_cache");
+    }
+    return null;
+  }, [userData?.casaId]);
+
+  const [casa, setCasa] = useState(() => cachedInitial?.casa || null);
+  const [prossimoTurno, setProssimoTurno] = useState(() => cachedInitial?.prossimoTurno || null);
+  const [saldo, setSaldo] = useState(() => cachedInitial?.saldo || 0);
+  const [ultimoAvviso, setUltimoAvviso] = useState(() => cachedInitial?.ultimoAvviso || null);
+  const [loading, setLoading] = useState(() => !cachedInitial);
+  const [isSyncing, setIsSyncing] = useState(false);
   const [copiedCode, setCopiedCode] = useState(false);
 
   // Complete data sets for HouseAnalytics & Active Metrics
-  const [turniList, setTurniList] = useState([]);
-  const [debitiList, setDebitiList] = useState([]);
-  const [spesaList, setSpesaList] = useState([]);
-  const [utentiMap, setUtentiMap] = useState({});
+  const [turniList, setTurniList] = useState(() => cachedInitial?.turniList || []);
+  const [debitiList, setDebitiList] = useState(() => cachedInitial?.debitiList || []);
+  const [spesaList, setSpesaList] = useState(() => cachedInitial?.spesaList || []);
+  const [utentiMap, setUtentiMap] = useState(() => cachedInitial?.utentiMap || {});
 
   // Vacation / Away Mode state
   const [inVacanza, setInVacanza] = useState(false);
@@ -46,16 +55,50 @@ export default function HomeUtente() {
 
   useEffect(() => {
     const fetchDashboardData = async () => {
+      const casaId = userData.casaId;
+      if (!casaId) return;
+
+      // Hydrate state from offline cache if available
+      const cached = getOfflineData(casaId, "dashboard_cache");
+      if (cached) {
+        if (cached.casa) setCasa(cached.casa);
+        if (cached.prossimoTurno !== undefined) setProssimoTurno(cached.prossimoTurno);
+        if (cached.saldo !== undefined) setSaldo(cached.saldo);
+        if (cached.ultimoAvviso !== undefined) setUltimoAvviso(cached.ultimoAvviso);
+        if (cached.turniList) setTurniList(cached.turniList);
+        if (cached.debitiList) setDebitiList(cached.debitiList);
+        if (cached.spesaList) setSpesaList(cached.spesaList);
+        if (cached.utentiMap) setUtentiMap(cached.utentiMap);
+        setLoading(false);
+      }
+
+      setIsSyncing(true);
       try {
-        const casaId = userData.casaId;
+        const casaRef = doc(db, "case", casaId);
+        const qUtenti = query(collection(db, "utenti"), where("casaId", "==", casaId));
+        const turniQuery = query(collection(db, "turni"), where("casaId", "==", casaId));
+        const debitiQuery = query(collection(db, "debiti"), where("casaId", "==", casaId));
+        const spesaQuery = query(collection(db, "spesa"), where("casaId", "==", casaId));
+        const noteQuery = query(collection(db, "note"), where("casaId", "==", casaId));
+
+        // Concurrently fetch all independent queries via Promise.all
+        const [casaDoc, snapUtenti, turniSnap, debitiSnap, spesaSnap, noteSnap] = await Promise.all([
+          getDoc(casaRef),
+          getDocs(qUtenti),
+          getDocs(turniQuery),
+          getDocs(debitiQuery),
+          getDocs(spesaQuery),
+          getDocs(noteQuery)
+        ]);
 
         // 1. Casa entity
-        const casaDoc = await getDoc(doc(db, "case", casaId));
-        if (casaDoc.exists()) setCasa({ id: casaDoc.id, ...casaDoc.data() });
+        let casaData = null;
+        if (casaDoc.exists()) {
+          casaData = { id: casaDoc.id, ...casaDoc.data() };
+          setCasa(casaData);
+        }
 
         // 2. Roommates map
-        const qUtenti = query(collection(db, "utenti"), where("casaId", "==", casaId));
-        const snapUtenti = await getDocs(qUtenti);
         const uMap = {};
         snapUtenti.forEach((d) => {
           uMap[d.id] = d.data().username || "Coinquilino";
@@ -65,8 +108,6 @@ export default function HomeUtente() {
         const oggi = new Date().toISOString().split("T")[0];
 
         // 3. Cleaning Shifts
-        const turniQuery = query(collection(db, "turni"), where("casaId", "==", casaId));
-        const turniSnap = await getDocs(turniQuery);
         let allTurni = [];
         let mieiTurni = [];
         turniSnap.forEach((d) => {
@@ -79,12 +120,11 @@ export default function HomeUtente() {
           }
         });
         mieiTurni.sort((a, b) => new Date(a.data) - new Date(b.data));
-        setProssimoTurno(mieiTurni.length > 0 ? mieiTurni[0] : null);
+        const nextTurno = mieiTurni.length > 0 ? mieiTurni[0] : null;
+        setProssimoTurno(nextTurno);
         setTurniList(allTurni);
 
         // 4. Expenses & Debts
-        const debitiQuery = query(collection(db, "debiti"), where("casaId", "==", casaId));
-        const debitiSnap = await getDocs(debitiQuery);
         let allDebiti = [];
         let totale = 0;
         debitiSnap.forEach((d) => {
@@ -98,15 +138,11 @@ export default function HomeUtente() {
         setDebitiList(allDebiti);
 
         // 5. Grocery List
-        const spesaQuery = query(collection(db, "spesa"), where("casaId", "==", casaId));
-        const spesaSnap = await getDocs(spesaQuery);
         let allSpesa = [];
         spesaSnap.forEach((d) => allSpesa.push({ id: d.id, ...d.data() }));
         setSpesaList(allSpesa);
 
         // 6. Bulletin Board Notices
-        const noteQuery = query(collection(db, "note"), where("casaId", "==", casaId));
-        const noteSnap = await getDocs(noteQuery);
         let noteList = [];
         noteSnap.forEach((d) => noteList.push({ id: d.id, ...d.data() }));
         noteList.sort(
@@ -114,11 +150,25 @@ export default function HomeUtente() {
             (b.createdAt?.toMillis ? b.createdAt.toMillis() : 0) -
             (a.createdAt?.toMillis ? a.createdAt.toMillis() : 0)
         );
-        if (noteList.length > 0) setUltimoAvviso(noteList[0]);
+        const nextNotice = noteList.length > 0 ? noteList[0] : null;
+        setUltimoAvviso(nextNotice);
+
+        // Save refreshed data to tenant-scoped offline storage
+        saveOfflineData(casaId, "dashboard_cache", {
+          casa: casaData,
+          prossimoTurno: nextTurno,
+          saldo: totale,
+          ultimoAvviso: nextNotice,
+          turniList: allTurni,
+          debitiList: allDebiti,
+          spesaList: allSpesa,
+          utentiMap: uMap
+        });
       } catch (error) {
         console.error("Errore caricamento dashboard:", error);
       } finally {
         setLoading(false);
+        setIsSyncing(false);
       }
     };
 
@@ -254,35 +304,42 @@ export default function HomeUtente() {
     navigate("/login");
   };
 
-  if (loading) {
-    return (
-      <div className="card" style={{ maxWidth: "400px", margin: "40px auto" }}>
-        <p style={{ color: "var(--text-secondary)" }}>
-          <i className="fas fa-spinner fa-spin fa-2x" aria-hidden="true"></i>
-        </p>
-        <p style={{ marginTop: "16px" }}>Sincronizzazione della casa...</p>
-      </div>
-    );
-  }
-
   const activeGroceriesCount = spesaList.filter((s) => !s.comprato).length;
   const userCurrentlyAway = isUserOnVacation(userData);
 
   return (
     <div style={{ maxWidth: "880px", width: "100%", margin: "0 auto" }}>
       {/* ================= 1. USER GREETING BANNER ================= */}
-      <div className="dashboard-welcome-banner" style={{ marginBottom: "16px", display: "flex", alignItems: "center", gap: "16px" }}>
+      <div className="dashboard-welcome-banner" style={{ marginBottom: "16px", display: "flex", alignItems: "center", gap: "16px", flexWrap: "wrap" }}>
         <div className="welcome-avatar" style={{ fontSize: "2.4rem", color: "var(--color-primary)" }}>
           <i className="fas fa-user-circle" aria-hidden="true"></i>
         </div>
-        <div className="welcome-text" style={{ flex: 1, textAlign: "left" }}>
+        <div className="welcome-text" style={{ flex: 1, minWidth: "180px", textAlign: "left" }}>
           <span className="welcome-greeting" style={{ fontSize: "0.85rem", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
-            Dashboard Coinquilino
+            Panoramica della casa
           </span>
           <h1 className="welcome-username" style={{ margin: "2px 0 0 0", fontSize: "1.6rem" }}>
             Bentornato, <strong style={{ color: "var(--text-main)" }}>{userData?.username || "Utente"}</strong>
           </h1>
         </div>
+        {isSyncing && (
+          <span
+            className="dashboard-sync-pill"
+            style={{
+              padding: "4px 10px",
+              borderRadius: "var(--radius-full)",
+              background: "rgba(37, 99, 235, 0.12)",
+              color: "var(--color-primary)",
+              fontWeight: "600",
+              fontSize: "0.82rem",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "6px"
+            }}
+          >
+            <i className="fas fa-sync-alt fa-spin" aria-hidden="true"></i> Aggiornamento in corso...
+          </span>
+        )}
         {userCurrentlyAway && (
           <span
             style={{
@@ -297,7 +354,7 @@ export default function HomeUtente() {
               gap: "6px"
             }}
           >
-            <i className="fas fa-plane-departure" aria-hidden="true"></i> Fuori Casa
+            <i className="fas fa-plane-departure" aria-hidden="true"></i> Fuori casa
           </span>
         )}
       </div>
@@ -328,7 +385,7 @@ export default function HomeUtente() {
                 type="button"
                 onClick={() => dismissReminder(rem.id)}
                 className="btn-text"
-                style={{ padding: "2px 6px", color: "inherit", fontSize: "0.9rem" }}
+                style={{ padding: "8px", minHeight: "44px", minWidth: "44px", display: "inline-flex", alignItems: "center", justifyContent: "center", color: "inherit", fontSize: "0.9rem" }}
                 aria-label="Ignora promemoria"
               >
                 <i className="fas fa-times" aria-hidden="true"></i>
@@ -339,28 +396,39 @@ export default function HomeUtente() {
       )}
 
       {/* ================= 2. HOUSEHOLD STATUS PRESENCE CARD ================= */}
-      <div
-        onClickCapture={(e) => {
-          const btn = e.target.closest('button[title*="codice invito"]');
-          if (btn && casa?.codiceUnivoco) {
-            if (navigator.clipboard && navigator.clipboard.writeText) {
-              navigator.clipboard.writeText(casa.codiceUnivoco);
+      {loading && !casa ? (
+        <div className="card dashboard-loading-skeleton" style={{ padding: "24px", textAlign: "center", marginBottom: "16px" }}>
+          <p style={{ color: "var(--color-primary)", marginBottom: "8px" }}>
+            <i className="fas fa-sync-alt fa-spin fa-2x" aria-hidden="true"></i>
+          </p>
+          <p style={{ margin: 0, color: "var(--text-secondary)", fontSize: "0.95rem" }}>
+            Caricamento dati della casa...
+          </p>
+        </div>
+      ) : (
+        <div
+          onClickCapture={(e) => {
+            const btn = e.target.closest('button[title*="codice invito"]');
+            if (btn && casa?.codiceUnivoco) {
+              if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(casa.codiceUnivoco);
+              }
+              setCopiedCode(true);
+              setTimeout(() => setCopiedCode(false), 2000);
             }
-            setCopiedCode(true);
-            setTimeout(() => setCopiedCode(false), 2000);
-          }
-        }}
-      >
-        <HouseholdStatus
-          casa={casa}
-          roommateCount={Object.keys(utentiMap).length || 1}
-          prossimoTurno={prossimoTurno}
-          variant="full"
-        />
-        {copiedCode && (
-          <span style={{ position: "absolute", opacity: 0, pointerEvents: "none" }}>Copiato!</span>
-        )}
-      </div>
+          }}
+        >
+          <HouseholdStatus
+            casa={casa}
+            roommateCount={Object.keys(utentiMap).length || 1}
+            prossimoTurno={prossimoTurno}
+            variant="full"
+          />
+          {copiedCode && (
+            <span style={{ position: "absolute", opacity: 0, pointerEvents: "none" }}>Copiato!</span>
+          )}
+        </div>
+      )}
 
       {/* ================= VACATION / AWAY MODE CONTROLS ================= */}
       <div
@@ -392,10 +460,10 @@ export default function HomeUtente() {
             </div>
             <div>
               <h3 style={{ margin: 0, fontSize: "1.05rem", color: "var(--text-main)" }}>
-                Modalità Fuori Casa / In Vacanza
+                Modalità In vacanza
               </h3>
               <p style={{ margin: "2px 0 0 0", fontSize: "0.85rem", color: "var(--text-secondary)" }}>
-                Se attiva, il sistema ti esclude automaticamente dalla rotazione e assegnazione turni.
+                Quando sei assente, i turni di pulizia non ti vengono assegnati.
               </p>
             </div>
           </div>
@@ -408,7 +476,7 @@ export default function HomeUtente() {
               style={{ width: "22px", height: "22px", accentColor: "#f59e0b" }}
             />
             <span style={{ fontWeight: "700", color: inVacanza ? "#f59e0b" : "var(--text-main)" }}>
-              {inVacanza ? "Attiva (In Vacanza)" : "Disattivata"}
+              {inVacanza ? "Attiva (fuori casa)" : "Non attiva"}
             </span>
           </label>
         </div>
@@ -418,7 +486,7 @@ export default function HomeUtente() {
             <div style={{ display: "flex", gap: "12px", flexWrap: "wrap", alignItems: "flex-end" }}>
               <div style={{ flex: 1, minWidth: "140px" }}>
                 <label style={{ fontSize: "0.82rem", color: "var(--text-muted)", display: "block", marginBottom: "4px" }}>
-                  Data Inizio Assenza
+                  Data di partenza
                 </label>
                 <input
                   type="date"
@@ -431,7 +499,7 @@ export default function HomeUtente() {
 
               <div style={{ flex: 1, minWidth: "140px" }}>
                 <label style={{ fontSize: "0.82rem", color: "var(--text-muted)", display: "block", marginBottom: "4px" }}>
-                  Data Fine Assenza
+                  Data di rientro
                 </label>
                 <input
                   type="date"
@@ -447,7 +515,7 @@ export default function HomeUtente() {
                 type="submit"
                 className="btn-primary"
                 disabled={savingVacanza}
-                style={{ padding: "8px 16px", height: "38px", fontSize: "0.88rem", width: "auto" }}
+                style={{ padding: "10px 18px", minHeight: "44px", height: "44px", fontSize: "0.88rem", width: "auto" }}
               >
                 {savingVacanza ? (
                   <>
@@ -455,7 +523,7 @@ export default function HomeUtente() {
                   </>
                 ) : (
                   <>
-                    <i className="fas fa-save" aria-hidden="true"></i> Salva Date
+                    <i className="fas fa-save" aria-hidden="true"></i> Salva date assenza
                   </>
                 )}
               </button>
@@ -522,7 +590,7 @@ export default function HomeUtente() {
                     margin: 0
                   }}
                 >
-                  Il tuo Prossimo Turno
+                  Prossimo turno
                 </h3>
               </div>
             </div>
@@ -566,7 +634,7 @@ export default function HomeUtente() {
             type="button"
             className="btn-text"
             onClick={() => navigate("/turni")}
-            style={{ alignSelf: "flex-start", padding: "6px 0", marginTop: "16px", color: "#f59e0b" }}
+            style={{ alignSelf: "flex-start", padding: "8px 0", minHeight: "44px", display: "inline-flex", alignItems: "center", marginTop: "16px", color: "#f59e0b" }}
           >
             <span>Gestisci tutti i turni</span>
             <i className="fas fa-arrow-right" style={{ marginLeft: "4px" }} aria-hidden="true"></i>
@@ -598,7 +666,7 @@ export default function HomeUtente() {
                     margin: 0
                   }}
                 >
-                  Bilancio Spese Personale
+                  Bilancio spese
                 </h3>
               </div>
             </div>
@@ -617,9 +685,9 @@ export default function HomeUtente() {
               </h2>
               <p style={{ color: "var(--text-muted)", fontSize: "0.9rem", margin: "6px 0 0 0" }}>
                 {saldo > 0
-                  ? "Gli altri coinquilini ti devono dei soldi."
+                  ? "Gli altri coinquilini ti devono dei soldi"
                   : saldo < 0
-                  ? "Hai debiti pendenti verso la casa."
+                  ? "Hai debiti pendenti verso la casa"
                   : "Siete tutti in parità!"}
               </p>
             </div>
@@ -629,9 +697,9 @@ export default function HomeUtente() {
             type="button"
             className="btn-text"
             onClick={() => navigate("/debiti")}
-            style={{ alignSelf: "flex-start", padding: "6px 0", marginTop: "16px", color: "var(--color-accent)" }}
+            style={{ alignSelf: "flex-start", padding: "8px 0", minHeight: "44px", display: "inline-flex", alignItems: "center", marginTop: "16px", color: "var(--color-primary)" }}
           >
-            <span>Vedi dettagli spese</span>
+            <span>Vedi spese e saldi</span>
             <i className="fas fa-arrow-right" style={{ marginLeft: "4px" }} aria-hidden="true"></i>
           </button>
         </div>
@@ -661,7 +729,7 @@ export default function HomeUtente() {
                     margin: 0
                   }}
                 >
-                  Lista Spesa Attiva
+                  Lista della spesa
                 </h3>
               </div>
             </div>
@@ -672,10 +740,10 @@ export default function HomeUtente() {
               </h2>
               <p style={{ color: "var(--text-muted)", fontSize: "0.9rem", margin: "6px 0 0 0" }}>
                 {activeGroceriesCount === 0
-                  ? "Dispensa al completo! Nessun articolo mancante."
+                  ? "Dispensa al completo! Nessun articolo da comprare."
                   : activeGroceriesCount === 1
-                  ? "1 articolo da acquistare per la casa."
-                  : `${activeGroceriesCount} articoli da acquistare per la casa.`}
+                  ? "1 articolo da comprare per la casa."
+                  : `${activeGroceriesCount} articoli da comprare per la casa.`}
               </p>
             </div>
           </div>
@@ -684,9 +752,9 @@ export default function HomeUtente() {
             type="button"
             className="btn-text"
             onClick={() => navigate("/spesa")}
-            style={{ alignSelf: "flex-start", padding: "6px 0", marginTop: "16px", color: "var(--color-accent)" }}
+            style={{ alignSelf: "flex-start", padding: "8px 0", minHeight: "44px", display: "inline-flex", alignItems: "center", marginTop: "16px", color: "var(--color-primary)" }}
           >
-            <span>Vedi lista spesa</span>
+            <span>Apri lista della spesa</span>
             <i className="fas fa-arrow-right" style={{ marginLeft: "4px" }} aria-hidden="true"></i>
           </button>
         </div>
@@ -713,7 +781,7 @@ export default function HomeUtente() {
                 margin: 0
               }}
             >
-              Ultimo Avviso in Bacheca
+              Ultimo avviso in bacheca
             </h3>
           </div>
 
@@ -734,16 +802,16 @@ export default function HomeUtente() {
               </p>
             </div>
           ) : (
-            <p style={{ color: "var(--text-muted)", margin: 0 }}>Nessun avviso recente in bacheca.</p>
+            <p style={{ color: "var(--text-muted)", margin: 0 }}>Nessun avviso in bacheca. Lascia un messaggio ai coinquilini!</p>
           )}
 
           <button
             type="button"
             className="btn-text"
             onClick={() => navigate("/bacheca")}
-            style={{ alignSelf: "flex-start", padding: "6px 0", marginTop: "16px", color: "var(--color-primary)" }}
+            style={{ alignSelf: "flex-start", padding: "8px 0", minHeight: "44px", display: "inline-flex", alignItems: "center", marginTop: "16px", color: "var(--color-primary)" }}
           >
-            <span>Vai alla bacheca</span>
+            <span>Apri la bacheca</span>
             <i className="fas fa-arrow-right" style={{ marginLeft: "4px" }} aria-hidden="true"></i>
           </button>
         </div>
@@ -761,14 +829,14 @@ export default function HomeUtente() {
         <div className="bento-item bento-account">
           <p style={{ margin: 0, color: "var(--text-muted)", fontSize: "0.9rem" }}>
             <i className="fas fa-user-shield" style={{ marginRight: "8px" }} aria-hidden="true"></i>
-            <span>Account HouseHelper</span>
+            <span>Il tuo account</span>
           </p>
           <div style={{ display: "flex", gap: "10px" }}>
             <button
               type="button"
               onClick={lasciaCasa}
               className="btn-danger-outline"
-              style={{ fontSize: "0.88rem" }}
+              style={{ fontSize: "0.88rem", minHeight: "44px", display: "inline-flex", alignItems: "center", gap: "6px", padding: "10px 16px" }}
             >
               <i className="fas fa-door-open" aria-hidden="true"></i>
               <span>Lascia Casa</span>
@@ -777,7 +845,7 @@ export default function HomeUtente() {
               type="button"
               onClick={handleLogout}
               className="btn-secondary"
-              style={{ padding: "8px 16px", width: "auto", fontSize: "0.88rem" }}
+              style={{ padding: "10px 18px", minHeight: "44px", display: "inline-flex", alignItems: "center", gap: "6px", width: "auto", fontSize: "0.88rem" }}
             >
               <i className="fas fa-sign-out-alt" aria-hidden="true"></i>
               <span>Esci</span>

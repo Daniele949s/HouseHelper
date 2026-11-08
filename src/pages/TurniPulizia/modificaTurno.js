@@ -89,7 +89,7 @@ export default function ModificaTurno() {
     const dateValidation = validateDate(turno.data);
 
     if (cleanedNomi.length === 0) {
-      setError("Inserisci almeno un operatore valido per il turno.");
+      setError("Indica almeno un coinquilino per questo turno.");
       return;
     }
 
@@ -146,7 +146,7 @@ export default function ModificaTurno() {
       <h1 style={{ marginBottom: "6px" }}>
         Modifica Turno <i className="fas fa-pen" style={{ fontSize: "0.85em", marginLeft: "6px" }} aria-hidden="true"></i>
       </h1>
-      <p className="subtitle" style={{ marginBottom: "24px" }}>Aggiorna data, luogo o assegnatari del turno</p>
+      <p className="subtitle" style={{ marginBottom: "24px" }}>Aggiorna data, zona o coinquilini assegnati</p>
 
       {error && (
         <div className="error-alert" role="alert" style={{ marginBottom: "20px" }}>
@@ -157,7 +157,7 @@ export default function ModificaTurno() {
 
       <form onSubmit={handleSubmit} className="auth-form" style={{ textAlign: "left" }}>
         <div className="input-group">
-          <label htmlFor="edit-nomi">Operatori (separati da virgola, max 10 persone)</label>
+          <label htmlFor="edit-nomi">Coinquilini assegnati (separati da virgola)</label>
           <input
             id="edit-nomi"
             type="text"
@@ -170,7 +170,7 @@ export default function ModificaTurno() {
         </div>
 
         <div className="input-group">
-          <label htmlFor="edit-data">Data</label>
+          <label htmlFor="edit-data">Data del turno *</label>
           <input
             id="edit-data"
             type="date"
@@ -184,9 +184,9 @@ export default function ModificaTurno() {
         </div>
 
         <div className="input-group">
-          <label htmlFor="edit-fascia">Fascia Oraria</label>
+          <label htmlFor="edit-fascia">Orario indicativo *</label>
           <select id="edit-fascia" name="fasciaOraria" value={turno.fasciaOraria} onChange={handleChange} required>
-            <option value="">-- Seleziona orario --</option>
+            <option value="">Seleziona una fascia oraria</option>
             {FASCE_DISPONIBILI.map((f) => (
               <option key={f} value={f}>{f}</option>
             ))}
@@ -194,7 +194,7 @@ export default function ModificaTurno() {
         </div>
 
         <div className="input-group">
-          <label htmlFor="edit-luoghi">Luoghi da pulire (separati da virgola)</label>
+          <label htmlFor="edit-luoghi">Zona o mansione *</label>
           <input
             id="edit-luoghi"
             type="text"
@@ -207,7 +207,7 @@ export default function ModificaTurno() {
         </div>
 
         <div className="input-group">
-          <label htmlFor="edit-procedura">Istruzioni e Note (opzionale)</label>
+          <label htmlFor="edit-procedura">Note e istruzioni (opzionale)</label>
           <textarea
             id="edit-procedura"
             name="procedura"

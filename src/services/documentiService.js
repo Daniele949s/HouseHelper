@@ -60,7 +60,7 @@ export function validateDocumentFile(file) {
     return { isValid: false, error: "Nessun file selezionato." };
   }
   if (file.size <= 0) {
-    return { isValid: false, error: "Il file selezionato e' vuoto." };
+    return { isValid: false, error: "Il file selezionato è vuoto." };
   }
   if (file.size > MAX_FILE_SIZE_BYTES) {
     return { isValid: false, error: "Il file supera la dimensione massima consentita di 15 MB." };
@@ -131,7 +131,7 @@ export async function caricaDocumento({ file, nome, categoria, note, casaId, cur
       finalStoragePath = "";
     } else {
       throw new Error(
-        "Firebase Storage non e' attivo su questo progetto. Sul piano gratuito con Firestore puoi caricare file fino a 800 KB (es. bollette PDF, foto ricevute, scontrini)."
+        "Firebase Storage non è attivo su questo progetto. Sul piano gratuito con Firestore puoi caricare file fino a 800 KB (es. bollette PDF, foto ricevute, scontrini)."
       );
     }
   }

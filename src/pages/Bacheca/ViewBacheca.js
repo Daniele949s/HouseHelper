@@ -125,12 +125,12 @@ export default function ViewBacheca() {
   }
 
   return (
-    <div className="card" style={{ maxWidth: "820px", padding: "2.5rem" }}>
+    <div className="card domain-page-card" style={{ maxWidth: "820px" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2rem", flexWrap: "wrap", gap: "12px" }}>
         <div>
           <h1 style={{ margin: 0, textAlign: "left" }}>Bacheca Condivisa <i className="fas fa-thumbtack" style={{ fontSize: "0.85em", marginLeft: "6px" }}></i></h1>
           <p style={{ margin: "4px 0 0 0", color: "var(--text-secondary)", textAlign: "left", fontSize: "0.92rem" }}>
-            Avvisi e messaggi importanti per la convivenza
+            Avvisi e messaggi condivisi per la casa
           </p>
         </div>
         <button
@@ -147,7 +147,7 @@ export default function ViewBacheca() {
           <div style={{ padding: "3rem 1rem", textAlign: "center", background: "var(--bg-input)", borderRadius: "var(--radius-md)" }}>
             <i className="fas fa-clipboard-list" style={{ fontSize: "3rem", opacity: 0.7 }}></i>
             <p className="subtitle" style={{ marginTop: "12px", marginBottom: 0 }}>
-              Non ci sono comunicazioni attive.
+              Non ci sono comunicazioni attive. Lascia il primo avviso per i tuoi coinquilini!
             </p>
           </div>
         ) : (
@@ -174,20 +174,42 @@ export default function ViewBacheca() {
                   {isMia && (
                     <div className="bacheca-actions">
                       <button
+                        type="button"
                         className="btn-secondary"
                         onClick={() => navigate(`/bacheca/modifica/${n.id}`)}
-                        style={{ padding: "6px 12px", fontSize: "0.85rem", width: "auto" }}
+                        style={{
+                          padding: "8px 14px",
+                          fontSize: "0.85rem",
+                          minWidth: "44px",
+                          minHeight: "44px",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          width: "auto"
+                        }}
                         title="Modifica"
+                        aria-label="Modifica avviso"
                       >
-                        <i className="fas fa-edit"></i>
+                        <i className="fas fa-edit" aria-hidden="true"></i>
                       </button>
                       <button
+                        type="button"
                         className="btn-danger-outline"
                         onClick={() => eliminaNota(n.id, n.autoreId)}
-                        style={{ padding: "6px 12px", fontSize: "0.85rem", width: "auto" }}
+                        style={{
+                          padding: "8px 14px",
+                          fontSize: "0.85rem",
+                          minWidth: "44px",
+                          minHeight: "44px",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          width: "auto"
+                        }}
                         title="Elimina"
+                        aria-label="Elimina avviso"
                       >
-                        <i className="fas fa-trash"></i>
+                        <i className="fas fa-trash" aria-hidden="true"></i>
                       </button>
                     </div>
                   )}

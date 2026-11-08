@@ -35,7 +35,7 @@ export default function NotFound() {
         style={{ width: "auto", padding: "12px 28px", margin: "0 auto" }}
       >
         <i className="fas fa-home" style={{ marginRight: "8px" }}></i>
-        Torna alla Dashboard Sicura
+        Torna alla dashboard
       </button>
     </div>
   );

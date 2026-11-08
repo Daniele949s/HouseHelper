@@ -201,10 +201,10 @@ export default function ViewContatti() {
       <div className="section-header">
         <div>
           <h1 className="dashboard-title">
-            <i className="fas fa-address-book" aria-hidden="true"></i> Rubrica Contatti Utili
+            <i className="fas fa-address-book" aria-hidden="true"></i> Contatti Utili della Casa
           </h1>
           <p className="dashboard-subtitle">
-            Numeri utili, proprietario, artigiani e contatti di emergenza della casa
+            Numeri di emergenza, proprietario, tecnici e servizi utili per la casa
           </p>
         </div>
         <div>
@@ -344,7 +344,7 @@ export default function ViewContatti() {
                           className="btn btn-sm btn-action-email"
                           aria-label={`Invia email a ${contact.nome}`}
                         >
-                          <i className="fas fa-paper-plane" aria-hidden="true"></i> Invia
+                          <i className="fas fa-paper-plane" aria-hidden="true"></i> Scrivi email
                         </a>
                       )}
                     </div>

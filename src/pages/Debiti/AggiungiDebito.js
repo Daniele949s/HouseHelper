@@ -235,7 +235,7 @@ export default function AggiungiDebito() {
         Nuova Spesa <i className="fas fa-wallet" style={{ fontSize: "0.85em", marginLeft: "6px" }} aria-hidden="true"></i>
       </h1>
       <p className="subtitle" style={{ marginBottom: "24px" }}>
-        Registra una spesa singola o dividila con i tuoi coinquilini
+        Inserisci una spesa e dividila con i coinquilini
       </p>
 
       {error && (
@@ -276,9 +276,13 @@ export default function AggiungiDebito() {
                   color: "var(--text-secondary)",
                   border: "1px solid var(--border-color)",
                   borderRadius: "var(--radius-sm)",
-                  padding: "4px 10px",
-                  fontSize: "0.8rem",
-                  cursor: "pointer"
+                  padding: "8px 14px",
+                  minHeight: "40px",
+                  fontSize: "0.85rem",
+                  cursor: "pointer",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center"
                 }}
               >
                 +{inc} €
@@ -302,7 +306,7 @@ export default function AggiungiDebito() {
 
         {/* Chi ha pagato */}
         <div className="input-group">
-          <label htmlFor="debito-creditore">Chi ha anticipato i soldi? *</label>
+          <label htmlFor="debito-creditore">Chi ha pagato la spesa? *</label>
           <select
             id="debito-creditore"
             value={debito.creditoreId}
@@ -362,6 +366,10 @@ export default function AggiungiDebito() {
                   className={`btn-split-mode ${splitMode === "uguali" ? "active" : ""}`}
                   style={{
                     padding: "8px 10px",
+                    minHeight: "44px",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
                     borderRadius: "var(--radius-sm)",
                     border: splitMode === "uguali" ? "2px solid var(--color-primary)" : "1px solid var(--border-color)",
                     background: splitMode === "uguali" ? "rgba(37, 99, 235, 0.1)" : "var(--bg-card)",
@@ -371,7 +379,7 @@ export default function AggiungiDebito() {
                     cursor: "pointer"
                   }}
                 >
-                  <i className="fas fa-users" aria-hidden="true" style={{ marginRight: "4px" }}></i> Uguali
+                  <i className="fas fa-users" aria-hidden="true" style={{ marginRight: "4px" }}></i> Parti uguali
                 </button>
 
                 <button
@@ -380,6 +388,10 @@ export default function AggiungiDebito() {
                   className={`btn-split-mode ${splitMode === "fissi" ? "active" : ""}`}
                   style={{
                     padding: "8px 10px",
+                    minHeight: "44px",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
                     borderRadius: "var(--radius-sm)",
                     border: splitMode === "fissi" ? "2px solid var(--color-primary)" : "1px solid var(--border-color)",
                     background: splitMode === "fissi" ? "rgba(37, 99, 235, 0.1)" : "var(--bg-card)",
@@ -398,6 +410,10 @@ export default function AggiungiDebito() {
                   className={`btn-split-mode ${splitMode === "percentuali" ? "active" : ""}`}
                   style={{
                     padding: "8px 10px",
+                    minHeight: "44px",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
                     borderRadius: "var(--radius-sm)",
                     border: splitMode === "percentuali" ? "2px solid var(--color-primary)" : "1px solid var(--border-color)",
                     background: splitMode === "percentuali" ? "rgba(37, 99, 235, 0.1)" : "var(--bg-card)",
@@ -416,6 +432,10 @@ export default function AggiungiDebito() {
                   className={`btn-split-mode ${splitMode === "esclusioni" ? "active" : ""}`}
                   style={{
                     padding: "8px 10px",
+                    minHeight: "44px",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
                     borderRadius: "var(--radius-sm)",
                     border: splitMode === "esclusioni" ? "2px solid var(--color-primary)" : "1px solid var(--border-color)",
                     background: splitMode === "esclusioni" ? "rgba(37, 99, 235, 0.1)" : "var(--bg-card)",
@@ -434,7 +454,7 @@ export default function AggiungiDebito() {
                 <div style={{ padding: "10px 14px", background: "rgba(13, 148, 136, 0.1)", borderRadius: "var(--radius-sm)", color: "var(--color-accent)", fontSize: "0.88rem" }}>
                   <div>
                     <i className="fas fa-calculator" aria-hidden="true" style={{ marginRight: "6px" }}></i>
-                    Diviso equamente in {coinquilini.length} quote identiche (con allocazione esatta dei centesimi).
+                    Diviso in parti uguali tra {coinquilini.length} coinquilini con calcolo esatto dei centesimi.
                   </div>
                   {coinquilini.length > 0 && safeFloat(debito.importo) > 0 && (
                     <div style={{ marginTop: "6px", fontWeight: "600" }}>
@@ -449,15 +469,15 @@ export default function AggiungiDebito() {
                 <div>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
                     <span style={{ fontSize: "0.85rem", color: "var(--text-secondary)" }}>
-                      Specifica la quota fissa a carico di ciascun membro:
+                      Indica la quota a carico di ciascun coinquilino:
                     </span>
                     <button
                       type="button"
                       onClick={handleDistributeEvenly}
                       className="btn-text"
-                      style={{ fontSize: "0.8rem", padding: "2px 6px" }}
+                      style={{ fontSize: "0.8rem", padding: "8px 12px", minHeight: "44px", display: "inline-flex", alignItems: "center" }}
                     >
-                      <i className="fas fa-balance-scale" aria-hidden="true"></i> Distribuisci equamente
+                      <i className="fas fa-balance-scale" aria-hidden="true" style={{ marginRight: "6px" }}></i> Dividi in parti uguali
                     </button>
                   </div>
 
@@ -492,15 +512,15 @@ export default function AggiungiDebito() {
                 <div>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
                     <span style={{ fontSize: "0.85rem", color: "var(--text-secondary)" }}>
-                      Specifica la percentuale per ciascun membro (totale 100%):
+                      Indica la percentuale per ciascun coinquilino (totale 100%):
                     </span>
                     <button
                       type="button"
                       onClick={handleDistributeEvenly}
                       className="btn-text"
-                      style={{ fontSize: "0.8rem", padding: "2px 6px" }}
+                      style={{ fontSize: "0.8rem", padding: "8px 12px", minHeight: "44px", display: "inline-flex", alignItems: "center" }}
                     >
-                      <i className="fas fa-balance-scale" aria-hidden="true"></i> Distribuisci equamente
+                      <i className="fas fa-balance-scale" aria-hidden="true" style={{ marginRight: "6px" }}></i> Dividi in parti uguali
                     </button>
                   </div>
 
@@ -534,7 +554,7 @@ export default function AggiungiDebito() {
               {splitMode === "esclusioni" && (
                 <div>
                   <p style={{ fontSize: "0.85rem", color: "var(--text-secondary)", marginBottom: "8px" }}>
-                    Spunta i coinquilini da <strong>ESCLUDERE</strong> da questa spesa:
+                    Seleziona i coinquilini da escludere dalla spesa:
                   </p>
                   <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
                     {coinquilini.map((c) => {
@@ -560,7 +580,7 @@ export default function AggiungiDebito() {
                             style={{ width: "16px", height: "16px", accentColor: "var(--color-danger)" }}
                           />
                           <span style={{ fontSize: "0.88rem", textDecoration: isExcluded ? "line-through" : "none", color: isExcluded ? "var(--color-danger)" : "var(--text-main)" }}>
-                            {c.username} {isExcluded ? "(Escluso dal pagamento)" : ""}
+                            {c.username} {isExcluded ? "(Escluso dal conteggio)" : ""}
                           </span>
                         </label>
                       );
@@ -592,7 +612,7 @@ export default function AggiungiDebito() {
         {/* Debitore singolo (Only when not divided) */}
         {!isDiviso && (
           <div className="input-group">
-            <label htmlFor="debito-debitore">Chi deve restituire i soldi? *</label>
+            <label htmlFor="debito-debitore">Chi deve restituire la quota? *</label>
             <select
               id="debito-debitore"
               value={debito.debitoreId}

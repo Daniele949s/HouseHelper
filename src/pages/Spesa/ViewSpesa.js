@@ -140,12 +140,12 @@ export default function ViewSpesa() {
   const daComprare = items.length - comprati;
 
   return (
-    <div className="card" style={{ maxWidth: "820px", padding: "2.5rem" }}>
+    <div className="card domain-page-card" style={{ maxWidth: "820px" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem", flexWrap: "wrap", gap: "10px" }}>
         <div>
           <h1 style={{ margin: 0, textAlign: "left" }}>Lista della Spesa <i className="fas fa-shopping-cart" style={{ fontSize: "0.85em", marginLeft: "6px" }}></i></h1>
           <p style={{ margin: "4px 0 0 0", color: "var(--text-secondary)", textAlign: "left", fontSize: "0.92rem" }}>
-            Condividi gli acquisti necessari in tempo reale
+            Aggiungi e spunta gli articoli da comprare per la casa
           </p>
         </div>
       </div>
@@ -173,7 +173,7 @@ export default function ViewSpesa() {
       {/* Quick staple suggestions */}
       <div className="grocery-quick-chips">
         <span style={{ fontSize: "0.82rem", color: "var(--text-muted)", alignSelf: "center", marginRight: "4px" }}>
-          Suggeriti:
+          Frequenti:
         </span>
         {["Latte", "Caffè", "Pane", "Pasta", "Uova", "Detersivo"].map((staple) => (
           <button
@@ -210,9 +210,9 @@ export default function ViewSpesa() {
         <button
           type="submit"
           className="btn-primary"
-          style={{ width: "auto", padding: "0 26px", borderRadius: "var(--radius-full)" }}
+          style={{ width: "auto", padding: "0 26px", borderRadius: "var(--radius-full)", minHeight: "44px" }}
         >
-          <i className="fas fa-plus"></i> Aggiungi
+          <i className="fas fa-plus"></i> Aggiungi alla lista
         </button>
       </form>
 
@@ -252,15 +252,26 @@ export default function ViewSpesa() {
               </div>
 
               <button
+                type="button"
                 onClick={(e) => {
                   e.stopPropagation();
                   handleDelete(item.id);
                 }}
                 className="btn-danger-outline"
-                style={{ padding: "6px 12px", fontSize: "0.85rem", width: "auto" }}
+                style={{
+                  padding: "8px 14px",
+                  fontSize: "0.85rem",
+                  minWidth: "44px",
+                  minHeight: "44px",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  width: "auto"
+                }}
                 title="Rimuovi prodotto"
+                aria-label="Rimuovi prodotto dalla lista"
               >
-                <i className="fas fa-trash"></i>
+                <i className="fas fa-trash" aria-hidden="true"></i>
               </button>
             </div>
           ))

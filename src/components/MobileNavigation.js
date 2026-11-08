@@ -15,6 +15,30 @@ export default function MobileNavigation() {
     setIsOpen(false);
   }, [location.pathname]);
 
+  // Handle external toggle from MobileBottomBar "Altro" button
+  useEffect(() => {
+    const handleToggle = () => {
+      setIsOpen((prev) => !prev);
+    };
+    window.addEventListener("toggle-mobile-menu", handleToggle);
+    return () => {
+      window.removeEventListener("toggle-mobile-menu", handleToggle);
+    };
+  }, []);
+
+  // Handle Escape key to close mobile menu
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape" && isOpen) {
+        setIsOpen(false);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isOpen]);
+
   // Lock body & html scroll completely when mobile menu is open
   useEffect(() => {
     if (isOpen) {
@@ -41,6 +65,12 @@ export default function MobileNavigation() {
     navigate("/login");
   };
 
+  const handleOverlayClick = (e) => {
+    if (e.target === e.currentTarget) {
+      setIsOpen(false);
+    }
+  };
+
   const menuItems = currentUser
     ? [
         { label: "Dashboard", icon: "fa-home", path: "/home" },
@@ -65,8 +95,10 @@ export default function MobileNavigation() {
         type="button"
         className={`burger-container ${isOpen ? "burger-active" : ""}`}
         onClick={() => setIsOpen(!isOpen)}
-        aria-label={isOpen ? "Chiudi menu" : "Apri menu di navigazione"}
+        aria-label="Apri menu di navigazione"
         aria-expanded={isOpen}
+        aria-hidden={isOpen}
+        tabIndex={isOpen ? -1 : 0}
       >
         <div id="burger">
           <span className="bar topBar" />
@@ -75,7 +107,11 @@ export default function MobileNavigation() {
       </button>
 
       {/* Fullscreen Mobile Drawer: 100% Solid Opaque (No transparency) */}
-      <div className={`mobile-menu-overlay ${isOpen ? "menu-opened" : ""}`} aria-hidden={!isOpen}>
+      <div
+        className={`mobile-menu-overlay ${isOpen ? "menu-opened" : ""}`}
+        aria-hidden={!isOpen}
+        onClick={handleOverlayClick}
+      >
         <div className="mobile-menu-inner">
           <div className="mobile-menu-header">
             <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>

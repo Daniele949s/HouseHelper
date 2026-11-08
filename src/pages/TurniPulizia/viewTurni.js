@@ -39,17 +39,20 @@ export default function VisualizzaTurni() {
     setLoading(true);
     setError(null);
     try {
-      // 1. Fetch house doc
-      try {
-        const cSnap = await getDoc(doc(db, "case", userData.casaId));
-        if (cSnap.exists()) setCasaDoc(cSnap.data());
-      } catch {
-        // Fallback
+      // Concurrently fetch house doc, roommates, and turni
+      const qUtenti = query(collection(db, "utenti"), where("casaId", "==", userData.casaId));
+      const q = query(collection(db, "turni"), where("casaId", "==", userData.casaId));
+
+      const [cSnap, snapUtenti, querySnapshot] = await Promise.all([
+        getDoc(doc(db, "case", userData.casaId)).catch(() => null),
+        getDocs(qUtenti),
+        getDocs(q)
+      ]);
+
+      if (cSnap && cSnap.exists && cSnap.exists()) {
+        setCasaDoc(cSnap.data());
       }
 
-      // 2. Fetch roommates
-      const qUtenti = query(collection(db, "utenti"), where("casaId", "==", userData.casaId));
-      const snapUtenti = await getDocs(qUtenti);
       const rList = [];
       snapUtenti.forEach((d) => {
         const u = d.data();
@@ -64,9 +67,6 @@ export default function VisualizzaTurni() {
       });
       setRoommates(rList);
 
-      // 3. Fetch turni
-      const q = query(collection(db, "turni"), where("casaId", "==", userData.casaId));
-      const querySnapshot = await getDocs(q);
       const data = querySnapshot.docs.map((docSnap) => ({
         id: docSnap.id,
         ...docSnap.data()
@@ -97,7 +97,7 @@ export default function VisualizzaTurni() {
 
     const confirmed = await showConfirm({
       title: "Elimina Turno",
-      message: "Sei sicuro di voler eliminare questo turno?",
+      message: "Vuoi eliminare questo turno di pulizia? L'assegnazione verrà rimossa per tutti i coinquilini.",
       confirmText: "Elimina",
       cancelText: "Annulla",
       isDanger: true
@@ -233,7 +233,7 @@ export default function VisualizzaTurni() {
     const confirmed = await showConfirm({
       title: "Rotazione Automatica Turni",
       message:
-        "Vuoi avviare la rotazione per il prossimo ciclo? Il sistema assegnerà la prossima mansione al coinquilino disponibile successivo, saltando chi è in vacanza.",
+        "Vuoi avviare la rotazione dei turni? La mansione verrà assegnata al prossimo coinquilino disponibile, saltando chi è in vacanza.",
       confirmText: "Avvia Rotazione",
       cancelText: "Annulla"
     });
@@ -321,7 +321,7 @@ export default function VisualizzaTurni() {
   }
 
   return (
-    <div className="card" style={{ maxWidth: "860px", padding: "2.5rem", margin: "2rem auto" }}>
+    <div className="card domain-page-card" style={{ maxWidth: "860px" }}>
       {/* Header */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2rem", flexWrap: "wrap", gap: "12px" }}>
         <div>
@@ -329,7 +329,7 @@ export default function VisualizzaTurni() {
             Turni Pulizia <i className="fas fa-broom" style={{ fontSize: "0.85em", marginLeft: "6px" }} aria-hidden="true"></i>
           </h1>
           <p style={{ margin: "4px 0 0 0", color: "var(--text-secondary)", textAlign: "left", fontSize: "0.92rem" }}>
-            Programma chi pulisce cosa nella casa
+            Organizza le pulizie e scopri a chi tocca
           </p>
         </div>
         <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
@@ -388,7 +388,7 @@ export default function VisualizzaTurni() {
           <div>
             <strong style={{ fontSize: "0.95rem" }}>Casa Momentaneamente Vuota</strong>
             <p style={{ margin: "2px 0 0 0", fontSize: "0.85rem" }}>
-              Tutti i coinquilini risultano in vacanza o fuori casa. I turni di pulizia sono temporaneamente sospesi.
+              Tutti i coinquilini risultano in vacanza. I turni di pulizia sono temporaneamente in pausa.
             </p>
           </div>
         </div>
@@ -482,7 +482,7 @@ export default function VisualizzaTurni() {
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
                           <span style={{ fontSize: "0.82rem", fontWeight: "700", color: "var(--text-secondary)", textTransform: "uppercase" }}>
                             <i className="fas fa-tasks" style={{ marginRight: "6px" }} aria-hidden="true"></i>
-                            Checklist ({completedCount}/{checklist.length})
+                            Mansioni ({completedCount}/{checklist.length})
                           </span>
                         </div>
 
@@ -494,12 +494,16 @@ export default function VisualizzaTurni() {
                                 style={{
                                   display: "flex",
                                   alignItems: "center",
-                                  gap: "8px",
+                                  gap: "10px",
                                   cursor: "pointer",
-                                  fontSize: "0.88rem",
+                                  fontSize: "0.9rem",
                                   color: item.completed ? "var(--text-muted)" : "var(--text-main)",
                                   textDecoration: item.completed ? "line-through" : "none",
-                                  margin: 0
+                                  margin: 0,
+                                  minHeight: "40px",
+                                  padding: "6px 8px",
+                                  borderRadius: "var(--radius-sm)",
+                                  boxSizing: "border-box"
                                 }}
                               >
                                 <input
@@ -507,16 +511,17 @@ export default function VisualizzaTurni() {
                                   checked={Boolean(item.completed)}
                                   onChange={() => handleToggleSubTask(turno.id, item.id)}
                                   style={{
-                                    width: "16px",
-                                    height: "16px",
+                                    width: "20px",
+                                    height: "20px",
                                     accentColor: "var(--color-success)",
-                                    cursor: "pointer"
+                                    cursor: "pointer",
+                                    flexShrink: 0
                                   }}
                                 />
                                 <span>{item.text}</span>
                                 {item.completedBy && (
                                   <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", fontStyle: "italic" }}>
-                                    (fatto da {item.completedBy})
+                                    (completato da {item.completedBy})
                                   </span>
                                 )}
                               </label>
@@ -524,7 +529,7 @@ export default function VisualizzaTurni() {
                           </div>
                         ) : (
                           <p style={{ margin: "4px 0 8px 0", fontSize: "0.82rem", color: "var(--text-muted)" }}>
-                            Nessuna sotto-mansione definita.
+                            Nessuna mansione aggiunta.
                           </p>
                         )}
 
@@ -532,7 +537,7 @@ export default function VisualizzaTurni() {
                         <div style={{ display: "flex", gap: "6px", marginTop: "6px" }}>
                           <input
                             type="text"
-                            placeholder="+ Aggiungi mansione..."
+                            placeholder="Aggiungi una mansione..."
                             value={newSubTaskMap[turno.id] || ""}
                             onChange={(e) =>
                               setNewSubTaskMap({ ...newSubTaskMap, [turno.id]: e.target.value })
@@ -546,8 +551,9 @@ export default function VisualizzaTurni() {
                             maxLength={100}
                             style={{
                               flex: 1,
-                              padding: "4px 8px",
-                              fontSize: "0.82rem",
+                              padding: "8px 12px",
+                              minHeight: "44px",
+                              fontSize: "0.88rem",
                               background: "var(--bg-card)",
                               border: "1px solid var(--border-color)",
                               borderRadius: "var(--radius-sm)"
@@ -557,7 +563,8 @@ export default function VisualizzaTurni() {
                             type="button"
                             onClick={() => handleAddDirectSubTask(turno.id)}
                             className="btn-secondary"
-                            style={{ padding: "4px 10px", fontSize: "0.8rem", width: "auto" }}
+                            style={{ padding: "8px 16px", minHeight: "44px", minWidth: "44px", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: "0.85rem", width: "auto" }}
+                            aria-label="Aggiungi mansione rapida"
                           >
                             <i className="fas fa-plus" aria-hidden="true"></i>
                           </button>
@@ -570,7 +577,7 @@ export default function VisualizzaTurni() {
                         type="button"
                         className="btn-secondary"
                         onClick={() => navigate(`/turni/modifica/${turno.id}`)}
-                        style={{ padding: "6px 14px", fontSize: "0.85rem", width: "auto" }}
+                        style={{ padding: "8px 16px", minHeight: "44px", display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "0.85rem", width: "auto" }}
                         title="Modifica"
                       >
                         <i className="fas fa-edit" aria-hidden="true"></i> Modifica
@@ -579,8 +586,9 @@ export default function VisualizzaTurni() {
                         type="button"
                         className="btn-danger-outline"
                         onClick={() => handleDelete(turno.id)}
-                        style={{ padding: "6px 12px", fontSize: "0.85rem", width: "auto" }}
+                        style={{ padding: "8px 14px", minHeight: "44px", minWidth: "44px", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: "0.85rem", width: "auto" }}
                         title="Elimina"
+                        aria-label="Elimina turno"
                       >
                         <i className="fas fa-trash" aria-hidden="true"></i>
                       </button>
@@ -593,8 +601,8 @@ export default function VisualizzaTurni() {
         )}
       </div>
 
-      <button type="button" className="btn-text" onClick={() => navigate("/home")} style={{ marginTop: "30px" }}>
-        <i className="fas fa-arrow-left" style={{ marginRight: "6px" }} aria-hidden="true"></i> Torna alla Dashboard
+      <button type="button" className="btn-text" onClick={() => navigate("/home")} style={{ marginTop: "30px", minHeight: "44px", display: "inline-flex", alignItems: "center" }}>
+        <i className="fas fa-arrow-left" style={{ marginRight: "6px" }} aria-hidden="true"></i> Torna alla dashboard
       </button>
     </div>
   );

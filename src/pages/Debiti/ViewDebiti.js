@@ -44,12 +44,17 @@ export default function ViewDebiti() {
     setLoading(true);
     setError(null);
     try {
-      // 1. Fetch roommates
-      const qUtenti = query(
-        collection(db, "utenti"),
-        where("casaId", "==", userData.casaId)
-      );
-      const snapUtenti = await getDocs(qUtenti);
+      // Concurrently fetch roommates, house doc, and debts
+      const qUtenti = query(collection(db, "utenti"), where("casaId", "==", userData.casaId));
+      const qCasa = query(collection(db, "case"), where("__name__", "==", userData.casaId));
+      const qDebiti = query(collection(db, "debiti"), where("casaId", "==", userData.casaId));
+
+      const [snapUtenti, snapCasa, snapDebiti] = await Promise.all([
+        getDocs(qUtenti),
+        getDocs(qCasa).catch(() => ({ empty: true, docs: [] })),
+        getDocs(qDebiti)
+      ]);
+
       const map = {};
       const list = [];
       snapUtenti.forEach((d) => {
@@ -60,23 +65,10 @@ export default function ViewDebiti() {
       setUtentiMap(map);
       setRoommates(list);
 
-      // 2. Fetch house name if available
-      try {
-        const qCasa = query(collection(db, "case"), where("__name__", "==", userData.casaId));
-        const snapCasa = await getDocs(qCasa);
-        if (!snapCasa.empty) {
-          setCasaNome(snapCasa.docs[0].data().nome || "Casa");
-        }
-      } catch {
-        // Fallback
+      if (snapCasa && !snapCasa.empty) {
+        setCasaNome(snapCasa.docs[0].data().nome || "Casa");
       }
 
-      // 3. Fetch debts
-      const qDebiti = query(
-        collection(db, "debiti"),
-        where("casaId", "==", userData.casaId)
-      );
-      const snapDebiti = await getDocs(qDebiti);
       const data = snapDebiti.docs.map((docSnap) => ({
         id: docSnap.id,
         ...docSnap.data()
@@ -237,7 +229,7 @@ export default function ViewDebiti() {
   }
 
   return (
-    <div className="card" style={{ maxWidth: "820px", padding: "2.5rem" }}>
+    <div className="card domain-page-card" style={{ maxWidth: "820px" }}>
       {/* Header */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2rem", flexWrap: "wrap", gap: "12px" }}>
         <div>
@@ -245,7 +237,7 @@ export default function ViewDebiti() {
             Spese & Debiti <i className="fas fa-wallet" style={{ fontSize: "0.85em", marginLeft: "6px" }} aria-hidden="true"></i>
           </h1>
           <p style={{ margin: "4px 0 0 0", color: "var(--text-secondary)", textAlign: "left", fontSize: "0.92rem" }}>
-            Conti chiari tra coinquilini
+            Tieni traccia delle spese condivise e dei saldi
           </p>
         </div>
         <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
@@ -298,16 +290,16 @@ export default function ViewDebiti() {
         }}
       >
         <p style={{ fontWeight: "600", color: "var(--text-secondary)", textTransform: "uppercase", fontSize: "0.85rem", letterSpacing: "0.05em", margin: "0 0 4px 0" }}>
-          Il tuo Bilancio Netto
+          Il tuo bilancio
         </p>
         <h2 style={{ fontSize: "3rem", margin: "4px 0", color: saldo > 0 ? "var(--color-success)" : saldo < 0 ? "var(--color-danger)" : "var(--text-main)", fontWeight: "800" }}>
           {saldo > 0 ? "+" : ""}{safeFloat(saldo).toFixed(2)} €
         </h2>
         <p style={{ fontSize: "0.95rem", color: "var(--text-muted)", margin: "4px 0 0 0" }}>
           {saldo > 0
-            ? "Ottimo! Gli altri coinquilini ti devono dei soldi."
+            ? "Gli altri coinquilini ti devono dei soldi"
             : saldo < 0
-            ? "Hai debiti pendenti da restituire."
+            ? "Hai debiti pendenti da restituire"
             : "Nessun debito in sospeso. Perfetta parità!"}
         </p>
       </div>
@@ -319,7 +311,7 @@ export default function ViewDebiti() {
             <i className="fas fa-arrow-down" aria-hidden="true"></i>
           </div>
           <div>
-            <span style={{ fontSize: "0.78rem", color: "var(--text-muted)", textTransform: "uppercase", display: "block" }}>Devi ricevere</span>
+            <span style={{ fontSize: "0.78rem", color: "var(--text-muted)", textTransform: "uppercase", display: "block" }}>Da ricevere</span>
             <strong style={{ fontSize: "1.2rem", color: "var(--color-success)" }}>Crediti: {totaleCrediti.toFixed(2)} €</strong>
           </div>
         </div>
@@ -329,7 +321,7 @@ export default function ViewDebiti() {
             <i className="fas fa-arrow-up" aria-hidden="true"></i>
           </div>
           <div>
-            <span style={{ fontSize: "0.78rem", color: "var(--text-muted)", textTransform: "uppercase", display: "block" }}>Devi dare</span>
+            <span style={{ fontSize: "0.78rem", color: "var(--text-muted)", textTransform: "uppercase", display: "block" }}>Da restituire</span>
             <strong style={{ fontSize: "1.2rem", color: "var(--color-danger)" }}>Debiti: {totaleDebiti.toFixed(2)} €</strong>
           </div>
         </div>
@@ -363,7 +355,7 @@ export default function ViewDebiti() {
               </h3>
               <p style={{ margin: "2px 0 0 0", fontSize: "0.82rem", color: "var(--text-muted)" }}>
                 {simplifiedTransactions.length === 0
-                  ? "Tutti i conti sono pari"
+                  ? "Tutti i conti sono in pari"
                   : `Minimizza a ${simplifiedTransactions.length} ${simplifiedTransactions.length === 1 ? "transazione" : "transazioni"} tutti i debiti incrociati`}
               </p>
             </div>
@@ -371,7 +363,7 @@ export default function ViewDebiti() {
           <button
             type="button"
             className="btn-text"
-            style={{ fontSize: "0.85rem", padding: "4px 8px" }}
+            style={{ fontSize: "0.85rem", padding: "8px", minHeight: "44px", minWidth: "44px", display: "inline-flex", alignItems: "center", justifyContent: "center" }}
             aria-label={showSimplification ? "Nascondi piano" : "Mostra piano"}
           >
             <i className={`fas ${showSimplification ? "fa-chevron-up" : "fa-chevron-down"}`} aria-hidden="true"></i>
@@ -383,7 +375,7 @@ export default function ViewDebiti() {
             {simplifiedTransactions.length === 0 ? (
               <p style={{ color: "var(--text-muted)", fontSize: "0.9rem", margin: "8px 0" }}>
                 <i className="fas fa-check-circle text-success" style={{ marginRight: "6px" }} aria-hidden="true"></i>
-                Nessun debito incrociato da pareggiare!
+                Tutti i conti sono in pari!
               </p>
             ) : (
               <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
@@ -416,7 +408,7 @@ export default function ViewDebiti() {
                       }}
                     >
                       <div style={{ fontSize: "0.92rem", color: "var(--text-main)" }}>
-                        <strong>{st.fromName}</strong> deve dare a <strong>{st.toName}</strong>:{" "}
+                        <strong>{st.fromName}</strong> deve versare a <strong>{st.toName}</strong>:{" "}
                         <span style={{ fontWeight: "800", color: isPayer ? "var(--color-danger)" : isReceiver ? "var(--color-success)" : "var(--color-primary)" }}>
                           Quota: {st.amount} €
                         </span>
@@ -428,9 +420,14 @@ export default function ViewDebiti() {
                           className="btn-primary"
                           onClick={() => handleSettleSimplified(st)}
                           style={{
-                            padding: "6px 12px",
-                            fontSize: "0.82rem",
+                            padding: "8px 16px",
+                            minHeight: "40px",
+                            fontSize: "0.88rem",
                             width: "auto",
+                            display: "inline-flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            gap: "6px",
                             background: isPayer ? "var(--color-danger)" : "var(--color-success)"
                           }}
                           title="Registra saldo transazione"
@@ -480,7 +477,7 @@ export default function ViewDebiti() {
 
       {/* SECTION: HISTORICAL EXPENSES LIST */}
       <h3 style={{ textAlign: "left", fontSize: "1.1rem", marginBottom: "12px", color: "var(--text-main)" }}>
-        Dettaglio Spese Registrate ({debiti.length})
+        Tutte le spese registrate ({debiti.length})
       </h3>
 
       <div className="sidemenu-list-container">
@@ -565,11 +562,15 @@ export default function ViewDebiti() {
                       onClick={() => saldaDebito(debito.id, sonoDebitore)}
                       className="btn-primary"
                       style={{
-                        padding: "8px 16px",
+                        padding: "10px 18px",
+                        minHeight: "44px",
                         fontSize: "0.88rem",
                         width: "auto",
                         background: badgeColor,
-                        boxShadow: "none"
+                        boxShadow: "none",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "6px"
                       }}
                     >
                       <i className="fas fa-check" aria-hidden="true"></i> Segna come saldato
@@ -579,8 +580,9 @@ export default function ViewDebiti() {
                       type="button"
                       onClick={() => saldaDebito(debito.id, false)}
                       className="btn-danger-outline"
-                      style={{ padding: "6px 12px", fontSize: "0.82rem", width: "auto" }}
+                      style={{ padding: "8px 14px", minHeight: "44px", minWidth: "44px", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: "0.82rem", width: "auto" }}
                       title="Elimina"
+                      aria-label="Elimina spesa"
                     >
                       <i className="fas fa-trash" aria-hidden="true"></i> Elimina
                     </button>
@@ -598,7 +600,7 @@ export default function ViewDebiti() {
           <div className="modal-card" style={{ maxWidth: "480px" }}>
             <div className="modal-header">
               <h2 className="modal-title">
-                <i className="fas fa-file-export" aria-hidden="true"></i> Esporta Resoconto Mensile
+                <i className="fas fa-file-export" aria-hidden="true"></i> Esporta resoconto spese
               </h2>
               <button
                 type="button"
@@ -612,7 +614,7 @@ export default function ViewDebiti() {
 
             <div className="modal-body" style={{ textAlign: "left" }}>
               <p style={{ fontSize: "0.92rem", color: "var(--text-secondary)", marginBottom: "16px" }}>
-                Esporta le spese, i saldi e il piano di pareggio per la gestione della casa.
+                Scarica o stampa le spese, i saldi e il piano di pareggio della casa.
               </p>
 
               <div className="form-group mb-3">
@@ -623,14 +625,14 @@ export default function ViewDebiti() {
                     onChange={(e) => setExportAll(e.target.checked)}
                     style={{ width: "18px", height: "18px", accentColor: "var(--color-primary)" }}
                   />
-                  <span>Esporta tutte le spese registrate (senza filtro mensile)</span>
+                  <span>Includi tutte le spese (senza limite di data)</span>
                 </label>
               </div>
 
               {!exportAll && (
                 <div className="form-group mb-3">
                   <label htmlFor="export-month-input" className="form-label">
-                    Seleziona Mese e Anno
+                    Scegli mese e anno
                   </label>
                   <input
                     id="export-month-input"
@@ -644,7 +646,7 @@ export default function ViewDebiti() {
 
               <div style={{ background: "var(--bg-input)", padding: "12px", borderRadius: "var(--radius-sm)", border: "1px solid var(--border-color)", fontSize: "0.88rem", color: "var(--text-secondary)" }}>
                 <i className="fas fa-info-circle text-primary" style={{ marginRight: "6px" }} aria-hidden="true"></i>
-                Spese selezionate per l'esportazione: <strong>{expensesToExport.length}</strong>
+                Spese incluse nel resoconto: <strong>{expensesToExport.length}</strong>
               </div>
             </div>
 
@@ -653,6 +655,7 @@ export default function ViewDebiti() {
                 type="button"
                 className="btn-secondary"
                 onClick={() => setShowExportModal(false)}
+                style={{ minHeight: "44px", padding: "10px 18px" }}
               >
                 Chiudi
               </button>
@@ -661,6 +664,7 @@ export default function ViewDebiti() {
                   type="button"
                   className="btn-secondary"
                   onClick={handleExportCsv}
+                  style={{ minHeight: "44px", padding: "10px 18px", display: "inline-flex", alignItems: "center", gap: "6px" }}
                 >
                   <i className="fas fa-file-csv" aria-hidden="true"></i> Scarica CSV
                 </button>
@@ -668,6 +672,7 @@ export default function ViewDebiti() {
                   type="button"
                   className="btn-primary"
                   onClick={handlePrintPdf}
+                  style={{ minHeight: "44px", padding: "10px 18px", display: "inline-flex", alignItems: "center", gap: "6px" }}
                 >
                   <i className="fas fa-print" aria-hidden="true"></i> Stampa / PDF
                 </button>
