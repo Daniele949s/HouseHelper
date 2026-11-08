@@ -140,7 +140,7 @@ export default function ViewSpesa() {
   const daComprare = items.length - comprati;
 
   return (
-    <div className="card domain-page-card" style={{ maxWidth: "820px" }}>
+    <div className="card domain-page-card">
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem", flexWrap: "wrap", gap: "10px" }}>
         <div>
           <h1 style={{ margin: 0, textAlign: "left" }}>Lista della Spesa</h1>

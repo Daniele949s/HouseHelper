@@ -97,7 +97,7 @@ export default function ViewCalendario() {
   }
 
   return (
-    <div className="card domain-page-card" style={{ maxWidth: '820px' }}>
+    <div className="card domain-page-card">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '12px' }}>
         <div>
           <h1 style={{ margin: 0, textAlign: 'left' }}>Calendario Casa</h1>

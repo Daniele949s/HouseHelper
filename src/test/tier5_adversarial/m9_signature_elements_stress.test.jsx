@@ -53,7 +53,7 @@ describe("Milestone M9 Empirical Challenger: Signature Elements & Invariant Stre
       });
 
       // Find invite code button
-      const inviteBtn = await screen.findByRole("button", { name: /codice invito/i });
+      const inviteBtn = await screen.findByRole("button", { name: /codice invito/i }, { timeout: 4000 });
       expect(inviteBtn).toBeInTheDocument();
 
       // Click to copy

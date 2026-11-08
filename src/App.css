@@ -423,6 +423,14 @@
   }
 }
 
+/* Responsive container for dashboard */
+.dashboard-container {
+  width: 100%;
+  max-width: 880px;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
 .auth-header h1 {
   font-size: 2.2rem;
   margin-bottom: 6px;
@@ -3992,10 +4000,16 @@ a:focus-visible,
 @media (min-width: 1024px) {
   .app-container {
     max-width: 1360px;
+    width: 100%;
+    margin: 0 auto;
     padding: 28px 48px 60px 48px;
   }
 
   .app-topbar {
+    max-width: 1240px;
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
     padding: 12px 28px;
     margin-bottom: 32px;
   }
@@ -4020,9 +4034,35 @@ a:focus-visible,
     box-shadow: var(--shadow-xs);
   }
 
+  /* Spacious Apple Desktop Content Windows */
   .domain-page-card {
-    max-width: 1000px !important;
+    max-width: 1240px !important;
     padding: 40px !important;
+  }
+
+  .dashboard-container {
+    max-width: 1240px;
+  }
+
+  /* Multi-column grid expansions on desktop */
+  .timeline-chores-list {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(460px, 1fr));
+    gap: 16px;
+  }
+
+  .bacheca-routine-list {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+    gap: 16px;
+  }
+
+  /* Apple HIG Reading Line Length (max ~75ch for text paragraphs) */
+  .domain-page-card > div > p,
+  .dashboard-welcome-banner .welcome-greeting,
+  .bento-header-info p,
+  .empty-state-modern p.subtitle {
+    max-width: 75ch;
   }
 }
 

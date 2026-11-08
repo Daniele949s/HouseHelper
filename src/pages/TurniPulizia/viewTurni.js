@@ -321,7 +321,7 @@ export default function VisualizzaTurni() {
   }
 
   return (
-    <div className="card domain-page-card" style={{ maxWidth: "860px" }}>
+    <div className="card domain-page-card">
       {/* Header */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2rem", flexWrap: "wrap", gap: "12px" }}>
         <div>
@@ -688,10 +688,11 @@ export default function VisualizzaTurni() {
 
             {/* 2. SUBSEQUENT CHORES: CALM CHRONOLOGICAL TIMELINE */}
             {turni.length > 1 && (
-              <div className="timeline-chores-list" style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-                <h4 style={{ margin: "8px 0 4px 0", fontSize: "0.95rem", color: "var(--text-muted)", fontWeight: "600", textAlign: "left" }}>
+              <div className="timeline-chores-section">
+                <h4 style={{ margin: "8px 0 12px 0", fontSize: "0.95rem", color: "var(--text-muted)", fontWeight: "600", textAlign: "left" }}>
                   Turni successivi
                 </h4>
+                <div className="timeline-chores-list">
                 {turni.slice(1).map((turno) => {
                   const turnoDate = new Date(turno.data);
                   const isPast = !isNaN(turnoDate.getTime()) && turnoDate < new Date().setHours(0, 0, 0, 0);
@@ -887,6 +888,7 @@ export default function VisualizzaTurni() {
                     </div>
                   );
                 })}
+                </div>
               </div>
             )}
           </>

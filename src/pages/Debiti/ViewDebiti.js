@@ -241,7 +241,7 @@ export default function ViewDebiti() {
   }
 
   return (
-    <div className="card domain-page-card" style={{ maxWidth: "820px" }}>
+    <div className="card domain-page-card">
       {/* Header */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2rem", flexWrap: "wrap", gap: "12px" }}>
         <div>

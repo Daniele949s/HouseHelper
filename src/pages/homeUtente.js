@@ -354,7 +354,7 @@ export default function HomeUtente() {
   }, [prossimoTurno, userData?.username, currentUser?.uid]);
 
   return (
-    <div style={{ maxWidth: "880px", width: "100%", margin: "0 auto" }}>
+    <div className="dashboard-container">
       {/* ================= COMMAND CENTER HERO: PRESENCE & HOUSE IDENTITY ================= */}
       <section className="household-command-center-hero" aria-label="Centro di Controllo Casa">
         {/* User Greeting & Status Banner */}
