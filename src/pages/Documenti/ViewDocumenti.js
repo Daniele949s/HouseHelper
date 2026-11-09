@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 import { showToast, showConfirm } from "../../utils/feedback";
+import { isSafeDownloadUrl } from "../../utils/security";
 import {
   caricaDocumento,
   eliminaDocumento,
@@ -572,7 +573,8 @@ export default function ViewDocumenti() {
         <div className="doc-grid" data-testid="doc-grid">
           {filteredDocuments.map((docItem) => {
             const formatInfo = getFormatIcon(docItem.formato, docItem.nome);
-            const downloadLink = docItem.url || docItem.fileUrl;
+            const rawLink = docItem.url || docItem.fileUrl;
+            const downloadLink = isSafeDownloadUrl(rawLink) ? rawLink : null;
             return (
               <div key={docItem.id} className="doc-card" data-testid={`doc-card-${docItem.id}`}>
                 <div>
@@ -666,7 +668,8 @@ export default function ViewDocumenti() {
             <tbody>
               {filteredDocuments.map((docItem) => {
                 const formatInfo = getFormatIcon(docItem.formato, docItem.nome);
-                const downloadLink = docItem.url || docItem.fileUrl;
+                const rawLink = docItem.url || docItem.fileUrl;
+                const downloadLink = isSafeDownloadUrl(rawLink) ? rawLink : null;
                 return (
                   <tr key={docItem.id} data-testid={`doc-row-${docItem.id}`}>
                     <td>

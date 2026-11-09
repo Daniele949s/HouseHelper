@@ -446,3 +446,119 @@ export function sanitizeChecklist(checklist, maxItems = 20, maxTextLen = 100) {
     .slice(0, maxItems);
 }
 
+/**
+ * Validates that a file or document URL uses safe schemes (https: or permitted data: URLs).
+ * Prevents javascript:, vbscript:, file: or dangerous scheme execution when rendering <a> href.
+ *
+ * @param {string} url
+ * @returns {boolean}
+ */
+export function isSafeDownloadUrl(url) {
+  if (!url || typeof url !== "string") return false;
+  const trimmed = url.trim();
+
+  // Reject dangerous schemes immediately
+  if (/^(javascript|vbscript|data:|file:)/i.test(trimmed)) {
+    // Only permit safe data: URLs with explicitly allowed MIME types
+    const safeDataRegex = /^data:(image\/(jpeg|png|webp|heic)|application\/pdf|text\/plain);base64,[A-Za-z0-9+/=]+$/i;
+    return safeDataRegex.test(trimmed);
+  }
+
+  // Safe HTTPS URL (Firebase Storage, Googleapis, or verified domain)
+  if (/^https:\/\/[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}(?::\d+)?(?:\/.*)?$/i.test(trimmed)) {
+    return true;
+  }
+
+  // Safe relative paths starting with /
+  if (trimmed.startsWith("/") && !trimmed.startsWith("//")) {
+    return true;
+  }
+
+  return false;
+}
+
+/**
+ * Rate limiter for household invite code attempts to prevent brute-forcing.
+ * Limits failed attempts to max 5 per 5-minute rolling window per device/session.
+ *
+ * @returns {{ allowed: boolean, remainingMs: number, error?: string }}
+ */
+export function checkInviteCodeRateLimit() {
+  if (typeof window === "undefined" || !window.sessionStorage) {
+    return { allowed: true, remainingMs: 0 };
+  }
+  try {
+    const KEY = "hh_invite_code_attempts_v1";
+    const WINDOW_MS = 5 * 60 * 1000; // 5 minutes
+    const MAX_ATTEMPTS = 5;
+    const now = Date.now();
+
+    const raw = window.sessionStorage.getItem(KEY);
+    let attempts = [];
+    if (raw) {
+      try {
+        attempts = JSON.parse(raw);
+      } catch (e) {
+        attempts = [];
+      }
+    }
+
+    // Keep only attempts within the window
+    attempts = attempts.filter((ts) => typeof ts === "number" && now - ts < WINDOW_MS);
+
+    if (attempts.length >= MAX_ATTEMPTS) {
+      const oldestAttempt = Math.min(...attempts);
+      const remainingMs = WINDOW_MS - (now - oldestAttempt);
+      const remainingMins = Math.ceil(remainingMs / 60000);
+      return {
+        allowed: false,
+        remainingMs,
+        error: `Troppi tentativi errati di inserimento codice. Attendi ${remainingMins} ${remainingMins === 1 ? "minuto" : "minuti"} prima di riprovare.`
+      };
+    }
+
+    return { allowed: true, remainingMs: 0 };
+  } catch (err) {
+    return { allowed: true, remainingMs: 0 };
+  }
+}
+
+/**
+ * Records a failed invite code attempt into sessionStorage timestamp list.
+ */
+export function recordFailedInviteAttempt() {
+  if (typeof window === "undefined" || !window.sessionStorage) return;
+  try {
+    const KEY = "hh_invite_code_attempts_v1";
+    const WINDOW_MS = 5 * 60 * 1000;
+    const now = Date.now();
+    const raw = window.sessionStorage.getItem(KEY);
+    let attempts = [];
+    if (raw) {
+      try {
+        attempts = JSON.parse(raw);
+      } catch (e) {
+        attempts = [];
+      }
+    }
+    attempts = attempts.filter((ts) => typeof ts === "number" && now - ts < WINDOW_MS);
+    attempts.push(now);
+    window.sessionStorage.setItem(KEY, JSON.stringify(attempts));
+  } catch (e) {
+    // Ignore storage quota or access errors
+  }
+}
+
+/**
+ * Clears the invite code rate limit upon successful house join.
+ */
+export function clearInviteCodeRateLimit() {
+  if (typeof window === "undefined" || !window.sessionStorage) return;
+  try {
+    window.sessionStorage.removeItem("hh_invite_code_attempts_v1");
+  } catch (e) {
+    // Ignore storage errors
+  }
+}
+
+

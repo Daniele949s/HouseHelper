@@ -190,6 +190,10 @@ class MockFirestoreStore {
           }
         });
       }
+
+      if (c && c._type === 'limit' && typeof c.limit === 'number') {
+        items = items.slice(0, c.limit);
+      }
     }
 
     const docs = items.map((item) => {
@@ -245,6 +249,10 @@ export const doc = (dbOrColl, ...pathSegments) => {
 
 export const where = (field, op, val) => {
   return { _type: 'where', field, op, val };
+};
+
+export const limit = (num) => {
+  return { _type: 'limit', limit: num };
 };
 
 export const query = (collRef, ...constraints) => {

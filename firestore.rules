@@ -42,6 +42,14 @@ service cloud.firestore {
         && getUserCasaId() == casaId;
     }
 
+    // Helper: Validates that the authenticated user has verified their email or signed in via trusted provider (e.g. Google)
+    function isEmailVerified() {
+      return isSignedIn() && (
+        request.auth.token.email_verified == true || 
+        request.auth.token.firebase.sign_in_provider == 'google.com'
+      );
+    }
+
     // Helper: Validates positive importo between 0.01 and 50,000.00 EUR (supports string and number)
     function isValidImporto(val) {
       return (val is number && val > 0.0 && val <= 50000.0)
@@ -90,8 +98,12 @@ service cloud.firestore {
     // 2. CASE (Nuclei Abitativi)
     // ==========================================
     match /case/{casaId} {
-      // Read: Household members can read their home; users without a house can read to find house via invite code
-      allow read: if isSignedIn() && (belongsToSameHouse(casaId) || !hasValidCasa());
+      // Get: Members can fetch their household; unassigned users can read individual house doc during invite code lookup
+      allow get: if isSignedIn() && (belongsToSameHouse(casaId) || !hasValidCasa());
+
+      // List: Household members can list their home; unassigned users can only query with a strict query limit (<= 5)
+      // to prevent unbounded database enumeration of all households and invite codes.
+      allow list: if isSignedIn() && (belongsToSameHouse(casaId) || (!hasValidCasa() && request.query.limit <= 5));
 
       // Create: Authenticated users can create a new household with required fields
       allow create: if isSignedIn()

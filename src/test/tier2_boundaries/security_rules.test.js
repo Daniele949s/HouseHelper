@@ -131,9 +131,14 @@ export class SecurityRulesValidator {
       }
 
       case 'case': {
-        if (operation === 'read') {
+        if (operation === 'read' || operation === 'get') {
           const canRead = belongsToSameHouse(id) || !hasValidCasa;
           return { allowed: canRead };
+        }
+        if (operation === 'list') {
+          const limitOk = request && typeof request.queryLimit === 'number' ? request.queryLimit <= 5 : true;
+          const canList = belongsToSameHouse(id) || (!hasValidCasa && limitOk);
+          return { allowed: canList };
         }
         if (operation === 'create') {
           const req = requestResource;
@@ -1026,6 +1031,7 @@ describe('Milestone 5: Application Security Hardening & Firestore Rules', () => 
       // 1. Multi-tenant helpers
       expect(content).toContain('function hasValidCasa()');
       expect(content).toContain('function belongsToSameHouse(casaId)');
+      expect(content).toContain('function isEmailVerified()');
       expect(content).toContain('getUserDoc().data.casaId != null');
       expect(content).toContain('getUserDoc().data.casaId is string');
 

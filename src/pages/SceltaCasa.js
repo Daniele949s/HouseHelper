@@ -1,10 +1,16 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { auth, db } from "../firebase";
-import { collection, addDoc, doc, updateDoc, query, where, getDocs } from "firebase/firestore";
+import { collection, addDoc, doc, updateDoc, query, where, limit, getDocs } from "firebase/firestore";
 import { useAuth } from "../contexts/AuthContext";
 import { signOut } from "firebase/auth";
-import { sanitizeText, sanitizeAlphanumeric } from "../utils/security";
+import {
+  sanitizeText,
+  sanitizeAlphanumeric,
+  checkInviteCodeRateLimit,
+  recordFailedInviteAttempt,
+  clearInviteCodeRateLimit
+} from "../utils/security";
 import { showToast } from "../utils/feedback";
 
 export default function SceltaCasa() {
@@ -63,6 +69,13 @@ export default function SceltaCasa() {
   const uniscitiCasa = async () => {
     setError("");
 
+    // Rate limiting against brute-force invite code guessing
+    const rateLimit = checkInviteCodeRateLimit();
+    if (!rateLimit.allowed) {
+      setError(rateLimit.error);
+      return;
+    }
+
     // Alphanumeric sanitization
     const cleanedCodice = sanitizeAlphanumeric(codiceCasa, 10);
     if (!cleanedCodice) {
@@ -75,15 +88,19 @@ export default function SceltaCasa() {
 
     try {
       const caseRef = collection(db, "case");
-      const q = query(caseRef, where("codiceUnivoco", "==", cleanedCodice));
+      const q = query(caseRef, where("codiceUnivoco", "==", cleanedCodice), limit(1));
       const querySnapshot = await getDocs(q);
 
       if (querySnapshot.empty) {
+        recordFailedInviteAttempt();
         const err = "Codice casa non valido o non trovato. Verifica di averlo digitato correttamente.";
         setError(err);
         setLoading(false);
         return;
       }
+
+      // Successful join: clear attempt history
+      clearInviteCodeRateLimit();
 
       const casaDoc = querySnapshot.docs[0];
 

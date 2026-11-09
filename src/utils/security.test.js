@@ -5,7 +5,11 @@ import {
   safeFloat,
   validateDate,
   sanitizeList,
-  isValidEmail
+  isValidEmail,
+  isSafeDownloadUrl,
+  checkInviteCodeRateLimit,
+  recordFailedInviteAttempt,
+  clearInviteCodeRateLimit
 } from "./security";
 
 describe("Security Utilities - Input Validation & Sanitization", () => {
@@ -123,6 +127,63 @@ describe("Security Utilities - Input Validation & Sanitization", () => {
       expect(isValidEmail("user@example.com")).toBe(true);
       expect(isValidEmail("invalid-email")).toBe(false);
       expect(isValidEmail("user@.com")).toBe(false);
+    });
+  });
+
+  describe("isSafeDownloadUrl (Anti-XSS Link Scheme Defense)", () => {
+    test("accepts valid HTTPS URLs", () => {
+      expect(isSafeDownloadUrl("https://firebasestorage.googleapis.com/v0/b/app/o/doc.pdf")).toBe(true);
+      expect(isSafeDownloadUrl("https://example.com/file.png")).toBe(true);
+    });
+
+    test("accepts safe relative paths", () => {
+      expect(isSafeDownloadUrl("/uploads/doc.pdf")).toBe(true);
+      expect(isSafeDownloadUrl("//evil.com")).toBe(false);
+    });
+
+    test("accepts safe data URLs for pdf and images", () => {
+      expect(isSafeDownloadUrl("data:application/pdf;base64,JVBERi0xLjQK")).toBe(true);
+      expect(isSafeDownloadUrl("data:image/png;base64,iVBORw0KGgoAAAANSUhEUg==")).toBe(true);
+    });
+
+    test("strictly rejects dangerous URI schemes", () => {
+      expect(isSafeDownloadUrl("javascript:alert(1)")).toBe(false);
+      expect(isSafeDownloadUrl("vbscript:msgbox(1)")).toBe(false);
+      expect(isSafeDownloadUrl("file:///etc/passwd")).toBe(false);
+      expect(isSafeDownloadUrl("data:text/html;base64,PHNjcmlwdD4=")).toBe(false);
+      expect(isSafeDownloadUrl("data:application/javascript;base64,YWxlcnQoMSk=")).toBe(false);
+      expect(isSafeDownloadUrl("")).toBe(false);
+      expect(isSafeDownloadUrl(null)).toBe(false);
+    });
+  });
+
+  describe("checkInviteCodeRateLimit & Brute-Force Defense", () => {
+    beforeEach(() => {
+      window.sessionStorage.clear();
+    });
+
+    test("allows initial attempts", () => {
+      const res = checkInviteCodeRateLimit();
+      expect(res.allowed).toBe(true);
+      expect(res.remainingMs).toBe(0);
+    });
+
+    test("blocks after 5 failed attempts within rolling window", () => {
+      for (let i = 0; i < 5; i++) {
+        recordFailedInviteAttempt();
+      }
+      const res = checkInviteCodeRateLimit();
+      expect(res.allowed).toBe(false);
+      expect(res.error).toMatch(/troppi tentativi errati/i);
+    });
+
+    test("clearInviteCodeRateLimit resets the attempt history", () => {
+      for (let i = 0; i < 5; i++) {
+        recordFailedInviteAttempt();
+      }
+      expect(checkInviteCodeRateLimit().allowed).toBe(false);
+      clearInviteCodeRateLimit();
+      expect(checkInviteCodeRateLimit().allowed).toBe(true);
     });
   });
 });
