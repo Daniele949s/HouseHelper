@@ -226,6 +226,150 @@ export function isValidEmail(email) {
 }
 
 /**
+ * Known disposable / throwaway email domain blacklist.
+ * Defends registration against automated spam bot accounts.
+ */
+const DISPOSABLE_EMAIL_DOMAINS = new Set([
+  "10minutemail.com",
+  "10minutemail.net",
+  "guerrillamail.com",
+  "guerrillamail.net",
+  "guerrillamail.org",
+  "guerrillamailblock.com",
+  "grr.la",
+  "sharklasers.com",
+  "mailinator.com",
+  "yopmail.com",
+  "tempmail.com",
+  "temp-mail.org",
+  "temp-mail.io",
+  "dispostable.com",
+  "trashmail.com",
+  "trashmail.net",
+  "fakeinbox.com",
+  "mohmal.com",
+  "burnermail.io",
+  "getairmail.com",
+  "crazymailing.com",
+  "throwawaymail.com",
+  "mytemp.email",
+  "tempail.com",
+  "dropmail.me",
+  "generator.email",
+  "emailondeck.com",
+  "inboxkitten.com",
+  "fakemailgenerator.com",
+  "tempinbox.com",
+  "maildrop.cc",
+  "nada.ltd",
+  "getnada.com",
+  "macca.gov",
+  "fake.com",
+  "test.com"
+]);
+
+/**
+ * Checks if an email uses a known disposable, temporary, or suspicious bot domain.
+ *
+ * @param {string} email
+ * @returns {boolean} True if disposable or suspicious
+ */
+export function isDisposableEmail(email) {
+  if (!email || typeof email !== "string") return false;
+  const parts = email.trim().toLowerCase().split("@");
+  if (parts.length !== 2) return false;
+  const domain = parts[1];
+
+  if (DISPOSABLE_EMAIL_DOMAINS.has(domain)) return true;
+
+  // Pattern checks: domains containing 'tempmail', 'dispos', 'throwaway', 'burner'
+  if (
+    domain.includes("tempmail") ||
+    domain.includes("throwaway") ||
+    domain.includes("fakeinbox") ||
+    domain.includes("dispos") ||
+    domain.includes("burnermail")
+  ) {
+    return true;
+  }
+
+  // Reject non-existent/bogus TLDs like unauthorized .gov
+  if (domain.endsWith(".gov") && !domain.endsWith(".gov.it")) {
+    return true;
+  }
+
+  return false;
+}
+
+/**
+ * Client-side rate limiter for registration attempts.
+ * Limits submissions to max 4 attempts per 5-minute rolling window per device.
+ *
+ * @returns {{ allowed: boolean, remainingMs: number, error?: string }}
+ */
+export function checkRegistrationRateLimit() {
+  if (typeof window === "undefined" || !window.sessionStorage) {
+    return { allowed: true, remainingMs: 0 };
+  }
+  try {
+    const KEY = "hh_reg_attempts_v1";
+    const WINDOW_MS = 5 * 60 * 1000; // 5 minutes
+    const MAX_ATTEMPTS = 4;
+    const now = Date.now();
+
+    const raw = window.sessionStorage.getItem(KEY);
+    let attempts = [];
+    if (raw) {
+      try {
+        attempts = JSON.parse(raw);
+      } catch (e) {
+        attempts = [];
+      }
+    }
+
+    // Keep only attempts within the window
+    attempts = attempts.filter((ts) => typeof ts === "number" && now - ts < WINDOW_MS);
+
+    if (attempts.length >= MAX_ATTEMPTS) {
+      const oldestAttempt = Math.min(...attempts);
+      const remainingMs = WINDOW_MS - (now - oldestAttempt);
+      const remainingMins = Math.ceil(remainingMs / 60000);
+      return {
+        allowed: false,
+        remainingMs,
+        error: `Troppi tentativi di registrazione ravvicinati. Attendi ${remainingMins} ${remainingMins === 1 ? "minuto" : "minuti"} prima di riprovare.`
+      };
+    }
+
+    return { allowed: true, remainingMs: 0 };
+  } catch (err) {
+    return { allowed: true, remainingMs: 0 };
+  }
+}
+
+/**
+ * Records a registration submission attempt for rate limiting.
+ */
+export function recordRegistrationAttempt() {
+  if (typeof window === "undefined" || !window.sessionStorage) return;
+  try {
+    const KEY = "hh_reg_attempts_v1";
+    const now = Date.now();
+    const raw = window.sessionStorage.getItem(KEY);
+    let attempts = [];
+    if (raw) {
+      try {
+        attempts = JSON.parse(raw);
+      } catch (e) {
+        attempts = [];
+      }
+    }
+    attempts.push(now);
+    window.sessionStorage.setItem(KEY, JSON.stringify(attempts));
+  } catch (err) {}
+}
+
+/**
  * Sanitizes phone numbers, stripping any illegal protocol characters or script attempts.
  * Allowed characters: digits, spaces, hyphens, plus prefix, parentheses, dots.
  *

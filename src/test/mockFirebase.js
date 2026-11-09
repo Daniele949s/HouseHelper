@@ -325,12 +325,32 @@ export const createUserWithEmailAndPassword = async (auth, email, password) => {
   const user = {
     uid,
     email: trimmed,
-    displayName: ''
+    displayName: '',
+    emailVerified: true,
+    reload: jest.fn(async () => Promise.resolve())
   };
 
   mockStore.setMockUser(user);
   return { user };
 };
+
+export const sendEmailVerification = jest.fn(async (user) => {
+  if (user) {
+    user.emailVerificationSent = true;
+  }
+  return Promise.resolve();
+});
+
+export const reload = jest.fn(async (user) => {
+  return Promise.resolve();
+});
+
+export const applyActionCode = jest.fn(async (auth, code) => {
+  if (mockStore.currentMockUser) {
+    mockStore.currentMockUser.emailVerified = true;
+  }
+  return Promise.resolve();
+});
 
 export const signInWithPopup = async (auth, provider) => {
   const uid = `google_user_${Math.random().toString(36).substr(2, 8)}`;
@@ -372,7 +392,10 @@ export const authMock = {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signInWithPopup,
-  signOut
+  signOut,
+  sendEmailVerification,
+  reload,
+  applyActionCode
 };
 
 export const appFirebaseMock = {

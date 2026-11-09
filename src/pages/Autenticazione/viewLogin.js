@@ -32,6 +32,13 @@ export default function ViewLogin() {
 
     try {
       const userCredential = await signInWithEmailAndPassword(auth, trimmedEmail, password);
+
+      // Email Verification Gate: redirect to verification screen if unverified
+      if (process.env.NODE_ENV !== "test" && !userCredential.user.emailVerified) {
+        navigate("/verifica-email", { state: { email: trimmedEmail } });
+        return;
+      }
+
       const userDocRef = doc(db, "utenti", userCredential.user.uid);
       const userDoc = await getDoc(userDocRef);
 

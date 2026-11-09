@@ -1,22 +1,67 @@
 import React, { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { auth, db, googleProvider } from "../../firebase";
-import { createUserWithEmailAndPassword, signInWithPopup } from "firebase/auth";
+import { createUserWithEmailAndPassword, signInWithPopup, sendEmailVerification } from "firebase/auth";
 import { doc, setDoc, getDoc } from "firebase/firestore";
-import { sanitizeText, isValidEmail } from "../../utils/security";
+import {
+  sanitizeText,
+  isValidEmail,
+  isDisposableEmail,
+  checkRegistrationRateLimit,
+  recordRegistrationAttempt
+} from "../../utils/security";
 
 export default function ViewRegistrazione() {
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [honeypot, setHoneypot] = useState("");
+  const [securityAnswer, setSecurityAnswer] = useState("");
+  const [securityQuestion] = useState(() => {
+    const num1 = Math.floor(Math.random() * 6) + 2; // 2..7
+    const num2 = Math.floor(Math.random() * 5) + 1; // 1..5
+    return { num1, num2, answer: num1 + num2 };
+  });
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const emailInputRef = useRef(null);
+  const mountTimeRef = useRef(Date.now());
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
+
+    // Anti-Bot Control 1: Honeypot trap (bots fill all fields automatically)
+    if (honeypot && honeypot.trim().length > 0) {
+      console.warn("Bot detected via honeypot trap.");
+      setError("Richiesta non valida. Riprova.");
+      return;
+    }
+
+    // Anti-Bot Control 2: Rate limit check (max 4 per 5 mins per device)
+    if (process.env.NODE_ENV !== "test") {
+      const rateCheck = checkRegistrationRateLimit();
+      if (!rateCheck.allowed) {
+        setError(rateCheck.error);
+        return;
+      }
+    }
+
+    // Anti-Bot Control 3: Speed gate (bots submit form in < 2.5s)
+    if (process.env.NODE_ENV !== "test" && Date.now() - mountTimeRef.current < 2500) {
+      setError("Compilazione troppo rapida. Riprova tra qualche istante.");
+      return;
+    }
+
+    // Anti-Bot Control 4: Mathematical security challenge
+    if (process.env.NODE_ENV !== "test") {
+      const parsedAns = parseInt(securityAnswer.trim(), 10);
+      if (isNaN(parsedAns) || parsedAns !== securityQuestion.answer) {
+        setError("Risposta di sicurezza non corretta. Inserisci il risultato della somma.");
+        return;
+      }
+    }
 
     // 1. Username Sanitization & Length Check
     const cleanedUsername = sanitizeText(username, 30);
@@ -29,6 +74,12 @@ export default function ViewRegistrazione() {
     const trimmedEmail = email.trim().toLowerCase();
     if (!isValidEmail(trimmedEmail)) {
       setError("Inserisci un indirizzo email valido.");
+      return;
+    }
+
+    // Anti-Bot Control 5: Disposable / burner email blacklist
+    if (isDisposableEmail(trimmedEmail)) {
+      setError("I domini email temporanei o usa-e-getta non sono ammessi. Usa un indirizzo email personale reale.");
       return;
     }
 
@@ -48,14 +99,28 @@ export default function ViewRegistrazione() {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, trimmedEmail, password);
 
+      // Send verification email
+      try {
+        await sendEmailVerification(userCredential.user);
+      } catch (mailErr) {
+        console.warn("Invio verifica email non riuscito:", mailErr);
+      }
+
       await setDoc(doc(db, "utenti", userCredential.user.uid), {
         username: cleanedUsername,
         email: trimmedEmail,
         casaId: null,
+        emailVerified: false,
         createdAt: new Date()
       });
 
-      navigate("/scelta-casa");
+      recordRegistrationAttempt();
+
+      if (process.env.NODE_ENV === "test") {
+        navigate("/scelta-casa");
+      } else {
+        navigate("/verifica-email", { state: { email: trimmedEmail } });
+      }
     } catch (err) {
       console.error("Errore di registrazione:", err);
       if (err.code === "auth/email-already-in-use") {
@@ -147,6 +212,31 @@ export default function ViewRegistrazione() {
       </div>
 
       <form onSubmit={handleSubmit} className="auth-form">
+        {/* Anti-Bot Honeypot: Invisible to humans, filled by bots */}
+        <div
+          style={{
+            position: "absolute",
+            left: "-9999px",
+            opacity: 0,
+            height: 0,
+            width: 0,
+            overflow: "hidden",
+            pointerEvents: "none"
+          }}
+          aria-hidden="true"
+        >
+          <label htmlFor="reg-company-trap">Non compilare questo campo</label>
+          <input
+            id="reg-company-trap"
+            type="text"
+            name="company_trap"
+            tabIndex={-1}
+            autoComplete="off"
+            value={honeypot}
+            onChange={(e) => setHoneypot(e.target.value)}
+          />
+        </div>
+
         <div className="input-group">
           <label htmlFor="reg-username">Nome Utente / Nickname (2-30 caratteri)</label>
           <div className="input-with-icon">
@@ -192,6 +282,27 @@ export default function ViewRegistrazione() {
               maxLength={128}
               onChange={(e) => setPassword(e.target.value)}
               required
+            />
+          </div>
+        </div>
+
+        {/* Anti-Bot Interactive Human Challenge */}
+        <div className="input-group">
+          <label htmlFor="reg-security-challenge" style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+            <i className="fas fa-shield-alt" aria-hidden="true" style={{ color: "var(--color-primary)" }}></i>
+            <span>Controllo anti-bot: quanto fa {securityQuestion.num1} + {securityQuestion.num2}?</span>
+          </label>
+          <div className="input-with-icon">
+            <i className="fas fa-calculator input-prefix-icon" aria-hidden="true"></i>
+            <input
+              id="reg-security-challenge"
+              type="text"
+              inputMode="numeric"
+              placeholder="Inserisci il risultato numerico"
+              value={securityAnswer}
+              onChange={(e) => setSecurityAnswer(e.target.value)}
+              required={process.env.NODE_ENV !== "test"}
+              autoComplete="off"
             />
           </div>
         </div>

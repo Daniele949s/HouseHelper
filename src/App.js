@@ -26,6 +26,7 @@ import {
 import HomeAutenticazione from "./pages/Autenticazione/homeAutenticazione";
 import ViewLogin from "./pages/Autenticazione/viewLogin";
 import ViewRegistrazione from "./pages/Autenticazione/viewRegistrazione";
+import ViewVerificaEmail from "./pages/Autenticazione/ViewVerificaEmail";
 
 // Import User & House Pages
 import HomeUtente from "./pages/homeUtente";
@@ -97,6 +98,9 @@ function App() {
                 <Route path="/login" element={<ViewLogin />} />
                 <Route path="/registrazione" element={<ViewRegistrazione />} />
               </Route>
+
+              {/* Email Verification Route */}
+              <Route path="/verifica-email" element={<ViewVerificaEmail />} />
 
               {/* House Setup Route (Authenticated users without a household) */}
               <Route element={<HouseSelectRoute />}>

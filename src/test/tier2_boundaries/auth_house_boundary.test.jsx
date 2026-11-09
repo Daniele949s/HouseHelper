@@ -64,6 +64,23 @@ describe('Tier 2: Auth & House Selection Boundary & Corner Cases', () => {
     expect(errorMsg).toBeInTheDocument();
   });
 
+  test('T2.03B — Registration rejects disposable/burner email domains', async () => {
+    renderWithProviders(<ViewRegistrazione />, { route: '/registrazione' });
+
+    const usernameInput = await screen.findByPlaceholderText(/Come ti chiamano i coinquilini\?/i);
+    const emailInput = screen.getByPlaceholderText(/mario@email\.com/i);
+    const passwordInput = screen.getByPlaceholderText(/Scegli una password sicura/i);
+    const submitBtn = screen.getByRole('button', { name: /Completa Registrazione/i });
+
+    fireEvent.change(usernameInput, { target: { value: 'BotSpammer' } });
+    fireEvent.change(emailInput, { target: { value: 'spam@mailinator.com' } });
+    fireEvent.change(passwordInput, { target: { value: 'password123' } });
+    fireEvent.click(submitBtn);
+
+    const errorMsg = await screen.findByText(/I domini email temporanei o usa-e-getta non sono ammessi/i);
+    expect(errorMsg).toBeInTheDocument();
+  });
+
   test('T2.04 — SceltaCasa displays error for non-existent invite code', async () => {
     const user = { uid: 'u_tester', email: 'tester@test.com' };
     const userData = { username: 'Tester', email: 'tester@test.com', casaId: null };

@@ -12,9 +12,9 @@
     "semantic_hash": ""
   },
   "src/App.js": {
-    "mtime": 1794145791.0946224,
-    "seen": 1794146213.0214107,
-    "ast_hash": "20a704693ec9194f1e00b63fee16d3e6",
+    "mtime": 1794185965.3395727,
+    "seen": 1794186144.1744153,
+    "ast_hash": "62bb4a57d6f0f813271d002e828f1452",
     "semantic_hash": ""
   },
   "src/App.test.js": {
@@ -132,15 +132,15 @@
     "semantic_hash": ""
   },
   "src/pages/Autenticazione/viewLogin.js": {
-    "mtime": 1794177646.4299743,
-    "seen": 1794177947.6125922,
-    "ast_hash": "250ed27b639d38e347ffa292be131001",
+    "mtime": 1794185946.2052827,
+    "seen": 1794186144.1744602,
+    "ast_hash": "09b2fb873db3a7b58bb7c8fdda3a78bb",
     "semantic_hash": ""
   },
   "src/pages/Autenticazione/viewRegistrazione.js": {
-    "mtime": 1794177653.0779057,
-    "seen": 1794177947.6125946,
-    "ast_hash": "b1c03dc982cb27131c5b9967b0d01ba2",
+    "mtime": 1794185934.1681004,
+    "seen": 1794186144.1744611,
+    "ast_hash": "76966fb7bcf3a83069b02583f9bc56bd",
     "semantic_hash": ""
   },
   "src/pages/Bacheca/AggiungiEvento.js": {
@@ -240,9 +240,9 @@
     "semantic_hash": ""
   },
   "src/utils/security.js": {
-    "mtime": 1793752585.0031853,
-    "seen": 1793753216.3091855,
-    "ast_hash": "f148983d85755c5921ecbad08ef00ef5",
+    "mtime": 1794185810.6462452,
+    "seen": 1794186144.1745465,
+    "ast_hash": "16fddcad0f6a1de9b38de4156a854a09",
     "semantic_hash": ""
   },
   "src/utils/security.test.js": {
@@ -252,9 +252,9 @@
     "semantic_hash": "e6da95aa276d17b3723e21d23de4a347"
   },
   "src/test/mockFirebase.js": {
-    "mtime": 1793751970.3845162,
-    "seen": 1793753216.3090146,
-    "ast_hash": "e8874619a22fed5e5b660ab0ad9d48d9",
+    "mtime": 1794185853.713889,
+    "seen": 1794186144.1744876,
+    "ast_hash": "ef98bc1bf0468a8d8e59f0df60b982ff",
     "semantic_hash": ""
   },
   ".agents/teamwork/ORIGINAL_REQUEST.md": {
@@ -720,9 +720,9 @@
     "semantic_hash": ""
   },
   "src/test/tier2_boundaries/auth_house_boundary.test.jsx": {
-    "mtime": 1793614585.042087,
-    "seen": 1793616076.8185577,
-    "ast_hash": "3c6df4ce0cc05d86dfc45d1d455e38a6",
+    "mtime": 1794185992.5209854,
+    "seen": 1794186144.1745,
+    "ast_hash": "fb1e2357dd7d4ec917ff0d90c9c9495e",
     "semantic_hash": ""
   },
   "src/test/tier2_boundaries/bacheca_calendario_boundary.test.jsx": {
@@ -3501,6 +3501,18 @@
     "mtime": 1794180239.0546281,
     "seen": 1794181725.828457,
     "ast_hash": "fe73541cd04a0ad677bbe01c1e52e71d",
+    "semantic_hash": ""
+  },
+  "src/pages/Autenticazione/ViewVerificaEmail.js": {
+    "mtime": 1794185893.7494905,
+    "seen": 1794186144.1744568,
+    "ast_hash": "ced473978eaa6d70a8d42503c3da9d88",
+    "semantic_hash": ""
+  },
+  "src/test/tier2_boundaries/antibot_email_verification.test.jsx": {
+    "mtime": 1794186096.9505806,
+    "seen": 1794186144.1744988,
+    "ast_hash": "e86b255bbc1cff8d5cdc9034b2744f44",
     "semantic_hash": ""
   },
   "package-lock.json": {
