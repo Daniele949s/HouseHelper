@@ -1,6 +1,7 @@
 import React from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
+import { useLanguage } from "../contexts/LanguageContext";
 
 /**
  * MobileBottomBar component providing ergonomic thumb-friendly bottom navigation on mobile (< 768px).
@@ -10,6 +11,7 @@ import { useAuth } from "../contexts/AuthContext";
 export default function MobileBottomBar() {
   const { currentUser, userData } = useAuth();
   const location = useLocation();
+  const { t } = useLanguage();
 
   // Guard: Only render when authenticated with an active household
   if (!currentUser || !userData || !userData.casaId) {
@@ -21,14 +23,14 @@ export default function MobileBottomBar() {
   };
 
   const navTabs = [
-    { label: "Home", icon: "fa-home", path: "/home", end: true },
-    { label: "Turni", icon: "fa-broom", path: "/turni", end: false },
-    { label: "Spese", icon: "fa-wallet", path: "/debiti", end: false },
-    { label: "Spesa", icon: "fa-shopping-cart", path: "/spesa", end: false },
+    { label: t("nav.home", {}, "Home"), icon: "fa-home", path: "/home", end: true },
+    { label: t("nav.chores", {}, "Turni"), icon: "fa-broom", path: "/turni", end: false },
+    { label: t("nav.expenses", {}, "Spese"), icon: "fa-wallet", path: "/debiti", end: false },
+    { label: t("nav.groceries", {}, "Spesa"), icon: "fa-shopping-cart", path: "/spesa", end: false },
   ];
 
   return (
-    <nav className="mobile-bottom-bar" aria-label="Navigazione rapida mobile">
+    <nav className="mobile-bottom-bar" aria-label={t("nav.ariaMobileNav", {}, "Navigazione rapida mobile")}>
       {navTabs.map((tab) => {
         const isActive = tab.end
           ? location.pathname === tab.path
@@ -53,12 +55,12 @@ export default function MobileBottomBar() {
         type="button"
         className="mobile-bottom-tab"
         onClick={handleOpenMore}
-        aria-label="Apri menu altro"
+        aria-label={t("nav.ariaMoreTab", {}, "Apri menu altro")}
       >
         <span className="mobile-bottom-tab-icon">
           <i className="fas fa-bars" aria-hidden="true"></i>
         </span>
-        <span className="mobile-bottom-tab-label">Altro</span>
+        <span className="mobile-bottom-tab-label">{t("nav.more", {}, "Altro")}</span>
       </button>
     </nav>
   );

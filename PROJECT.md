@@ -50,6 +50,11 @@
 | 24 | Chore Rotation Automation & Vacation Mode | Deterministic round-robin rotation queue, vacation toggle & date range on dashboard, sub-task checklists with live Firestore sync | M7 | Milestone M7 |
 | 25 | Shared Contacts Directory (`Contatti`) | Scoped address book for household utilities/services with tel/mailto sanitization and offline cache | M7 | Milestone M7 |
 | 26 | Mobile PWA & Multi-Tenant Offline Storage | Service worker app shell caching, web app manifest, tenant-isolated offline storage purged on logout | M7 | Milestone M7 |
+| 27 | Localization (i18n) Engine | Custom React 19 LanguageContext with IT/EN 216-key parity, fallback cascade, and dynamic document.lang sync | M8 (Settings) | Milestone M8 |
+| 28 | 3-Way Appearance Mode | Light / Dark / System mode toggle with dynamic matchMedia listeners and backward-compatible isDark | M8 (Settings) | Milestone M8 |
+| 29 | Settings View & Apple HIG Styling | Grouped table cards, Household Identity card, 100% opaque cards, min 44x44px touch targets | M8 (Settings) | Milestone M8 |
+| 30 | Notification Preferences | Resilient localStorage persistence with isolated utility module and tactile Apple switch toggles | M8 (Settings) | Milestone M8 |
+| 31 | Account & Security Suite | Monospace UID copy, verified/unverified badges, 60s cooldown resend, password reset email, logout modal | M8 (Settings) | Milestone M8 |
 
 ## Milestones
 | # | Name | Scope | Dependencies | Status |
@@ -61,6 +66,7 @@
 | M5 | Application Security Hardening & Secret Audit | Deep `firestore.rules` audit (household-scoped multi-tenant data access, anti-tamper, sanitization); Git history & public repository secret audit | M4 | DONE (26/26 suites, 209/209 tests passed, 0 secrets, 0 emojis, 0 cycles) |
 | M6 | Household Document Management & Ergonomics | Firebase Storage document management (`/documenti`, upload, categorize, view); mobile touch & desktop widescreen ergonomics | M5 | DONE |
 | M7 | Advanced Automation, Finanza Intelligente, Contatti & PWA | Debt simplification algorithm, 4 split modes, CSV/Print export, vacation mode, chore checklists & round-robin rotation, contatti directory, PWA service worker, tenant-isolated offline storage, automated test suites | M6 | DONE |
+| M8 | Dedicated Settings View, i18n & Apple HIG Preferences | Language switching (IT/EN), 3-way theme (Light/Dark/System), notification preferences, Account & Security, Apple HIG grouped tables, 56 suites / 719 tests passing | M7 | DONE (56/56 suites passed, 719/719 tests passed, 0 emojis, 0 secrets, clean build) |
 
 ## Parallel Track: E2E Testing Track
 - **Owner**: E2E Testing Orchestrator
@@ -99,7 +105,12 @@ src/
 ├── index.css                  # Base reset and typography
 ├── contexts/
 │   ├── AuthContext.js         # Authentication & household state
-│   └── ThemeContext.js        # Light/dark mode state
+│   ├── LanguageContext.js     # React 19 localization & language switching
+│   └── ThemeContext.js        # 3-way appearance state (Light/Dark/System)
+├── i18n/
+│   ├── it.js                  # Comprehensive Italian dictionary (216 keys)
+│   ├── en.js                  # Natural English dictionary (216 keys)
+│   └── index.js               # Dictionary lookup and parameter interpolation engine
 ├── components/
 │   ├── AppHeader.js           # Header with responsive desktop navigation & theme toggle
 │   ├── DesktopNavigation.js   # Desktop navigation link bar
@@ -120,10 +131,12 @@ src/
 │   ├── Bacheca/               # ViewBacheca.js, AggiungiNota.js, ModificaNota.js, ViewCalendario.js, AggiungiEvento.js
 │   ├── Documenti/             # GestioneDocumenti.js
 │   ├── Contatti/              # ViewContatti.js
+│   ├── Impostazioni/          # ViewImpostazioni.js & ViewImpostazioni.test.jsx
 │   └── NotFound.js            # 404 page
 ├── utils/
 │   ├── security.js            # Sanitization and validation
 │   ├── feedback.js            # Toast and modal emitter utilities
+│   ├── notificationPrefs.js   # Resilient notification preference storage & fallback
 │   ├── debtSimplification.js  # Bipartite matching & 4 split modes calculations
 │   ├── choreRotation.js       # Deterministic round-robin & vacation filters
 │   ├── reportExport.js        # CSV (CWE-1236 immune) & styled PDF print export

@@ -55,3 +55,8 @@ Thumbs.db
 
 # design templates and scratch assets
 css_template/
+
+# agent artifacts and caches
+.agents/
+graphify-out/cache/
+

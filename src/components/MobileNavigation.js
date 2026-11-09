@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
+import { useLanguage } from "../contexts/LanguageContext";
 import { signOut } from "firebase/auth";
 import { auth } from "../firebase";
 
@@ -9,6 +10,7 @@ export default function MobileNavigation() {
   const navigate = useNavigate();
   const location = useLocation();
   const { currentUser, userData } = useAuth();
+  const { t } = useLanguage();
 
   // Close menu on route change
   useEffect(() => {
@@ -73,19 +75,20 @@ export default function MobileNavigation() {
 
   const menuItems = currentUser
     ? [
-        { label: "Dashboard", icon: "fa-home", path: "/home" },
-        { label: "Turni Pulizia", icon: "fa-broom", path: "/turni" },
-        { label: "Spese & Debiti", icon: "fa-wallet", path: "/debiti" },
-        { label: "Lista Spesa", icon: "fa-shopping-cart", path: "/spesa" },
-        { label: "Calendario Casa", icon: "fa-calendar-alt", path: "/calendario" },
-        { label: "Bacheca", icon: "fa-thumbtack", path: "/bacheca" },
-        { label: "Documenti & Contratti", icon: "fa-folder-open", path: "/documenti" },
-        { label: "Contatti Utili", icon: "fa-address-book", path: "/contatti" },
+        { label: t("nav.dashboard", {}, "Dashboard"), icon: "fa-home", path: "/home" },
+        { label: t("nav.choresFull", {}, "Turni Pulizia"), icon: "fa-broom", path: "/turni" },
+        { label: t("nav.debtsFull", {}, "Spese & Debiti"), icon: "fa-wallet", path: "/debiti" },
+        { label: t("nav.groceriesFull", {}, "Lista Spesa"), icon: "fa-shopping-cart", path: "/spesa" },
+        { label: t("nav.calendarFull", {}, "Calendario Casa"), icon: "fa-calendar-alt", path: "/calendario" },
+        { label: t("nav.board", {}, "Bacheca"), icon: "fa-thumbtack", path: "/bacheca" },
+        { label: t("nav.documentsFull", {}, "Documenti & Contratti"), icon: "fa-folder-open", path: "/documenti" },
+        { label: t("nav.contactsFull", {}, "Contatti Utili"), icon: "fa-address-book", path: "/contatti" },
+        { label: t("nav.settings", {}, "Impostazioni"), icon: "fa-sliders-h", path: "/impostazioni" },
       ]
     : [
-        { label: "Home", icon: "fa-home", path: "/" },
-        { label: "Accedi", icon: "fa-sign-in-alt", path: "/login" },
-        { label: "Registrati", icon: "fa-user-plus", path: "/registrazione" },
+        { label: t("nav.home", {}, "Home"), icon: "fa-home", path: "/" },
+        { label: t("nav.login", {}, "Accedi"), icon: "fa-sign-in-alt", path: "/login" },
+        { label: t("nav.register", {}, "Registrati"), icon: "fa-user-plus", path: "/registrazione" },
       ];
 
   return (
@@ -95,7 +98,7 @@ export default function MobileNavigation() {
         type="button"
         className={`burger-container ${isOpen ? "burger-active" : ""}`}
         onClick={() => setIsOpen(!isOpen)}
-        aria-label="Apri menu di navigazione"
+        aria-label={t("nav.ariaOpenMenu", {}, "Apri menu di navigazione")}
         aria-expanded={isOpen}
         aria-hidden={isOpen}
         tabIndex={isOpen ? -1 : 0}
@@ -116,11 +119,11 @@ export default function MobileNavigation() {
           <div className="mobile-menu-header">
             <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
               <span className="mobile-menu-badge">
-                <i className="fas fa-home"></i> HouseHelper Menu
+                <i className="fas fa-home"></i> {t("nav.menuTitle", {}, "HouseHelper Menu")}
               </span>
               {userData?.username && (
                 <span className="mobile-user-greeting">
-                  Ciao, <strong>{userData.username}</strong>
+                  {t("nav.greeting", { name: userData.username }, `Ciao, ${userData.username}`)}
                 </span>
               )}
             </div>
@@ -129,7 +132,7 @@ export default function MobileNavigation() {
               type="button"
               className="mobile-close-btn"
               onClick={() => setIsOpen(false)}
-              aria-label="Chiudi menu"
+              aria-label={t("nav.ariaCloseMenu", {}, "Chiudi menu")}
             >
               <i className="fas fa-times"></i>
             </button>
@@ -137,7 +140,11 @@ export default function MobileNavigation() {
 
           <ul className="mobile-menu-list">
             {menuItems.map((item, idx) => {
-              const isActive = location.pathname === item.path;
+              const isActive =
+                item.path === "/impostazioni"
+                  ? location.pathname === "/impostazioni" || location.pathname === "/settings"
+                  : location.pathname === item.path;
+
               return (
                 <li
                   key={item.path}
@@ -163,7 +170,7 @@ export default function MobileNavigation() {
           {currentUser && (
             <div className="mobile-menu-footer">
               <button type="button" onClick={handleLogout} className="mobile-logout-btn">
-                <i className="fas fa-sign-out-alt"></i> Esci dall'account
+                <i className="fas fa-sign-out-alt"></i> {t("common.logout", {}, "Esci dall'account")}
               </button>
             </div>
           )}

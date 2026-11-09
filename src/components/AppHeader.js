@@ -1,6 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
+import { useLanguage } from "../contexts/LanguageContext";
 import ThemeToggle from "./ThemeToggle";
 import MobileNavigation from "./MobileNavigation";
 import DesktopNavigation from "./DesktopNavigation";
@@ -12,6 +13,7 @@ import logo from "../logo.png";
 export default function AppHeader() {
   const navigate = useNavigate();
   const { currentUser, userData } = useAuth();
+  const { t } = useLanguage();
 
   const handleBrandClick = () => {
     if (currentUser && userData?.casaId) {
@@ -36,7 +38,7 @@ export default function AppHeader() {
             handleBrandClick();
           }
         }}
-        aria-label="Torna alla pagina principale HouseHelper"
+        aria-label={t("nav.ariaHomeLink", {}, "Torna alla pagina principale HouseHelper")}
       >
         <div className="brand-icon-badge">
           <img src={logo} alt="HouseHelper Logo" className="brand-logo-img" />

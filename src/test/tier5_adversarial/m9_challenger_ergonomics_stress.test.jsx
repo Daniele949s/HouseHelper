@@ -530,7 +530,7 @@ describe("Milestone M9 Adversarial Challenger Suite: Ergonomics, Bottom Bar, Tou
       expect(c2.querySelector(".desktop-nav-root")).toBeNull();
     });
 
-    test("CHALLENGE 5.2: DesktopNavigation renders exactly 8 links with exact roles, labels, and vector icons", async () => {
+    test("CHALLENGE 5.2: DesktopNavigation renders exactly 9 links with exact roles, labels, and vector icons", async () => {
       const { container } = renderWithProviders(<DesktopNavigation />, {
         user: alice,
         userData: { username: "Alice", casaId: houseId },
@@ -543,10 +543,10 @@ describe("Milestone M9 Adversarial Challenger Suite: Ergonomics, Bottom Bar, Tou
 
       const navRoot = container.querySelector(".desktop-nav-root");
       const listItems = navRoot.querySelectorAll("li.desktop-nav-item");
-      expect(listItems).toHaveLength(8);
+      expect(listItems).toHaveLength(9);
 
       const links = screen.getAllByRole("link");
-      expect(links).toHaveLength(8);
+      expect(links).toHaveLength(9);
 
       const expectedTabs = [
         { label: "Dashboard", href: "/home", icon: "fa-home" },
@@ -557,6 +557,7 @@ describe("Milestone M9 Adversarial Challenger Suite: Ergonomics, Bottom Bar, Tou
         { label: "Calendario", href: "/calendario", icon: "fa-calendar-alt" },
         { label: "Documenti", href: "/documenti", icon: "fa-folder-open" },
         { label: "Contatti", href: "/contatti", icon: "fa-address-book" },
+        { label: "Impostazioni", href: "/impostazioni", icon: "fa-sliders-h" },
       ];
 
       expectedTabs.forEach((tab) => {
@@ -584,6 +585,7 @@ describe("Milestone M9 Adversarial Challenger Suite: Ergonomics, Bottom Bar, Tou
         { path: "/calendario", activeLabel: "Calendario" },
         { path: "/documenti", activeLabel: "Documenti" },
         { path: "/contatti", activeLabel: "Contatti" },
+        { path: "/impostazioni", activeLabel: "Impostazioni" },
       ];
 
       for (const item of routesToTest) {
@@ -597,7 +599,7 @@ describe("Milestone M9 Adversarial Challenger Suite: Ergonomics, Bottom Bar, Tou
           const activeLink = screen.getByText(item.activeLabel).closest("a");
           expect(activeLink).toHaveClass("active");
 
-          // Ensure other 7 links do not have active class
+          // Ensure other 8 links do not have active class
           routesToTest
             .filter((other) => other.activeLabel !== item.activeLabel)
             .forEach((other) => {

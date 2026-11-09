@@ -19,6 +19,7 @@ class MockFirestoreStore {
     this.currentMockUser = null;
     this.authListeners = [];
     this.autoIdCounter = 1;
+    this.passwordResetEmails = [];
   }
 
   reset() {
@@ -36,6 +37,7 @@ class MockFirestoreStore {
     this.currentMockUser = null;
     this.authListeners = [];
     this.autoIdCounter = 1;
+    this.passwordResetEmails = [];
   }
 
   // Pre-seed a collection with documents
@@ -352,6 +354,25 @@ export const applyActionCode = jest.fn(async (auth, code) => {
   return Promise.resolve();
 });
 
+export const sendPasswordResetEmail = async (authOrEmail, maybeEmail, actionCodeSettings) => {
+  const isDirect = typeof authOrEmail === 'string';
+  const email = isDirect ? authOrEmail : maybeEmail;
+  const settings = isDirect ? maybeEmail : actionCodeSettings;
+  if (mockStore) {
+    if (!mockStore.passwordResetEmails) {
+      mockStore.passwordResetEmails = [];
+    }
+    if (email && typeof email === 'string' && email.trim().length > 0) {
+      mockStore.passwordResetEmails.push({
+        email,
+        timestamp: new Date().toISOString(),
+        actionCodeSettings: (settings && typeof settings === 'object') ? settings : undefined
+      });
+    }
+  }
+  return Promise.resolve();
+};
+
 export const signInWithPopup = async (auth, provider) => {
   const uid = `google_user_${Math.random().toString(36).substr(2, 8)}`;
   const user = {
@@ -394,6 +415,7 @@ export const authMock = {
   signInWithPopup,
   signOut,
   sendEmailVerification,
+  sendPasswordResetEmail,
   reload,
   applyActionCode
 };

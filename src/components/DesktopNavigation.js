@@ -1,6 +1,19 @@
 import React from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
+import { useLanguage } from "../contexts/LanguageContext";
+
+const NAV_DEFINITIONS = [
+  { key: "nav.dashboard", fallback: "Dashboard", icon: "fa-home", path: "/home", end: true },
+  { key: "nav.chores", fallback: "Turni", icon: "fa-broom", path: "/turni", end: false },
+  { key: "nav.debts", fallback: "Debiti", icon: "fa-wallet", path: "/debiti", end: false },
+  { key: "nav.groceries", fallback: "Spesa", icon: "fa-shopping-cart", path: "/spesa", end: false },
+  { key: "nav.board", fallback: "Bacheca", icon: "fa-thumbtack", path: "/bacheca", end: false },
+  { key: "nav.calendar", fallback: "Calendario", icon: "fa-calendar-alt", path: "/calendario", end: false },
+  { key: "nav.documents", fallback: "Documenti", icon: "fa-folder-open", path: "/documenti", end: false },
+  { key: "nav.contacts", fallback: "Contatti", icon: "fa-address-book", path: "/contatti", end: false },
+  { key: "nav.settings", fallback: "Impostazioni", icon: "fa-sliders-h", path: "/impostazioni", end: false, aliases: ["/settings"] },
+];
 
 /**
  * Desktop navigation bar rendered inside AppHeader on viewports > 768px.
@@ -9,6 +22,7 @@ import { useAuth } from "../contexts/AuthContext";
  */
 export default function DesktopNavigation() {
   const { currentUser, userData } = useAuth();
+  const { t } = useLanguage();
   const location = useLocation();
 
   // Guard: Only render when authenticated with an active household
@@ -16,33 +30,27 @@ export default function DesktopNavigation() {
     return null;
   }
 
-  const navItems = [
-    { label: "Dashboard", icon: "fa-home", path: "/home", end: true },
-    { label: "Turni", icon: "fa-broom", path: "/turni", end: false },
-    { label: "Debiti", icon: "fa-wallet", path: "/debiti", end: false },
-    { label: "Spesa", icon: "fa-shopping-cart", path: "/spesa", end: false },
-    { label: "Bacheca", icon: "fa-thumbtack", path: "/bacheca", end: false },
-    { label: "Calendario", icon: "fa-calendar-alt", path: "/calendario", end: false },
-    { label: "Documenti", icon: "fa-folder-open", path: "/documenti", end: false },
-    { label: "Contatti", icon: "fa-address-book", path: "/contatti", end: false },
-  ];
+  const checkActive = (targetPath, isEnd) =>
+    isEnd ? location.pathname === targetPath : location.pathname.startsWith(targetPath);
 
   return (
-    <nav className="desktop-nav-root" aria-label="Navigazione principale">
+    <nav className="desktop-nav-root" aria-label={t("nav.main_navigation", {}, t("nav.ariaNav", {}, "Navigazione principale"))}>
       <ul className="desktop-nav-list">
-        {navItems.map((item) => {
-          const isActive = item.end
-            ? location.pathname === item.path
-            : location.pathname.startsWith(item.path);
+        {NAV_DEFINITIONS.map((item) => {
+          const label = t(item.key, {}, item.fallback);
+          const isActive =
+            checkActive(item.path, item.end) ||
+            Boolean(item.aliases && item.aliases.some((alias) => checkActive(alias, item.end)));
 
           return (
             <li key={item.path} className="desktop-nav-item">
               <NavLink
                 to={item.path}
                 className={`desktop-nav-link ${isActive ? "active" : ""}`}
+                title={label}
               >
                 <i className={`fas ${item.icon} desktop-nav-icon`} aria-hidden="true"></i>
-                <span className="desktop-nav-label">{item.label}</span>
+                <span className="desktop-nav-label">{label}</span>
               </NavLink>
             </li>
           );

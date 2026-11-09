@@ -1,27 +1,27 @@
 # Graph Report - househelper  (2026-11-09)
 
 ## Corpus Check
-- 573 files · ~600,662 words
+- 745 files · ~724,413 words
 - Verdict: corpus is large enough that graph structure adds value.
-- Unclassified: 26 file(s) not represented in the graph (top: (none) 4, .css 4, .eot 3)
+- Unclassified: 28 file(s) not represented in the graph (top: .patch 4, (none) 4, .css 4)
 
 ## Summary
-- 4295 nodes · 6041 edges · 464 communities (320 shown, 144 thin omitted)
-- Extraction: 83% EXTRACTED · 17% INFERRED · 0% AMBIGUOUS · INFERRED: 1020 edges (avg confidence: 0.95)
+- 5524 nodes · 7770 edges · 596 communities (409 shown, 187 thin omitted)
+- Extraction: 82% EXTRACTED · 18% INFERRED · 0% AMBIGUOUS · INFERRED: 1417 edges (avg confidence: 0.95)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `67441513`
+- Built from commit: `bd2da1a8`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
 ## Community Hubs (Navigation)
-- package.json
+- 2. Logic Chain
 - stress-test-m8-ergonomics.js
 - mockFirebase.js
 - react
-- AppHeader
-- 2. Inventory of the 17 Redundant Imports
+- MobileNavigation
+- signOut
 - 2. Comprehensive Feature Inventory & Logic Mapping
 - Milestone 3 Analysis & Implementation Blueprint: Chores, Expenses & Grocery Modernization
 - Web App Manifest & Metadata
@@ -46,7 +46,7 @@
 - BRIEFING — 2026-11-02T09:56:00Z
 - BRIEFING — 2026-11-02T09:53:00Z
 - BRIEFING — 2026-11-02T09:33:03Z
-- BRIEFING — 2026-11-02T10:45:30Z
+- BRIEFING — 2026-11-09T14:10:00Z
 - Progress — explorer_survey_arch
 - stress-test-m10-ergonomics.js
 - Progress — worker_m1
@@ -90,7 +90,7 @@
 - BRIEFING — 2026-11-02T10:29:15Z
 - BRIEFING — 2026-11-02T10:26:00Z
 - BRIEFING — 2026-11-02T10:27:00Z
-- Handoff Report: Milestone 2 Strict Zero-Emoji, Zero-Arrow & Script Hardening Specification
+- Handoff Report: UI/UX Modernization & Strict Emoji Prohibition Survey (R1 & R2)
 - Analysis: Milestone 1 Implementation (worker_m1)
 - Progress — challenger_m1_1
 - ref
@@ -109,11 +109,11 @@
 - reviewer_m1_1/progress.md
 - reviewer_m1_2/DISPATCH.md
 - reviewer_m1_2/progress.md
-- Milestone M6 Orchestrator Final Handoff Report
+- translate
 - 4. Conclusion & Complete Technical Specification
 - explorer_m5/analysis.md
 - Milestone M4 Review & Verification Report: 100% Test Pass & Zero Regressions
-- DesktopNavigation
+- Milestone 2 Quality & Adversarial Review Analysis
 - Apple Design Skill
 - 1. Observation
 - Milestone 2 Review and Adversarial Analysis Report
@@ -131,9 +131,9 @@
 - HouseHelper Automated Test Suite Summary (TEST_READY)
 - Forensic Audit Report & Handoff: Milestone 2 Verification
 - Milestone M7 Independent Review & Adversarial Audit Report — reviewer_m7_2
-- BRIEFING — 2026-11-02T11:05:00Z
+- showToast
 - Milestone 2 Adversarial Verification Handoff Report
-- MiniGuy
+- Handoff Report: Reviewer 2 — Milestone M3 (Account & Security, Apple HIG, Responsive CSS & Build)
 - BRIEFING — 2026-11-03T12:35:00Z
 - BRIEFING — 2026-11-03T12:51:00Z
 - scripts_audit-secrets.js
@@ -159,12 +159,12 @@
 - BRIEFING — 2026-11-03T12:45:00Z
 - BRIEFING — 2026-11-03T12:38:00Z
 - BRIEFING — 2026-11-03T12:35:00Z
-- 1.2 Domain Pages UI/UX Modernization & Design System
+- Milestone 2 Challenger Handoff Report: Navigation, Design System & Feedback Subsystem Integrity
 - BRIEFING — 2026-11-03T12:45:00Z
 - BRIEFING — 2026-11-03T12:51:00Z
 - Milestone 3 Gate Verification Challenge Report: Empirical Adversarial Audit
 - BRIEFING — 2026-11-03T12:41:00Z
-- BRIEFING — 2026-11-02T10:47:00Z
+- useLanguage
 - Handoff Report: Survey Explorer 3
 - BRIEFING — 2026-11-03T14:38:30Z
 - Dispatch
@@ -206,7 +206,7 @@
 - BRIEFING — 2026-11-03T14:53:00Z
 - MockStorageStore
 - Milestone 4 Gate Verification & Final Review Report
-- Milestone 3 Challenger 2 Handoff Report: Feedback Subsystem & Lifecycle Cleanliness Gate Verification
+- 4. Conclusion & Concrete Design Specifications
 - verify-zero-emojis.js
 - Forensic Audit Report: Milestone M4 Gate Verification & Final Acceptance
 - Forensic Audit Report: Milestone M4 Integrity Verification
@@ -217,7 +217,7 @@
 - Handoff Report: Reviewer 2 & Adversarial Critic for Milestone M9
 - BRIEFING — 2026-11-02T12:30:00Z
 - Handoff Report: Security Audit & Hardened Firestore Security Rules (M5 / R3)
-- security.js
+- ViewDebiti.js
 - 1. Observation
 - BRIEFING — 2026-11-03T15:50:30Z
 - Dispatch: Explorer M5 Rules (Firestore Security Rules Hardening)
@@ -267,11 +267,11 @@
 - explorer_m6_ui/README.md
 - orchestrator_m6/README.md
 - worker_m6/README.md
-- BRIEFING — 2026-11-02T11:42:00Z
+- Apple Design Skill
 - 1. Observation
 - BRIEFING — 2026-11-03T15:25:00Z
 - Task Assignment: Replacement Worker M9 (Primary Views Modernization & Signature Elements)
-- ConfirmModal
+- LanguageContext.js
 - 1. Observation
 - BRIEFING — 2026-11-04T00:49:30Z
 - Status: IN_PROGRESS
@@ -294,13 +294,13 @@
 - 2. Logic Chain
 - BRIEFING — 2026-11-03T15:30:00Z
 - 1. Observation
-- showToast
+- orchestrator_settings_gen2/DISPATCH.md
 - 3. Tier Coverage & Validation Strategy
 - BRIEFING — 2026-11-08T13:45:00Z
-- Milestone 3 Gate Verification Report — Reviewer 1 (reviewer_m3_1)
-- triggerConfetti
+- getSystemDarkPreference
+- BRIEFING — 2026-11-02T11:42:00Z
 - vercel.json
-- BRIEFING — 2026-11-04T00:56:00Z
+- BRIEFING — 2026-11-09T12:43:00Z
 - Progress Log — Victory Auditor M6
 - victory_auditor_m6/DISPATCH.md
 - victory_auditor_m6/README.md
@@ -310,32 +310,32 @@
 - Interface Contracts
 - BRIEFING — 2026-11-04T00:22:00Z
 - Task Assignment: Worker M8 (Design Tokens, CSS Architecture, Ergonomics & Shell Layout)
-- BRIEFING — 2026-11-04T00:17:30Z
+- BRIEFING — 2026-11-09T12:17:30Z
 - BRIEFING — 2026-11-04T00:17:00Z
 - Milestone M7 Challenger 2 Handoff Report — challenger_m7_2
 - BRIEFING — 2026-11-04T00:16:30Z
-- 3. Detailed Component Blueprints
+- 1.4 Verbatim Tool Execution Outputs
 - BRIEFING — 2026-11-08T14:03:30Z
 - Milestone M7 Handoff Report — worker_m7
-- ViewDebiti
+- BRIEFING — 2026-11-09T11:30:30Z
 - BRIEFING — 2026-11-08T15:07:00Z
 - BRIEFING — 2026-11-08T13:39:30Z
 - Handoff Report: Reviewer 2 — Milestone M10 Gate Verification
-- Project: HouseHelper Modernization & Visual/Ergonomics Production Overhaul
+- BRIEFING — 2026-11-09T12:25:00Z
 - Milestone 4 Gate Verification: Challenger Empirical Stress Test & Audit Report
 - orchestrator_gen2/DISPATCH.md
 - BRIEFING — 2026-11-08T22:05:00Z
 - 1. Observation
 - Progress — Milestone M7 Orchestration
-- MobileBottomBar
+- BRIEFING — 2026-11-09T12:22:00Z
 - BRIEFING — 2026-11-08T13:38:00Z
 - Milestone 3 Gate Review & Independent Verification Report
 - Progress — auditor_m7_1
 - Task Assignment: Survey Explorer 1 (CSS Tokens, Themes, Colors, Shadows & Liquid Glass)
 - BRIEFING — 2026-11-04T01:57:00Z
-- Task Assignment: Survey Explorer 3 (Cards, Distinctiveness, Micro-copy, Iconography & Modals)
+- ConfirmModal
 - Progress — Challenger 1 (Milestone M7)
-- serviceWorkerRegistration.js
+- 4. Conclusion & Recommended Code Changes
 - Progress — explorer_m7_debts
 - Progress Tracking - explorer_m7_pwa_contacts
 - Progress - explorer_m7_turni
@@ -365,7 +365,7 @@
 - BRIEFING — 2026-11-04T01:10:00Z
 - BRIEFING — 2026-11-08T15:05:00Z
 - 1. Observation
-- 3.3 Structural Gaps in the Testing Suite
+- Investigation Report: Navigation Structure, Cross-Device Ergonomics, Touch Targets & Safe Areas
 - BRIEFING — 2026-11-08T15:05:00Z
 - 3. Tier Coverage Plan
 - BRIEFING — 2026-11-08T15:02:50Z
@@ -386,8 +386,8 @@
 - teamwork_explorer_survey_2/progress.md
 - Handoff Report: Reviewer 1 — Milestone M10 Gate Verification
 - Frontend Design
-- 1. Observation
-- homeUtente.js
+- Handoff Report: Milestone M2 Explorer 3 — Routing Integration, Settings HIG Shell & Navigation Tests
+- m7_challenger_chores_offline_stress.test.jsx
 - Task Assignment: Forensic Auditor for Milestone M8
 - Task Assignment: Challenger 1 for Milestone M8
 - Task Assignment: Challenger 2 for Milestone M8
@@ -409,16 +409,16 @@
 - Handoff Report: Reviewer 1 for Milestone M9
 - BRIEFING — 2026-11-08T22:21:40Z
 - Handoff Report: Milestone M9 Empirical Challenger 2
-- showConfirm
+- BRIEFING — 2026-11-09T12:22:00Z
 - Handoff Report: Challenger 1 (Milestone M9 - Signature Elements Stress)
 - Handoff Report: Milestone M9 Replacement Worker
-- 1. Observation
+- src/index.js
 - Forensic Audit Report: Milestone M9
-- Dispatch: Worker M4 Concurrency Fix
-- Dispatch: Milestone 4 Worker (Adversarial Coverage Hardening)
-- Project: HouseHelper Modernization & Visual/Ergonomics Production Overhaul
-- Challenger M3 Gate 2 Report: Feedback Pub/Sub, Accessibility, Lifecycle Cleanliness & DOM Hardening
-- Handoff Report: Milestone 3 Chores, Expenses & Grocery Modernization
+- Handoff Report: Milestone M1 Review & Adversarial Audit (Reviewer 2)
+- feedback.js
+- BRIEFING — 2026-11-09T12:21:45Z
+- InteractiveMascot
+- 3. Detailed Component Blueprints
 - Task Assignment: Forensic Auditor for Milestone M9
 - Task Assignment: Challenger 1 for Milestone M9 (Signature Elements Stress)
 - Task Assignment: Challenger 2 for Milestone M9 (Ergonomics, Modals & Invariants Stress)
@@ -428,7 +428,7 @@
 - Progress: Worker M10 (Secondary Household Views, Modals & Micro-Copy Polish)
 - 1. Observation
 - 1. Observation
-- MiniGuy.js
+- BRIEFING — 2026-11-09T11:56:30Z
 - teamwork_auditor_m9/progress.md
 - teamwork_challenger_m9_1/progress.md
 - teamwork_challenger_m9_2/progress.md
@@ -461,15 +461,15 @@
 - Task Assignment: Reviewer 2 — Milestone M10 Gate Verification
 - Task Assignment: Reviewer 1 — Milestone M11 Final Pre-Release Verification
 - Task Assignment: Reviewer 2 — Milestone M11 Final Pre-Release Verification
-- Milestone 2 Challenger Handoff Report: Navigation, Design System & Feedback Subsystem Integrity
-- Milestone 2 Review Handoff Report: Design System, Global Navigation & Strict Zero-Emoji Replacement
-- Milestone 3 Handoff Report: Core Domain Pages UI/UX Modernization, Mascot Retirement & Non-Blocking Feedback
-- 4.5 Tier 4: Realistic Household End-to-End Scenarios
+- BRIEFING — 2026-11-09T12:41:00Z
+- BRIEFING — 2026-11-09T12:22:00Z
+- Milestone M2 Handoff Report: Navigation Localization, Settings Routing & Shell Integration
+- Milestone M2 Reviewer 1 Handoff Report
 - Progress — Milestone M11 Forensic Integrity Audit
 - Progress — Challenger 2 (Milestone M10)
 - Victory Auditor Progress
-- 4.6 Automated Verification Scripts
-- 1. Observation
+- Milestone 2 Adversarial Challenge Analysis
+- Handoff Report: Milestone M1 Challenger 2 (Theme Infrastructure & Test Harness Stress)
 - Progress — Challenger 1 (Milestone M11)
 - Progress — Reviewer 1 (M11 Pre-Release Verification)
 - Progress — Reviewer 2 (teamwork_reviewer_m11_2)
@@ -479,18 +479,150 @@
 - teamwork_reviewer_m10_1/progress.md
 - teamwork_reviewer_m10_2/progress.md
 - victory_auditor/DISPATCH.md
+- BRIEFING — 2026-11-09T12:38:00Z
+- BRIEFING — 2026-11-09T12:56:55Z
+- Milestone M2 Challenger 2 Handoff Report: Ergonomics, Responsive Breakpoints, Touch Targets & Mobile Drawer Lifecycle
+- BRIEFING — 2026-11-04T00:56:00Z
+- Handoff Report: Milestone M1 (Iteration 2) Explorer 3 — Challenger Suite Verification & Remediation Strategy
+- Handoff Report: Implementation Strategy for LanguageContext & 3-Way ThemeContext
+- StorageRulesSimulator
+- LanguageProvider
+- 2. Logic Chain
+- orchestrator_settings/DISPATCH.md
+- Forensic Audit Report: Milestone M1 Work Product
+- 1.2 Inspection of `src/test/mockFirebase.js`
+- Handoff Report: Settings Functional Domains & Testing Infrastructure
+- BRIEFING — 2026-11-02T12:04:00Z
+- Handoff Report: Internationalization (`src/i18n/`) Architecture & Dictionaries
+- BRIEFING — 2026-11-09T11:43:00Z
+- BRIEFING — 2026-11-09T11:34:00Z
+- 1. Observation
+- BRIEFING — 2026-11-09T11:21:40Z
+- BRIEFING — 2026-11-09T11:44:00Z
+- BRIEFING — 2026-11-09T12:30:00Z
+- 1. Observation
+- sendPasswordResetEmail
+- BRIEFING — 2026-11-09T11:28:30Z
+- BRIEFING — 2026-11-09T12:02:00Z
+- 1. Observation
+- package.json
+- BRIEFING — 2026-11-09T11:06:55Z
+- BRIEFING — 2026-11-09T11:07:00Z
+- proposed_settings_routing.test.jsx
+- BRIEFING — 2026-11-09T10:57:30Z
+- proposed_ViewImpostazioni.js
+- Handoff Report — Milestone M3: Settings Household Identity Card & Appearance & Language
+- BRIEFING — 2026-11-02T10:45:30Z
+- BRIEFING — 2026-11-09T11:07:30Z
+- Soft Handoff — Orchestrator Gen 1 to Gen 2
+- BRIEFING — 2026-11-09T11:40:20Z
+- 1. Observation
+- scripts
+- BRIEFING — 2026-11-09T11:00:00Z
+- 3. Recommended Architecture Specification
+- Reviewer 2 & Adversarial Critic Report: Milestone M2
+- Dispatch: Milestone 4 Worker (Adversarial Coverage Hardening)
+- showConfirm
+- setupTests.js
+- Handoff Report: Milestone M3 Forensic Integrity Audit
+- Progress — Settings View & i18n Orchestration
+- extends
+- Milestone 3 Gate Verification: Adversarial Review & Quality Audit Report
+- Gate Status Tracking
+- Milestone M1 Forensic Auditor Dispatch
+- Progress — Milestone M1 Forensic Audit
+- Progress — M1 Challenger 1
+- BRIEFING — 2026-11-04T00:17:30Z
+- Milestone M1 (Iteration 2) Explorer 3 Dispatch: Challenger Test Suite Verification Strategy
+- Progress — teamwork_reviewer_m1_1
+- BRIEFING — 2026-11-09T13:00:00Z
+- Progress Log - Worker M1 (Iteration 2)
+- Progress — Worker M1
+- BRIEFING — 2026-11-09T11:42:00Z
+- teamwork_challenger_m1_1/DISPATCH.md
+- teamwork_explorer_m1_1/DISPATCH.md
+- teamwork_explorer_m1_2/progress.md
+- teamwork_explorer_m1_iter2_3/progress.md
+- teamwork_explorer_settings_survey_1/DISPATCH.md
+- teamwork_explorer_settings_survey_1/progress.md
+- teamwork_explorer_settings_survey_2/DISPATCH.md
+- teamwork_explorer_settings_survey_2/progress.md
+- teamwork_explorer_settings_survey_3/progress.md
+- teamwork_reviewer_m1_1/DISPATCH.md
+- teamwork_reviewer_m1_2/progress.md
+- BRIEFING — 2026-11-09T12:58:00Z
+- Gate Status Tracking
+- Project: HouseHelper Modernization
+- Milestone M2 Explorer 3 Dispatch: Routing Integration & Settings Shell
+- Milestone M2 Challenger 1 Handoff Report: Empirical Verification & Stress Testing
+- Progress — Worker M2
+- teamwork_explorer_m2_1/progress.md
+- teamwork_explorer_m2_2/progress.md
+- teamwork_explorer_m2_3/progress.md
+- BRIEFING — 2026-11-09T12:40:00Z
+- Handoff Report: Milestone M3 Reviewer 1 (Quality & Adversarial Review)
+- Handoff Report: Apple HIG & Frontend Design CSS Specifications for Settings
+- BRIEFING — 2026-11-09T12:56:40Z
+- Dispatch: Worker M4 Concurrency Fix
+- Handoff Report: Milestone 2 Strict Zero-Emoji, Zero-Arrow & Script Hardening Specification
+- 4.6 Automated Verification Scripts
+- Progress — Milestone M2 Challenger 2
+- teamwork_auditor_m2_1/DISPATCH.md
+- teamwork_auditor_m2_1/progress.md
+- teamwork_challenger_m2_1/DISPATCH.md
+- teamwork_challenger_m2_1/progress.md
+- teamwork_challenger_m2_2/DISPATCH.md
+- teamwork_reviewer_m2_1/progress.md
+- teamwork_reviewer_m2_2/progress.md
+- BRIEFING — 2026-11-09T11:06:00Z
+- Interface Contracts
+- BRIEFING — 2026-11-09T13:58:00Z
+- Project: HouseHelper Modernization & Visual/Ergonomics Production Overhaul
+- Project: HouseHelper Modernization & Visual/Ergonomics Production Overhaul
+- Interface Contracts
+- Milestone 2 Review Handoff Report: Design System, Global Navigation & Strict Zero-Emoji Replacement
+- 1. Observation
+- BRIEFING — 2026-11-09T12:57:00Z
+- BRIEFING — 2026-11-09T11:43:00Z
+- Milestone M3 Worker Dispatch: Full Settings View Implementation & Apple HIG Styling
+- BRIEFING — 2026-11-09T11:27:30Z
+- BRIEFING — 2026-11-02T10:47:00Z
+- Milestone M6 Orchestrator Final Handoff Report
+- Handoff Report: Milestone M3 Adversarial Challenge — Visual Ergonomics, Apple HIG & Touch Target Stress
+- Progress: Milestone M3 Implementation
+- 1. Observation
+- Milestone M3 Reviewer 1 Dispatch: Settings UI, i18n, Theme & Notifications
+- teamwork_explorer_m3_2/progress.md
+- teamwork_explorer_m3_3/DISPATCH.md
+- teamwork_explorer_m3_3/progress.md
+- apple-design-skill.md
+- frontend-design-skill.md
+- Milestone M3 Forensic Auditor Dispatch: Integrity Forensics
+- Milestone M3 Challenger 1 Dispatch: Functional & Edge Case Stress Testing
+- Milestone M3 Challenger 2 Dispatch: Visual Ergonomics, Apple HIG & Touch Target Stress Testing
+- Milestone M3 Reviewer 2 Dispatch: Account & Security, Apple HIG, Responsive CSS & Build
+- 4. Conclusion
+- Progress Heartbeat — Challenger M3 (Ergonomics & Apple HIG)
+- teamwork_auditor_m3/progress.md
+- teamwork_challenger_m3_1/progress.md
+- teamwork_reviewer_m3_1/progress.md
+- teamwork_reviewer_m3_2/progress.md
+- Milestone M4 Forensic Auditor Dispatch: Pre-Release Quality Gates & Integrity Certification
+- Progress: Milestone M4 Forensic Auditor
+- 3. Current Automated Testing State & Gap Analysis
+- 2026-11-09T12:02:49Z
 
 ## God Nodes (most connected - your core abstractions)
-1. `showConfirm()` - 99 edges
-2. `react` - 83 edges
-3. `showToast()` - 82 edges
-4. `ConfirmModal()` - 62 edges
-5. `useAuth()` - 55 edges
-6. `react-router-dom` - 49 edges
-7. `@testing-library/react` - 42 edges
-8. `InteractiveMascot()` - 42 edges
-9. `MiniGuy()` - 40 edges
-10. `seedHousehold()` - 37 edges
+1. `showConfirm()` - 117 edges
+2. `react` - 100 edges
+3. `showToast()` - 88 edges
+4. `sendPasswordResetEmail()` - 66 edges
+5. `ConfirmModal()` - 64 edges
+6. `useAuth()` - 64 edges
+7. `renderWithProviders()` - 63 edges
+8. `react-router-dom` - 56 edges
+9. `@testing-library/react` - 55 edges
+10. `useLanguage()` - 52 edges
 
 ## Surprising Connections (you probably didn't know these)
 - `3.1 Global Root Loading in `src/App.js`` --references--> `App()`  [INFERRED]
@@ -507,11 +639,11 @@
 ## Import Cycles
 - None detected.
 
-## Communities (464 total, 144 thin omitted)
+## Communities (596 total, 187 thin omitted)
 
-### Community 0 - "package.json"
-Cohesion: 0.06
-Nodes (40): browserslist, development, production, dependencies, firebase@^12.14.0, react@^19.2.3, react-calendar@^6.0.0, react-dom@^19.2.3 (+32 more)
+### Community 0 - "2. Logic Chain"
+Cohesion: 0.11
+Nodes (18): 1.1 Existing `src/components/DesktopNavigation.js`, 1.2 Localization Infrastructure (`src/contexts/LanguageContext.js` & `src/i18n/`), 1.3 Responsive Styling in `src/App.css`, 1.4 Test Suites Dependent on Desktop Navigation Item Count, 1. Observation, 2.1 Localization Integration (Objective 1), 2.2 Adding the 9th Item for Settings (Objective 2), 2.3 Active Route Detection for Canonical & Alias Routes (Objective 3) (+10 more)
 
 ### Community 1 - "stress-test-m8-ergonomics.js"
 Cohesion: 0.08
@@ -519,27 +651,27 @@ Nodes (21): activeBlurs, appCssContent, appCssPath, appRoot, backdropFilterDecla
 
 ### Community 2 - "mockFirebase.js"
 Cohesion: 0.10
-Nodes (11): Firebase Service & Context ↔ Pages, Global Design System ↔ Pages (M2 ↔ M3), Interface Contracts, Testing Harness ↔ Application (E2E Track ↔ M4), addDoc(), deleteDoc(), getDoc(), getDocs() (+3 more)
+Nodes (12): 2.1 Firebase Mock Harness Extension (`mockFirebase.js`), Firebase Service & Context ↔ Pages, Global Design System ↔ Pages (M2 ↔ M3), Interface Contracts, Testing Harness ↔ Application (E2E Track ↔ M4), addDoc(), deleteDoc(), getDoc() (+4 more)
 
 ### Community 3 - "react"
-Cohesion: 0.17
-Nodes (21): 5.2 Files to Inspect Post-Implementation, Change Tracker, react, react-router-dom, @testing-library/react, CATEGORIES, appFirebaseMock, authMock (+13 more)
+Cohesion: 0.13
+Nodes (26): 1.2 Consumers of `ThemeContext` across the Codebase, react, @testing-library/react, defaultThemeContext, ThemeConsumer(), ThemeContext, useTheme(), VALID_THEMES (+18 more)
 
-### Community 4 - "AppHeader"
-Cohesion: 0.08
-Nodes (40): Attack Surface, 2. Logic Chain, Challenge Summary, Milestone 2 Adversarial Challenge Analysis, Stress Test Results, Unchallenged Areas, 2.1 Current Defect Analysis, 2026-11-02T10:20:08Z (+32 more)
+### Community 4 - "MobileNavigation"
+Cohesion: 0.12
+Nodes (37): Attack Surface, 2. Logic Chain, Stress Test Results, 2.1 Current Defect Analysis, 2026-11-02T10:20:08Z, 2. Logic Chain, 3.3 Structural Gaps in the Testing Suite, Mechanism Details: (+29 more)
 
-### Community 5 - "2. Inventory of the 17 Redundant Imports"
-Cohesion: 0.19
-Nodes (20): 1. Observation, 1.4 Test Infrastructure (`src/test/mockFirebase.js` & `src/setupTests.js`), 1.4 Inspection of `src/firebase.js`, 3.1 Technology Stack & Compatibility, 2. Logic Chain, 1.2 Detailed Code & Architecture Inspection, 2026-11-02T09:54:49Z, 2. Logic Chain (+12 more)
+### Community 5 - "signOut"
+Cohesion: 0.11
+Nodes (32): 1. Observation, 2. Inventory of the 17 Redundant Imports, 1.4 Test Infrastructure (`src/test/mockFirebase.js` & `src/setupTests.js`), 1.4 Inspection of `src/firebase.js`, 3.1 Technology Stack & Compatibility, 2. Logic Chain, 1.2 Detailed Code & Architecture Inspection, Defect B: `sendPasswordResetEmail` in `mockFirebase.js` Wiped Out by Jest `resetMocks: true` (+24 more)
 
 ### Community 6 - "2. Comprehensive Feature Inventory & Logic Mapping"
 Cohesion: 0.10
 Nodes (20): 2.1 Authentication & Household Management, 2.2 Cleaning Shifts / TurniPulizia, 2.3 Debts & Expenses (Spese e Debiti), 2.4 Grocery List (Lista della Spesa), 2.5 Bulletin Board & Calendar (Bacheca & Calendario), 2.6 Interactive Mascot & Celebration Feedback System, 2.7 Architecture Shell, Navigation & Theme System, 2.8 Comprehensive Firebase & Firestore Rules Matrix (+12 more)
 
 ### Community 7 - "Milestone 3 Analysis & Implementation Blueprint: Chores, Expenses & Grocery Modernization"
-Cohesion: 0.08
-Nodes (23): 1. Executive Summary & Problem Boundary, 2.1 Color Tokens, 2.2 Surface & Border Tokens, 2.3 Iconography Standard, 2. Design Tokens, Layout & Iconography Standards, 3.1 `src/pages/TurniPulizia/viewTurni.js`, 3.2 `src/pages/TurniPulizia/aggiuntaTurno.js` & `modificaTurno.js`, 3. Cleaning Shifts (`TurniPulizia`) Modernization Blueprint (+15 more)
+Cohesion: 0.06
+Nodes (31): 1. Executive Summary & Problem Boundary, 2.1 Color Tokens, 2.2 Surface & Border Tokens, 2.3 Iconography Standard, 2. Design Tokens, Layout & Iconography Standards, 3.1 `src/pages/TurniPulizia/viewTurni.js`, 3.2 `src/pages/TurniPulizia/aggiuntaTurno.js` & `modificaTurno.js`, 3. Cleaning Shifts (`TurniPulizia`) Modernization Blueprint (+23 more)
 
 ### Community 8 - "Web App Manifest & Metadata"
 Cohesion: 0.18
@@ -571,7 +703,7 @@ Nodes (11): Artifact Index, BRIEFING — 2026-11-02T10:10:00Z, Change Tracker, C
 
 ### Community 15 - "1. Observation"
 Cohesion: 0.07
-Nodes (29): 1.1 UI Routing & Security Guards (`src/App.js` & `src/components/RouteGuards.js`), 1.2 Navigation Systems (`DesktopNavigation.js`, `MobileNavigation.js`, `homeUtente.js`), 1.3 In-App Feedback System (`src/utils/feedback.js`), 1.4 Design System & Ergonomics (`src/App.css` & `src/index.css`), 1.5 Automated Verification Scripts Baseline, 1. Observation, 2.1 Route Registration & Guarding, 2.2 Navigation Integration & Icon Selection (+21 more)
+Nodes (28): 1.1 UI Routing & Security Guards (`src/App.js` & `src/components/RouteGuards.js`), 1.2 Navigation Systems (`DesktopNavigation.js`, `MobileNavigation.js`, `homeUtente.js`), 1.3 In-App Feedback System (`src/utils/feedback.js`), 1.4 Design System & Ergonomics (`src/App.css` & `src/index.css`), 1.5 Automated Verification Scripts Baseline, 1. Observation, 2.1 Route Registration & Guarding, 2.2 Navigation Integration & Icon Selection (+20 more)
 
 ### Community 16 - "Handoff Report: Milestone 1 Automated Verification Scripts"
 Cohesion: 0.20
@@ -594,8 +726,8 @@ Cohesion: 0.17
 Nodes (11): Active Timers, Artifact Index, BRIEFING — 2026-11-08T22:50:00Z, Current Parent, 🔒 Key Constraints, Key Decisions Made, Mission, 🔒 My Identity (+3 more)
 
 ### Community 21 - "Acceptance Criteria"
-Cohesion: 0.13
-Nodes (14): Acceptance Criteria, Approved Task Prompt — 2026-11-08T13:27:35Z, Ergonomia e Standard Apple HIG, Follow-up — 2026-11-08T22:03:05Z, Follow-up — 2026-11-08T22:52:49Z, Iconografia e Micro-copy, Original User Request, Qualità Frontend Design (+6 more)
+Cohesion: 0.07
+Nodes (26): Acceptance Criteria, Acceptance Criteria, Approved Task Prompt — 2026-11-08T13:27:35Z, Approved Task Prompt — 2026-11-09T10:49:30Z, Ergonomia e Standard Apple HIG, Follow-up — 2026-11-08T22:03:05Z, Follow-up — 2026-11-08T22:52:49Z, Iconografia e Micro-copy (+18 more)
 
 ### Community 22 - "orchestrator/DISPATCH.md"
 Cohesion: 0.05
@@ -629,9 +761,9 @@ Nodes (8): Artifact Index, BRIEFING — 2026-11-02T09:53:00Z, Current Parent, In
 Cohesion: 0.22
 Nodes (8): Artifact Index, BRIEFING — 2026-11-03T13:03:00Z, 🔒 Key Constraints, Mission, 🔒 My Identity, Project Status, User Context, Victory Audit Status
 
-### Community 30 - "BRIEFING — 2026-11-02T10:45:30Z"
-Cohesion: 0.25
-Nodes (7): Artifact Index, BRIEFING — 2026-11-02T10:45:30Z, Current Parent, 🔒 Key Constraints, Key Decisions Made, Mission, 🔒 My Identity
+### Community 30 - "BRIEFING — 2026-11-09T14:10:00Z"
+Cohesion: 0.17
+Nodes (11): Artifact Index, Attack Surface, Audit Progress, Audit Scope, BRIEFING — 2026-11-09T14:10:00Z, Current Parent, 🔒 Key Constraints, Key Decisions Made (+3 more)
 
 ### Community 31 - "Progress — explorer_survey_arch"
 Cohesion: 0.40
@@ -694,8 +826,8 @@ Cohesion: 0.17
 Nodes (11): 1.1 Code Diffs in `src/pages/**`, 1.2 Legacy Files & Dead Code Deletion, 1.3 Tooling & `package.json`, 1.4 Verification Command Results, 1.5 Adversarial Fault Injection, 1. Observation, 2. Logic Chain, 3. Caveats (+3 more)
 
 ### Community 63 - "App.js"
-Cohesion: 0.11
-Nodes (28): 1.1 Mascot Unmounting & Lifecycle Cleanliness, 3.3 Identification of Dead Code: `src/components/ProtectedRoute.js`, Observation 5: Zero Broken Imports in `src/` and Additional Unused Component, 4.3 Tier 2: Boundary, Validation & Security Corner Cases, Feature Logic & User Interaction Flows:, 2026-11-03T15:18:43Z, C. Provider Rendering Utility (`src/test/testUtils.jsx`), App() (+20 more)
+Cohesion: 0.08
+Nodes (44): 3.3 Identification of Dead Code: `src/components/ProtectedRoute.js`, Observation 5: Zero Broken Imports in `src/` and Additional Unused Component, 5.2 Code & Asset Inspections, 4.3 Tier 2: Boundary, Validation & Security Corner Cases, 4.5 Tier 4: Realistic Household End-to-End Scenarios, Feature Logic & User Interaction Flows:, Scenario 1: "The New Apartment Setup & Roommate Onboarding", Scenario 2: "Weekly Cleaning Rotation & Expense Splitting" (+36 more)
 
 ### Community 64 - "BRIEFING — 2026-11-02T10:16:30Z"
 Cohesion: 0.18
@@ -741,9 +873,9 @@ Nodes (8): Artifact Index, BRIEFING — 2026-11-02T10:26:00Z, Current Parent, In
 Cohesion: 0.25
 Nodes (7): Artifact Index, BRIEFING — 2026-11-02T10:27:00Z, Current Parent, Investigation State, 🔒 Key Constraints, Mission, 🔒 My Identity
 
-### Community 75 - "Handoff Report: Milestone 2 Strict Zero-Emoji, Zero-Arrow & Script Hardening Specification"
-Cohesion: 0.29
-Nodes (6): 1. Observation, 2. Logic Chain, 3. Caveats, 4. Conclusion, 5. Verification Method, Handoff Report: Milestone 2 Strict Zero-Emoji, Zero-Arrow & Script Hardening Specification
+### Community 75 - "Handoff Report: UI/UX Modernization & Strict Emoji Prohibition Survey (R1 & R2)"
+Cohesion: 0.33
+Nodes (5): 3. Caveats, 4. Conclusion, 5. Verification Method, Actionable Roadmap for Implementation:, Handoff Report: UI/UX Modernization & Strict Emoji Prohibition Survey (R1 & R2)
 
 ### Community 76 - "Analysis: Milestone 1 Implementation (worker_m1)"
 Cohesion: 0.29
@@ -765,9 +897,9 @@ Nodes (4): Completed, In Progress, Progress — challenger_m1_2, Status
 Cohesion: 0.11
 Nodes (17): Gate — Iteration 1, Gate — Iteration 1, Gate — Iteration 1, Gate — Iteration 1, Gate — Iteration 1, Gate — Iteration 1, Gate Status — Milestone 10 (Secondary Household Views, Modals & Micro-Copy Polish), Gate Status — Milestone 11 (Final Design Audit, Public Repository Security Audit & Pre-Release Verification) (+9 more)
 
-### Community 94 - "Milestone M6 Orchestrator Final Handoff Report"
-Cohesion: 0.22
-Nodes (8): 1. Milestone State, 2. Active Subagents, 3. Pending Decisions & Blockers, 4. Remaining Work, 5. Key Artifacts, 6. Technical Evidence & Verification Method, 7. Gate Verdict Summary (`GATE_STATUS.md`), Milestone M6 Orchestrator Final Handoff Report
+### Community 94 - "translate"
+Cohesion: 0.27
+Nodes (14): 1.2 Dimension 1: Key Access & Prototype Hardening, 2. Logic Chain, Key Decisions Made, 2. Logic Chain, 5. Conclusion, Progress Log, 1.4 Translation Resolution & Fallback Cascade, 2. Logic Chain (+6 more)
 
 ### Community 95 - "4. Conclusion & Complete Technical Specification"
 Cohesion: 0.13
@@ -781,7 +913,7 @@ Nodes (19): 1.1 Forensic Analysis of Current `firestore.rules`, 1.2 Hardened Arc
 Cohesion: 0.10
 Nodes (19): 1.1 Verification Commands Execution, 1.2 Suite-by-Suite Test Breakdown, 1.3 Skipped Tests & Integrity Inspection, 1. Emoji & Emoticon Static Scan, 1. Observation, 2. Circular Dependency Verification (Madge), 2. Logic Chain, 3. Production Build Compilation (+11 more)
 
-### Community 98 - "DesktopNavigation"
+### Community 98 - "Milestone 2 Quality & Adversarial Review Analysis"
 Cohesion: 0.12
 Nodes (15): 3.1 Verification Gate Execution, 3.2 Deep Unicode & Attribute Scan, 3. Independent Verification Results, 5.1 Assumption Stress-Testing, 5. Adversarial Review & Attack Surface Analysis, 6. Findings Summary, 7. Verified Claims Table, 8. Final Verdict (+7 more)
 
@@ -814,12 +946,12 @@ Cohesion: 0.18
 Nodes (10): Artifact Index, Attack Surface, BRIEFING — 2026-11-02T10:54:00Z, Current Parent, 🔒 Key Constraints, Key Decisions Made, Loaded Skills, Mission (+2 more)
 
 ### Community 106 - "Milestone 3: Auth & Dashboard UI/UX Modernization — Technical & Design Analysis"
-Cohesion: 0.18
-Nodes (10): 3. Design System & Iconography Guidelines, 4.1 Blueprint: `src/pages/Autenticazione/homeAutenticazione.js`, 4.2 Blueprint: `src/pages/Autenticazione/viewLogin.js`, 4.3 Blueprint: `src/pages/Autenticazione/viewRegistrazione.js`, 4.4 Blueprint: `src/pages/SceltaCasa.js`, 4.5 Blueprint: `src/pages/homeUtente.js` (Roommate Dashboard), 4. Component Implementation Blueprints, 5. CSS Extensions Blueprint for `src/App.css` (+2 more)
+Cohesion: 0.17
+Nodes (11): 1. Executive Summary, 3. Design System & Iconography Guidelines, 4.1 Blueprint: `src/pages/Autenticazione/homeAutenticazione.js`, 4.2 Blueprint: `src/pages/Autenticazione/viewLogin.js`, 4.3 Blueprint: `src/pages/Autenticazione/viewRegistrazione.js`, 4.4 Blueprint: `src/pages/SceltaCasa.js`, 4.5 Blueprint: `src/pages/homeUtente.js` (Roommate Dashboard), 4. Component Implementation Blueprints (+3 more)
 
 ### Community 107 - "HouseHelper - Feature Inventory, Business Logic, and Test Architecture Blueprint"
-Cohesion: 0.20
-Nodes (8): 1. Executive Summary & Problem Scope, 3.2 Diagnostic: Why `npm test` Encounters Friction, Hanging or Failure, 3. Current Automated Testing State & Gap Analysis, HouseHelper - Feature Inventory, Business Logic, and Test Architecture Blueprint, 3. Caveats, 4. Conclusion, 5. Verification Method, Handoff Report — Feature Inventory, Business Logic, and Test Architecture
+Cohesion: 0.33
+Nodes (4): 3. Caveats, 4. Conclusion, 5. Verification Method, Handoff Report — Feature Inventory, Business Logic, and Test Architecture
 
 ### Community 108 - "BRIEFING — 2026-11-02T10:44:03Z"
 Cohesion: 0.18
@@ -846,24 +978,24 @@ Cohesion: 0.22
 Nodes (8): 1. Quick Start / Test Execution Command, 3. Tier Inventory and Coverage Matrix, 5. Discovered Implementation Notes & Escalations, HouseHelper Automated Test Suite Summary (TEST_READY), Tier 1 — Feature Coverage (33 Tests), Tier 2 — Boundary, Validation & Security Corner Cases (29 Tests), Tier 3 — Cross-Feature Integration (5 Tests), Tier 4 — Realistic Household Workload Scenarios (4 Tests)
 
 ### Community 114 - "Forensic Audit Report & Handoff: Milestone 2 Verification"
-Cohesion: 0.29
-Nodes (6): 1. Observation, 4. Conclusion, 5. Verification Method, Forensic Audit Report, Forensic Audit Report & Handoff: Milestone 2 Verification, Phase Results
+Cohesion: 0.25
+Nodes (7): 1. Observation, 3. Caveats, 4. Conclusion, 5. Verification Method, Forensic Audit Report, Forensic Audit Report & Handoff: Milestone 2 Verification, Phase Results
 
 ### Community 115 - "Milestone M7 Independent Review & Adversarial Audit Report — reviewer_m7_2"
-Cohesion: 0.14
-Nodes (13): 1. Observation, 3. Findings, 4. Adversarial Challenges & Stress Testing, 5. Verified Claims, 6. Caveats, 7. Conclusion, 8. Verification Method, Milestone M7 Independent Review & Adversarial Audit Report — reviewer_m7_2 (+5 more)
+Cohesion: 0.13
+Nodes (14): 1. Observation, 2. Logic Chain, 3. Findings, 4. Adversarial Challenges & Stress Testing, 5. Verified Claims, 6. Caveats, 7. Conclusion, 8. Verification Method (+6 more)
 
-### Community 116 - "BRIEFING — 2026-11-02T11:05:00Z"
-Cohesion: 0.25
-Nodes (7): Artifact Index, BRIEFING — 2026-11-02T11:05:00Z, Current Parent, 🔒 Key Constraints, Key Decisions Made, Mission, 🔒 My Identity
+### Community 116 - "showToast"
+Cohesion: 0.17
+Nodes (37): 2. Logic Chain, 1.1 Mascot Unmounting & Lifecycle Cleanliness, 1. Observation, 2.1 Adversarial Test Suite Details, 2.2 White-box Implementation Notes, 2. Adversarial Findings & Hardening Report, 2. Current State vs. Target Architecture, 6. Test Contract Preservation Matrix (+29 more)
 
 ### Community 117 - "Milestone 2 Adversarial Verification Handoff Report"
 Cohesion: 0.29
 Nodes (6): 1. Observation, 2. Logic Chain, 3. Caveats, 4. Conclusion, 5. Verification Method, Milestone 2 Adversarial Verification Handoff Report
 
-### Community 118 - "MiniGuy"
-Cohesion: 0.11
-Nodes (30): Key Decisions Made, 2026-11-02T11:32:24Z, 2026-11-03T12:30:37Z, 2. Logic Chain, 4. Conclusion, Required Verification, 1. Observation, 2. Logic Chain (+22 more)
+### Community 118 - "Handoff Report: Reviewer 2 — Milestone M3 (Account & Security, Apple HIG, Responsive CSS & Build)"
+Cohesion: 0.17
+Nodes (11): 1. Observation, 2. Logic Chain, 3. Findings, 4. Adversarial Challenge & Stress Test Results, 5. Verified Claims, 6. Caveats, 7. Conclusion, 8. Verification Method (+3 more)
 
 ### Community 119 - "BRIEFING — 2026-11-03T12:35:00Z"
 Cohesion: 0.17
@@ -878,8 +1010,8 @@ Cohesion: 0.05
 Nodes (42): fs, getMadgeCommand(), main(), path, ROOT_DIR, runCheck(), { spawnSync }, auditFilenames() (+34 more)
 
 ### Community 122 - "2. Inventory of the 17 Redundant Imports"
-Cohesion: 0.38
-Nodes (14): 2. Inventory of the 17 Redundant Imports, 3.1 Existing Test Files and Coverage Assessment, 1. Observation, B. Environment Polyfills & Stubs (`src/setupTests.js`), BrowserRouter(), Navigate(), Outlet(), Route() (+6 more)
+Cohesion: 0.44
+Nodes (12): 3.1 Existing Test Files and Coverage Assessment, 1. Observation, B. Environment Polyfills & Stubs (`src/setupTests.js`), BrowserRouter(), Navigate(), Outlet(), Route(), Routes() (+4 more)
 
 ### Community 123 - "BRIEFING — 2026-11-03T12:43:12Z"
 Cohesion: 0.17
@@ -898,8 +1030,8 @@ Cohesion: 0.13
 Nodes (14): 1. Executive Summary, 2. Collection and Data Schema Audit, 3. Gap Analysis Table, 4. Threat Modeling & Attack Scenario Mitigations, 5. Complete Hardened firestore.rules Source Code, 6. Comprehensive Rules Validation Test Plan, Security Audit and Firestore Rules Architecture Analysis, Test Setup Matrix (+6 more)
 
 ### Community 128 - "SecurityRulesValidator"
-Cohesion: 0.09
-Nodes (16): Artifact Index, BRIEFING — 2026-11-03T13:13:00Z, Current Parent, Investigation State, 🔒 Key Constraints, Key Decisions Made, Mission, 🔒 My Identity (+8 more)
+Cohesion: 0.06
+Nodes (28): Artifact Index, BRIEFING — 2026-11-03T13:13:00Z, Current Parent, Investigation State, 🔒 Key Constraints, Key Decisions Made, Mission, 🔒 My Identity (+20 more)
 
 ### Community 132 - "BRIEFING — 2026-11-03T12:47:00Z"
 Cohesion: 0.18
@@ -917,9 +1049,9 @@ Nodes (10): Artifact Index, Attack Surface, BRIEFING — 2026-11-03T12:38:00Z, C
 Cohesion: 0.18
 Nodes (10): Artifact Index, Attack Surface, BRIEFING — 2026-11-03T12:35:00Z, Current Parent, 🔒 Key Constraints, Key Decisions Made, Mission, 🔒 My Identity (+2 more)
 
-### Community 144 - "1.2 Domain Pages UI/UX Modernization & Design System"
-Cohesion: 0.40
-Nodes (5): 1.1 Automated Verification Suites, 1.2 Domain Pages UI/UX Modernization & Design System, 1.3 Non-Blocking Feedback Integration, 1.4 Integrity Audit Observations, 1. Observation
+### Community 144 - "Milestone 2 Challenger Handoff Report: Navigation, Design System & Feedback Subsystem Integrity"
+Cohesion: 0.29
+Nodes (6): 1. Observation, 2. Logic Chain, 3. Caveats, 4. Conclusion, 5. Verification Method, Milestone 2 Challenger Handoff Report: Navigation, Design System & Feedback Subsystem Integrity
 
 ### Community 145 - "BRIEFING — 2026-11-03T12:45:00Z"
 Cohesion: 0.18
@@ -937,9 +1069,9 @@ Nodes (13): 1. Observation, 1. Verification Commands Execution, 2. Adversarial E
 Cohesion: 0.20
 Nodes (9): Artifact Index, Attack Surface, BRIEFING — 2026-11-03T12:41:00Z, Current Parent, 🔒 Key Constraints, Loaded Skills, Mission, 🔒 My Identity (+1 more)
 
-### Community 149 - "BRIEFING — 2026-11-02T10:47:00Z"
-Cohesion: 0.22
-Nodes (8): Artifact Index, BRIEFING — 2026-11-02T10:47:00Z, Current Parent, Investigation State, 🔒 Key Constraints, Key Decisions Made, Mission, 🔒 My Identity
+### Community 149 - "useLanguage"
+Cohesion: 0.06
+Nodes (35): 3. Caveats & Invariants, 1.3 Forensic Check Results, 1. Observation, 2026-11-09T11:02:04Z, 2026-11-09T11:50:58Z, Investigation State, 2026-11-09T11:51:05Z, 1.1 `src/components/MobileNavigation.js` (+27 more)
 
 ### Community 150 - "Handoff Report: Survey Explorer 3"
 Cohesion: 0.15
@@ -990,16 +1122,16 @@ Cohesion: 0.33
 Nodes (5): 2. Logic Chain, 3. Caveats, 4. Conclusion, 5. Verification Method, Milestone 3 Gate Verification: Challenger Empirical Stress Test & Audit Report
 
 ### Community 162 - "Dispatch: Challenger M3 Feedback & Lifecycle Challenge"
-Cohesion: 0.33
-Nodes (5): 2026-11-03T12:40:10Z, Dispatch: Challenger M3 Feedback & Lifecycle Challenge, Input Documents, Mission, Output Requirements
+Cohesion: 0.29
+Nodes (6): 2026-11-03T12:40:10Z, Dispatch: Challenger M3 Feedback & Lifecycle Challenge, Input Documents, Mission, Output Requirements, Required Verification
 
 ### Community 163 - "Milestone 4 Challenger 2 Handoff Report: Lifecycle Cleanliness, Bundle Integrity & Warning Freedom"
 Cohesion: 0.17
 Nodes (11): 1.2 Production Bundle Integrity (`npm run build`), 1.3 Full Test Suite Execution (`npm test -- --watchAll=false`), 1.4 Verification Scripts Execution, 1.5 Tier 5 Adversarial Coverage Hardening Verification, 1. Observation, 2. Logic Chain, 3. Caveats, 4. Conclusion (+3 more)
 
 ### Community 164 - "useAuth"
-Cohesion: 0.15
-Nodes (21): Feature Logic & User Interaction Flows:, firebase, AuthContext, useAuth(), app, auth, db, firebaseConfig (+13 more)
+Cohesion: 0.11
+Nodes (34): 1.2 Domain Pages UI/UX Modernization & Design System, RFC-5322, firebase, react-router-dom, NAV_DEFINITIONS, HouseAnalytics(), AuthContext, useAuth() (+26 more)
 
 ### Community 165 - "Milestone M7 Independent Review & Adversarial Stress Report — Reviewer 1 (reviewer_m7_1)"
 Cohesion: 0.18
@@ -1010,8 +1142,8 @@ Cohesion: 0.17
 Nodes (11): Artifact Index, BRIEFING — 2026-11-03T13:14:00Z, Change Tracker, Current Parent, 🔒 Key Constraints, Key Decisions Made, Loaded Skills, Mission (+3 more)
 
 ### Community 167 - "sanitizeFileName"
-Cohesion: 0.12
-Nodes (16): 1.1 Direct Verification Commands Execution, 1.3 Dedicated Adversarial Test Suite, 1. Observation, 2. Logic Chain, 4. Conclusion, 5. Verification Method, Challenge Summary, Challenges (+8 more)
+Cohesion: 0.10
+Nodes (20): Attack Surface, Attack Surface, 1.1 Direct Verification Commands Execution, 1.2 Inspection of Implementation Mechanics, 1.3 Dedicated Adversarial Test Suite, 1. Observation, 2. Logic Chain, 4. Conclusion (+12 more)
 
 ### Community 168 - "BRIEFING — 2026-11-03T13:03:30Z"
 Cohesion: 0.18
@@ -1042,8 +1174,8 @@ Cohesion: 0.18
 Nodes (10): 1.1 Integrity Violation Audit, 1.2 Feedback Subsystem Hardening & Edge Cases, 1.3 Responsive UI Quality Across 6 Core Domain Views, 1.4 Independent Command Execution Results, 1. Observation, 2. Logic Chain, 3. Caveats, 4. Conclusion (+2 more)
 
 ### Community 186 - "BRIEFING — 2026-11-03T13:03:00Z"
-Cohesion: 0.11
-Nodes (17): Artifact Index, Attack Surface, BRIEFING — 2026-11-03T13:03:00Z, Current Parent, 🔒 Key Constraints, Key Decisions Made, Loaded Skills, Mission (+9 more)
+Cohesion: 0.18
+Nodes (10): Artifact Index, Attack Surface, BRIEFING — 2026-11-03T13:03:00Z, Current Parent, 🔒 Key Constraints, Key Decisions Made, Loaded Skills, Mission (+2 more)
 
 ### Community 187 - "test_verify_zero_emojis.js"
 Cohesion: 0.24
@@ -1054,16 +1186,16 @@ Cohesion: 0.18
 Nodes (10): Artifact Index, BRIEFING — 2026-11-03T15:16:00Z, Current Parent, 🔒 Key Constraints, Key Decisions Made, Loaded Skills, Mission, 🔒 My Identity (+2 more)
 
 ### Community 189 - "MockStorageStore"
-Cohesion: 0.13
-Nodes (7): 2026-11-03T14:52:48Z, 2026-11-03T15:03:31Z, 2026-11-03T15:04:42Z, Completed, In Progress, Progress — Milestone M6 Implementation, MockStorageStore
+Cohesion: 0.12
+Nodes (8): Change Tracker, 2026-11-03T14:52:48Z, 2026-11-03T15:03:31Z, 2026-11-03T15:04:42Z, Completed, In Progress, Progress — Milestone M6 Implementation, MockStorageStore
 
 ### Community 190 - "Milestone 4 Gate Verification & Final Review Report"
-Cohesion: 0.20
-Nodes (9): 1.1 Integrity Violation Check, 1.2 Independent Tool Execution Results, 1.3 Code Inspection & Hardening Verification, 1. Observation, 2. Logic Chain, 3. Caveats, 4. Conclusion & Verdict, 5. Verification Method (+1 more)
+Cohesion: 0.22
+Nodes (8): 1.1 Integrity Violation Check, 1.2 Independent Tool Execution Results, 1. Observation, 2. Logic Chain, 3. Caveats, 4. Conclusion & Verdict, 5. Verification Method, Milestone 4 Gate Verification & Final Review Report
 
-### Community 191 - "Milestone 3 Challenger 2 Handoff Report: Feedback Subsystem & Lifecycle Cleanliness Gate Verification"
-Cohesion: 0.25
-Nodes (7): 1.2 SVG `stopColor` React DOM Warning Silencing, 1.3 Non-Blocking `showToast` & `showConfirm` Adversarial Edge Testing, 1.4 Verification Commands Execution Results, 1. Observation, 3. Caveats, 5. Verification Method, Milestone 3 Challenger 2 Handoff Report: Feedback Subsystem & Lifecycle Cleanliness Gate Verification
+### Community 191 - "4. Conclusion & Concrete Design Specifications"
+Cohesion: 0.10
+Nodes (20): 1.1 Existing Implementation in `src/pages/Impostazioni/ViewImpostazioni.js`, 1.2 Design System Tokens & Badges in `src/App.css` and `src/index.css`, 1.3 Firebase Mock Support in `src/test/mockFirebase.js`, 1. Observation, 2.1 Section 2 — Notification Preferences Architecture, 2.2 Section 3 — Account & Security Architecture, 2. Logic Chain, 3. Caveats (+12 more)
 
 ### Community 192 - "verify-zero-emojis.js"
 Cohesion: 0.24
@@ -1105,9 +1237,9 @@ Nodes (11): Artifact Index, BRIEFING — 2026-11-02T12:30:00Z, Change Tracker, C
 Cohesion: 0.25
 Nodes (7): 1. Observation, 2. Logic Chain, 3. Caveats, 4. Conclusion, 5. Verification Method, Handoff Report: Security Audit & Hardened Firestore Security Rules (M5 / R3), Production-Ready firestore.rules Code
 
-### Community 202 - "security.js"
-Cohesion: 0.12
-Nodes (49): Source Code Inspection of Mandated Files, 2. Logic Chain, 2. Logic Chain, Investigation State, Key Decisions Made, 1.2 Useful & Emergency Contacts Directory (R3) Observations, Architecture, Attack Surface (+41 more)
+### Community 202 - "ViewDebiti.js"
+Cohesion: 0.14
+Nodes (37): Source Code Inspection of Mandated Files, 2. Logic Chain, 2. Logic Chain, Investigation State, Key Decisions Made, 1.2 Useful & Emergency Contacts Directory (R3) Observations, 2.1 Contacts Architecture & Data Model (R3), Architecture (+29 more)
 
 ### Community 203 - "1. Observation"
 Cohesion: 0.17
@@ -1190,8 +1322,8 @@ Cohesion: 0.20
 Nodes (9): 1.1 Baseline Failure Reproduction, 1.2 Remediations Implemented, 1.3 Post-Remediation Verification Commands, 1. Observation, 2. Logic Chain, 3. Caveats, 4. Conclusion, 5. Verification Method (+1 more)
 
 ### Community 231 - "ViewDocumenti.js"
-Cohesion: 0.18
-Nodes (22): 1.1 Source Code Analysis (Phase 1), Attack Surface, Attack Surface, 1.2 Inspection of Implementation Mechanics, Attack Surface, 1.3 Service Layer Implementation & Failure Rollback, 3. Adversarial Stress-Test Results, 1.2 Service Layer & Firestore Schema (+14 more)
+Cohesion: 0.22
+Nodes (20): 1.1 Source Code Analysis (Phase 1), 1.3 Service Layer Implementation & Failure Rollback, 3. Adversarial Stress-Test Results, 1.2 Service Layer & Firestore Schema, storage, CATEGORIES, formatDate(), getCategoryIcon() (+12 more)
 
 ### Community 232 - "BRIEFING — 2026-11-03T15:19:35Z"
 Cohesion: 0.17
@@ -1202,8 +1334,8 @@ Cohesion: 0.17
 Nodes (11): Artifact Index, Attack Surface, Audit Progress, Audit Scope, BRIEFING — 2026-11-04T00:55:30Z, Current Parent, 🔒 Key Constraints, Key Decisions Made (+3 more)
 
 ### Community 234 - "4. UI/UX Modernization Blueprint"
-Cohesion: 0.15
-Nodes (12): 1. Executive Summary, 2.1 View Inventory Matrix, 2. Comprehensive Component & View Inventory, 3.1 Exhaustive Inventory Table, 3.2 Typographic & Arrow Pseudo-Icons Audit, 3.3 Automated Verification Check Script (Zero-Emoji Linter & CI Gate), 3. Complete Emoji & Emoticon Audit, 5. Technical Risk Analysis & Recommendations (+4 more)
+Cohesion: 0.12
+Nodes (16): 1. Executive Summary, 2. Comprehensive Component & View Inventory, 3.1 Exhaustive Inventory Table, 3.2 Typographic & Arrow Pseudo-Icons Audit, 3.3 Automated Verification Check Script (Zero-Emoji Linter & CI Gate), 3. Complete Emoji & Emoticon Audit, 4.1 Visual & Structural Weaknesses Identified, 4.2 Proposed Modern Design System Tokens (+8 more)
 
 ### Community 235 - "BRIEFING — 2026-11-04T00:50:00Z"
 Cohesion: 0.18
@@ -1233,25 +1365,25 @@ Nodes (18): 2026-11-04T00:09:57Z, Acceptance Criteria, Automazione Turni, Contat
 Cohesion: 0.06
 Nodes (31): 1.1 Baseline System State, 1.2 Current Turni Implementation Analysis, 1.3 Household & User Profiles Schema Analysis, 1.4 Security & Validation (`src/utils/security.js`), 1. Observation, 2.1 Configurable Automatic Rotation Design, 2.2 Vacation / Away Mode ("In Vacanza / Fuori Casa"), 2.3 Detailed Sub-Task Checklist (+23 more)
 
-### Community 252 - "BRIEFING — 2026-11-02T11:42:00Z"
-Cohesion: 0.18
-Nodes (10): Artifact Index, BRIEFING — 2026-11-02T11:42:00Z, Change Tracker, Current Parent, 🔒 Key Constraints, Loaded Skills, Mission, 🔒 My Identity (+2 more)
+### Community 252 - "Apple Design Skill"
+Cohesion: 0.10
+Nodes (19): Always load, Apple Design Skill, Apple's design principles, Design improvement mode, Every page, by Apple's section, Lens 1: Accessibility (failures are Critical), Lens 2: Platform conventions (failures are usually High), Lens 3: Visual design and craft (findings are High or Medium) (+11 more)
 
 ### Community 253 - "1. Observation"
 Cohesion: 0.17
 Nodes (11): 1.1 Storage Rules & Configuration, 1.3 UI Implementation & Ergonomics, 1.5 New Test Suites Authored, 1.6 Verification Execution Results, 1. Observation, 2. Logic Chain, 3. Caveats, 4. Conclusion (+3 more)
 
 ### Community 254 - "BRIEFING — 2026-11-03T15:25:00Z"
-Cohesion: 0.20
-Nodes (9): Artifact Index, BRIEFING — 2026-11-03T15:25:00Z, Current Parent, 🔒 Key Constraints, Key Decisions Made, Mission, 🔒 My Identity, Review Checklist (+1 more)
+Cohesion: 0.18
+Nodes (10): Artifact Index, Attack Surface, BRIEFING — 2026-11-03T15:25:00Z, Current Parent, 🔒 Key Constraints, Key Decisions Made, Mission, 🔒 My Identity (+2 more)
 
 ### Community 255 - "Task Assignment: Replacement Worker M9 (Primary Views Modernization & Signature Elements)"
 Cohesion: 0.14
 Nodes (13): 1. Dashboard (`src/pages/homeUtente.js`), 2026-11-08T22:03:32Z, 2. Cleaning Shifts (`src/pages/TurniPulizia/viewTurni.js`, `aggiuntaTurno.js`, `modificaTurno.js`), 3. Expenses & Debts (`src/pages/Debiti/ViewDebiti.js`, `AggiungiDebito.js`), 4. Grocery List (`src/pages/Spesa/ViewSpesa.js`), 5. Micro-copy & Invariant Safety Across All 4 Views, Deliverable, Files Owned Exclusively (+5 more)
 
-### Community 256 - "ConfirmModal"
-Cohesion: 0.07
-Nodes (34): 3. Caveats, 2. Logic Chain, Progress: Challenger M3 Gate 2, 2026-11-03T14:40:59Z, 1. Observation, 2. Logic Chain, 3. Caveats, 4. Conclusion (+26 more)
+### Community 256 - "LanguageContext.js"
+Cohesion: 0.19
+Nodes (15): defaultLanguageContext, LanguageContext, TestConsumer(), useTranslation, en, DEFAULT_LANGUAGE, dictionaries, STORAGE_KEY (+7 more)
 
 ### Community 257 - "1. Observation"
 Cohesion: 0.15
@@ -1278,8 +1410,8 @@ Cohesion: 0.15
 Nodes (12): 1.1 Automated Verification Command Outputs, 1.2 Mobile and Desktop Ergonomics & Accessibility Inspection, 1.3 Firebase Storage Security Rules (`storage.rules`), 1.5 Integration & Routing, 1. Observation, 2. Logic Chain, 4. Caveats, 5. Conclusion (+4 more)
 
 ### Community 276 - "2. Logic Chain"
-Cohesion: 0.14
-Nodes (13): 2.2 PWA, Offline Strategy & Multi-tenant Eviction (R4), 2.3 Dashboard In-App Notifications (R4), 2.4 Performance Refactoring (R5), 2.5 Security Hardening & Rule Integrity (R6, R7), 2. Logic Chain, 3. Caveats, 4.1 Specification for Useful & Emergency Contacts Directory (R3), 4.2 Specification for PWA & Offline Experience (R4) (+5 more)
+Cohesion: 0.15
+Nodes (12): 1.1 Baseline Project State & Verification Scripts, 1.4 Performance & Bundle Analysis (R5) Observations, 1.5 Security & Multi-tenant Authorization (R6, R7) Observations, 1. Observation, 2.2 PWA, Offline Strategy & Multi-tenant Eviction (R4), 2.3 Dashboard In-App Notifications (R4), 2.4 Performance Refactoring (R5), 2.5 Security Hardening & Rule Integrity (R6, R7) (+4 more)
 
 ### Community 277 - "BRIEFING — 2026-11-03T15:30:00Z"
 Cohesion: 0.17
@@ -1289,33 +1421,33 @@ Nodes (11): Artifact Index, Attack Surface, Audit Progress, Audit Scope, BRIEFIN
 Cohesion: 0.15
 Nodes (12): 1.1 Mobile Safe Area Padding & Clearances, 1.2 Sticky Floating Topbar Behavior, 1.3 Breakpoint Behavior at Exactly 768px (iPad Portrait), 1.4 Touch Target Dimensions (Apple HIG >= 44px), 1.5 Liquid Glass Material Isolation, 1.6 Empirical Tool Execution Results, 1. Observation, 2. Logic Chain (+4 more)
 
-### Community 279 - "showToast"
-Cohesion: 0.26
-Nodes (8): 1.1 Console Warnings & React DOM Error Freedom, TYPE_ICONS, confirmListeners, showToast(), subscribeConfirm(), subscribeToast(), toast, toastListeners
+### Community 279 - "orchestrator_settings_gen2/DISPATCH.md"
+Cohesion: 0.14
+Nodes (13): 2026-11-09T10:50:47Z, Acceptance Criteria, Language & Localization, Orchestrator Coordination Details, R1. Settings Navigation and Apple HIG / Frontend Design UI, R2. Language Switching and i18n, R3. Standard Base Settings Sections, R4. Security, Zero-Emoji, and Quality Invariants (+5 more)
 
 ### Community 280 - "3. Tier Coverage & Validation Strategy"
-Cohesion: 0.20
-Nodes (9): 1. Executive Summary, 2. Test Harness Architecture & Design Decisions, 3. Tier Coverage & Validation Strategy, 4. Observations & Non-Blocking Notes, Analysis — E2E Testing Track (HouseHelper Modernization), Tier 1: Feature Coverage (Primary Paths), Tier 2: Boundary, Validation & Security, Tier 3: Cross-Feature Interactions (+1 more)
+Cohesion: 0.18
+Nodes (10): 1. Executive Summary, 2. Test Harness Architecture & Design Decisions, 3. Tier Coverage & Validation Strategy, 4. Observations & Non-Blocking Notes, A. Headless Firestore & Auth Mock Harness (`src/test/mockFirebase.js`), Analysis — E2E Testing Track (HouseHelper Modernization), Tier 1: Feature Coverage (Primary Paths), Tier 2: Boundary, Validation & Security (+2 more)
 
 ### Community 281 - "BRIEFING — 2026-11-08T13:45:00Z"
 Cohesion: 0.17
 Nodes (11): Artifact Index, BRIEFING — 2026-11-08T13:57:00Z, Change Tracker, Current Parent, 🔒 Key Constraints, Key Decisions Made, Loaded Skills, Mission (+3 more)
 
-### Community 282 - "Milestone 3 Gate Verification Report — Reviewer 1 (reviewer_m3_1)"
-Cohesion: 0.29
-Nodes (6): 1. Observation, 3. Caveats, 4. Conclusion, 5. Verification Method, Milestone 3 Gate Verification Report — Reviewer 1 (reviewer_m3_1), Review Summary
+### Community 282 - "getSystemDarkPreference"
+Cohesion: 0.12
+Nodes (16): 1.1 Direct Defect Reproduction, 1.2 Inspection of Vulnerable Code in `src/contexts/ThemeContext.js`, 1.3 Inspection of Unit Test Gaps in `src/contexts/ThemeContext.test.jsx`, 1. Observation, 2. Logic Chain, 3. Caveats, 4.1 Recommended Code Changes in `src/contexts/ThemeContext.js`, 4.2 Exact Diff Patch for Worker M1 (+8 more)
 
-### Community 283 - "triggerConfetti"
-Cohesion: 0.07
-Nodes (27): 1. Observation, 2.1 `src/pages/Autenticazione/homeAutenticazione.js`, 2.2 `src/pages/Autenticazione/viewLogin.js` & `viewRegistrazione.js`, 2.3 `src/pages/SceltaCasa.js`, 2.4 `src/pages/homeUtente.js`, 2. Codebase Audit & Existing Pain Points, 1. Observation, 3. Caveats (+19 more)
+### Community 283 - "BRIEFING — 2026-11-02T11:42:00Z"
+Cohesion: 0.18
+Nodes (10): Artifact Index, BRIEFING — 2026-11-02T11:42:00Z, Change Tracker, Current Parent, 🔒 Key Constraints, Loaded Skills, Mission, 🔒 My Identity (+2 more)
 
-### Community 285 - "BRIEFING — 2026-11-04T00:56:00Z"
-Cohesion: 0.22
-Nodes (8): Artifact Index, BRIEFING — 2026-11-04T00:56:00Z, Current Parent, 🔒 Key Constraints, Key Decisions Made, Mission, 🔒 My Identity, Review Scope
+### Community 285 - "BRIEFING — 2026-11-09T12:43:00Z"
+Cohesion: 0.17
+Nodes (11): Artifact Index, BRIEFING — 2026-11-09T13:54:00Z, Change Tracker, Current Parent, 🔒 Key Constraints, Key Decisions Made, Loaded Skills, Mission (+3 more)
 
 ### Community 289 - "Handoff Report: Milestone 2 — Design System & Responsive Navigation Specifications"
-Cohesion: 0.29
-Nodes (6): 1. Observation, 2. Logic Chain, 3. Caveats, 4. Conclusion, 5. Verification Method, Handoff Report: Milestone 2 — Design System & Responsive Navigation Specifications
+Cohesion: 0.33
+Nodes (5): 1. Observation, 3. Caveats, 4. Conclusion, 5. Verification Method, Handoff Report: Milestone 2 — Design System & Responsive Navigation Specifications
 
 ### Community 290 - "2. Logic Chain"
 Cohesion: 0.10
@@ -1337,9 +1469,9 @@ Nodes (11): Artifact Index, BRIEFING — 2026-11-04T00:22:00Z, Change Tracker, C
 Cohesion: 0.17
 Nodes (11): 1. Token & Contrast Calibration (`src/index.css` & `src/App.css`), 2026-11-08T13:43:08Z, 2. Purge Legacy Tailwind RGBs & Outmoded Styling (`src/App.css`), 3. Shell Ergonomics & Responsive Architecture (`src/App.css`), Deliverable, Files Owned Exclusively, Mandatory Inputs & Reports to Read, Mandatory Integrity Warning (+3 more)
 
-### Community 295 - "BRIEFING — 2026-11-04T00:17:30Z"
-Cohesion: 0.29
-Nodes (6): Artifact Index, BRIEFING — 2026-11-04T00:17:30Z, Current Parent, 🔒 Key Constraints, Mission, 🔒 My Identity
+### Community 295 - "BRIEFING — 2026-11-09T12:17:30Z"
+Cohesion: 0.17
+Nodes (11): Artifact Index, BRIEFING — 2026-11-09T12:20:15Z, Change Tracker, Current Parent, 🔒 Key Constraints, Key Decisions Made, Loaded Skills, Mission (+3 more)
 
 ### Community 296 - "BRIEFING — 2026-11-04T00:17:00Z"
 Cohesion: 0.22
@@ -1353,9 +1485,9 @@ Nodes (6): 1. Observation, 3. Caveats, 4. Conclusion, 5. Verification Method, Mi
 Cohesion: 0.22
 Nodes (8): Artifact Index, BRIEFING — 2026-11-04T00:16:30Z, Current Parent, Investigation State, 🔒 Key Constraints, Key Decisions Made, Mission, 🔒 My Identity
 
-### Community 299 - "3. Detailed Component Blueprints"
-Cohesion: 0.09
-Nodes (22): 1. `MiniGuy.js`:, 2. Current State vs. Target Architecture, 2. `InteractiveMascot.js`:, 3.1 `ViewBacheca.js` Blueprint, 3.2 `AggiungiNota.js` Blueprint, 3.3 `ModificaNota.js` Blueprint, 3.4 `ViewCalendario.js` Blueprint, 3.5 `AggiungiEvento.js` Blueprint (+14 more)
+### Community 299 - "1.4 Verbatim Tool Execution Outputs"
+Cohesion: 0.13
+Nodes (14): 1.1 Integrity Mode & User Constraints, 1.2 Scope & Files Inspected, 1.4 Verbatim Tool Execution Outputs, 1. Invariant: Zero Emojis, 1. Observation, 2. Invariant: Secret Scanning, 3. Caveats, 3. Targeted Test Suites (+6 more)
 
 ### Community 300 - "BRIEFING — 2026-11-08T14:03:30Z"
 Cohesion: 0.17
@@ -1365,9 +1497,9 @@ Nodes (11): Artifact Index, Attack Surface, Audit Progress, Audit Scope, BRIEFIN
 Cohesion: 0.29
 Nodes (6): 1. Observation, 3. Caveats, 4. Conclusion, 5. Verification Method, Milestone M7 Handoff Report — worker_m7, Verification Commands & Exact Verbatim Outputs
 
-### Community 302 - "ViewDebiti"
-Cohesion: 0.25
-Nodes (21): 1. Observation, 2.1 Adversarial Test Suite Details, 2.2 White-box Implementation Notes, 2. Adversarial Findings & Hardening Report, 6. Test Contract Preservation Matrix, 4.2 Tier 1: Smoke & Component Feature Coverage Matrix, 4.4 Tier 3: Cross-Feature Interactions & Reactive State Workflows, 4. Test Architecture Blueprint (Requirements R1, R3, R4) (+13 more)
+### Community 302 - "BRIEFING — 2026-11-09T11:30:30Z"
+Cohesion: 0.18
+Nodes (10): Artifact Index, Attack Surface, BRIEFING — 2026-11-09T11:30:30Z, Current Parent, 🔒 Key Constraints, Key Decisions Made, Loaded Skills, Mission (+2 more)
 
 ### Community 303 - "BRIEFING — 2026-11-08T15:07:00Z"
 Cohesion: 0.17
@@ -1381,13 +1513,13 @@ Nodes (8): Artifact Index, BRIEFING — 2026-11-08T13:39:30Z, Current Parent, In
 Cohesion: 0.12
 Nodes (15): 1.1 Micro-Copywriting & Icon De-Cluttering, 1.2 Modal Ergonomics & Event Handling, 1.3 Category Filtering & DOM Node Stability in ViewContatti.js, 1.4 Touch Targets & CSS Geometry, 1.5 Mandatory Invariants Verification, 1. Observation, 2. Logic Chain, 3.1 Assumption Stress-Testing (+7 more)
 
-### Community 306 - "Project: HouseHelper Modernization & Visual/Ergonomics Production Overhaul"
-Cohesion: 0.33
-Nodes (5): Design System Tokens Contract (M8 ↔ M9, M10), Feature Inventory, Interface Contracts, Milestones, Project: HouseHelper Modernization & Visual/Ergonomics Production Overhaul
+### Community 306 - "BRIEFING — 2026-11-09T12:25:00Z"
+Cohesion: 0.17
+Nodes (11): Artifact Index, Attack Surface, Audit Progress, Audit Scope, BRIEFING — 2026-11-09T12:25:30Z, Current Parent, 🔒 Key Constraints, Key Decisions Made (+3 more)
 
 ### Community 307 - "Milestone 4 Gate Verification: Challenger Empirical Stress Test & Audit Report"
-Cohesion: 0.15
-Nodes (12): 1.1 Automated Verification Commands, 1.2 Empirical Stress Test Findings, 1. Observation, 2. Logic Chain, 3. Caveats, 4. Conclusion, 5. Verification Method, Finding C1 (Critical): In-flight async `onConfirm` corrupted to `false` by subsequent `showConfirm` request (+4 more)
+Cohesion: 0.22
+Nodes (8): 1.1 Automated Verification Commands, 1. Observation, 2. Logic Chain, 3. Caveats, 4. Conclusion, 5. Verification Method, Milestone 4 Gate Verification: Challenger Empirical Stress Test & Audit Report, Recommended Remediation for Worker M4:
 
 ### Community 308 - "orchestrator_gen2/DISPATCH.md"
 Cohesion: 0.14
@@ -1405,17 +1537,17 @@ Nodes (15): 1.1 Touch Targets & Invariant Polish, 1.2 Bulletin Board & Calendar 
 Cohesion: 0.40
 Nodes (4): Checklist, Current Status, Iteration Status, Progress — Milestone M7 Orchestration
 
-### Community 312 - "MobileBottomBar"
-Cohesion: 0.08
-Nodes (25): 3. Caveats & Invariants, 2026-11-08T13:31:07Z, Objective, Output Deliverable, Required Reading, Scope of Investigation, Task Assignment: Survey Explorer 2 (Navigation Architecture, Mobile & Desktop Ergonomics), 2. Logic Chain (+17 more)
+### Community 312 - "BRIEFING — 2026-11-09T12:22:00Z"
+Cohesion: 0.18
+Nodes (10): Artifact Index, Attack Surface, BRIEFING — 2026-11-09T12:32:00Z, Current Parent, 🔒 Key Constraints, Key Decisions Made, Loaded Skills, Mission (+2 more)
 
 ### Community 313 - "BRIEFING — 2026-11-08T13:38:00Z"
 Cohesion: 0.22
 Nodes (8): Artifact Index, BRIEFING — 2026-11-08T13:38:00Z, Current Parent, Investigation State, 🔒 Key Constraints, Key Decisions Made, Mission, 🔒 My Identity
 
 ### Community 314 - "Milestone 3 Gate Review & Independent Verification Report"
-Cohesion: 0.29
-Nodes (6): 2. Logic Chain, 3. Adversarial Risk Assessment, 4. Caveats, 5. Conclusion & Final Verdict, 6. Verification Method, Milestone 3 Gate Review & Independent Verification Report
+Cohesion: 0.20
+Nodes (9): 1.1 Automated Verification Command Outputs (Direct Verbatim Execution), 1.3 Adversarial Integrity Audit, 1. Observation, 2. Logic Chain, 3. Adversarial Risk Assessment, 4. Caveats, 5. Conclusion & Final Verdict, 6. Verification Method (+1 more)
 
 ### Community 316 - "Task Assignment: Survey Explorer 1 (CSS Tokens, Themes, Colors, Shadows & Liquid Glass)"
 Cohesion: 0.29
@@ -1425,9 +1557,13 @@ Nodes (6): 2026-11-08T13:31:02Z, Objective, Output Deliverable, Required Reading
 Cohesion: 0.18
 Nodes (10): Artifact Index, Attack Surface, BRIEFING — 2026-11-04T01:57:00Z, Current Parent, 🔒 Key Constraints, Key Decisions Made, Mission, 🔒 My Identity (+2 more)
 
-### Community 318 - "Task Assignment: Survey Explorer 3 (Cards, Distinctiveness, Micro-copy, Iconography & Modals)"
-Cohesion: 0.29
-Nodes (6): 2026-11-08T13:31:13Z, Objective, Output Deliverable, Required Reading, Scope of Investigation, Task Assignment: Survey Explorer 3 (Cards, Distinctiveness, Micro-copy, Iconography & Modals)
+### Community 318 - "ConfirmModal"
+Cohesion: 0.05
+Nodes (36): 1.2 SVG `stopColor` React DOM Warning Silencing, 1.3 Non-Blocking `showToast` & `showConfirm` Adversarial Edge Testing, 1.4 Verification Commands Execution Results, 1. Observation, 3. Caveats, 4. Conclusion, 5. Verification Method, Challenger M3 Gate 2 Report: Feedback Pub/Sub, Accessibility, Lifecycle Cleanliness & DOM Hardening (+28 more)
+
+### Community 320 - "4. Conclusion & Recommended Code Changes"
+Cohesion: 0.20
+Nodes (9): 3. Caveats, 4.1 Dictionary Updates (`src/i18n/it.js` and `src/i18n/en.js`), 4.2 Proposed Implementation for `src/components/MobileNavigation.js`, 4.3 Proposed Implementation for `src/components/MobileBottomBar.js`, 4.4 Proposed Implementation for `src/components/AppHeader.js`, 4.5 New Unit Test Suite: `src/components/MobileNavigation.test.jsx`, 4. Conclusion & Recommended Code Changes, 5. Verification Method (+1 more)
 
 ### Community 347 - "BRIEFING — 2026-11-04T01:10:00Z"
 Cohesion: 0.17
@@ -1441,9 +1577,9 @@ Nodes (10): Artifact Index, Attack Surface, BRIEFING — 2026-11-08T15:05:00Z, C
 Cohesion: 0.13
 Nodes (14): 1.1 Liquid Glass & Card Background Discipline, 1.2 Keyboard Ergonomics & Event Teardown Under Stress (50+ Escape Cycles), 1.3 WCAG AA Contrast & Typography Verification, 1.4 Invariant: Zero "Dispensa" in ViewSpesa.js, 1.5 Invariant: Zero Emojis Across 107 Files, 1.6 Production Build Compilation, 1.7 Test Suite Execution, 1. Observation (+6 more)
 
-### Community 350 - "3.3 Structural Gaps in the Testing Suite"
-Cohesion: 0.20
-Nodes (12): 3.3 Structural Gaps in the Testing Suite, Mechanism Details:, 1.1 Global Navigation Architecture & Component Composition, 1.2 Touch Targets & Ergonomic Dimensions (Apple HIG >= 44x44 pt/px), 1.3 Safe Area Insets & Viewport Configuration, 1.4 Desktop Ergonomics, Positioning & Multi-Column Utilization, 1.5 Breakpoint Overlap Defect at Exactly 768px, 1.6 Verification Suite Execution Results (+4 more)
+### Community 350 - "Investigation Report: Navigation Structure, Cross-Device Ergonomics, Touch Targets & Safe Areas"
+Cohesion: 0.11
+Nodes (18): 1.2 Touch Targets & Ergonomic Dimensions (Apple HIG >= 44x44 pt/px), 1.3 Safe Area Insets & Viewport Configuration, 1.4 Desktop Ergonomics, Positioning & Multi-Column Utilization, 1.5 Breakpoint Overlap Defect at Exactly 768px, 1.6 Verification Suite Execution Results, 1. Observation, 2. Logic Chain, 3. Caveats (+10 more)
 
 ### Community 351 - "BRIEFING — 2026-11-08T15:05:00Z"
 Cohesion: 0.18
@@ -1494,20 +1630,20 @@ Cohesion: 0.22
 Nodes (8): 1.1 Source Code Inspections, 1.2 Independent Test & Verification Executions, 1. Observation, 2. Logic Chain, 3. Caveats, 4. Conclusion, 5. Verification Method, Review & Adversarial Critic Report: Milestone M8
 
 ### Community 369 - "Handoff Report: Reviewer 1 — Milestone M10 Gate Verification"
-Cohesion: 0.13
-Nodes (14): 1.1 Mandatory Technical Invariants, 1.2 Frontend-Design Signature Elements, 1.3 Apple HIG Ergonomics, 1. Observation, 2. Logic Chain, 3. Adversarial Challenges & Stress Testing, 4. Caveats, 5. Conclusion & Verdict (+6 more)
+Cohesion: 0.14
+Nodes (13): 1.1 Mandatory Technical Invariants, 1.2 Frontend-Design Signature Elements, 1.3 Apple HIG Ergonomics, 1. Observation, 2. Logic Chain, 3. Adversarial Challenges & Stress Testing, 4. Caveats, 5. Conclusion & Verdict (+5 more)
 
 ### Community 370 - "Frontend Design"
 Cohesion: 0.29
 Nodes (6): Design principles, Frontend Design, Ground your designs in the subject matter, More on writing in design, Process: plan, review against the brief, build, critique, Restraint and self-critique
 
-### Community 371 - "1. Observation"
-Cohesion: 0.15
-Nodes (12): 1.1 Baseline Test Suite & Verification Environment, 1.3 Inspection of `src/setupTests.js`, 1.5 Inspection of `src/test/testUtils.jsx`, 1.6 Inspection of Existing Test Suites Across Tiers, 1.7 Inspection of `firestore.rules` and `storage.rules` Specification, 1. Observation, 2. Logic Chain, 3. Caveats (+4 more)
+### Community 371 - "Handoff Report: Milestone M2 Explorer 3 — Routing Integration, Settings HIG Shell & Navigation Tests"
+Cohesion: 0.18
+Nodes (10): 2.1 Route Placement and Alias Mapping, 2.2 Container Shell Architecture for `src/pages/Impostazioni/ViewImpostazioni.js`, 2.3 Integration Test Suite Strategy, 2. Logic Chain, 3. Caveats, 4. Conclusion, 5.1 Verification Commands, 5.2 Invalidation Conditions (+2 more)
 
-### Community 372 - "homeUtente.js"
-Cohesion: 0.37
-Nodes (9): 2. Logic Chain, HouseAnalytics(), HomeUtente(), renderHome(), getOfflineData(), getScopedKey(), purgeTenantStorage(), saveOfflineData() (+1 more)
+### Community 372 - "m7_challenger_chores_offline_stress.test.jsx"
+Cohesion: 0.13
+Nodes (19): 2. Logic Chain, Progress — M3 Explorer 1, 1.1 Integrity & Source Code Inspection, 1. Observation, CATEGORIES, CATEGORY_ICONS, ViewImpostazioni(), collectFiles() (+11 more)
 
 ### Community 373 - "Task Assignment: Forensic Auditor for Milestone M8"
 Cohesion: 0.40
@@ -1569,9 +1705,9 @@ Nodes (10): Artifact Index, Attack Surface, BRIEFING — 2026-11-08T22:21:40Z, C
 Cohesion: 0.20
 Nodes (9): 1.1 Direct Source Code Observations, 1.2 Direct Tool Execution Results, 1. Observation, 2. Logic Chain, 3. Caveats, 4. Conclusion, 5. Verification Method, Handoff Report: Milestone M9 Empirical Challenger 2 (+1 more)
 
-### Community 394 - "showConfirm"
-Cohesion: 0.08
-Nodes (25): Challenges, [Low] Challenge 2: Unhandled Promise Rejections in Asynchronous `onConfirm` Handlers, [Low] Challenge 3: React DOM Property Warning on Retained Legacy Mascot (`stop-color` vs `stopColor`), [Medium] Challenge 1: Concurrent `showConfirm` Invocations Cause Promise Starvation (Clobbering), Progress — challenger_m2_2, Summary of Findings:, Artifact Index, BRIEFING — 2026-11-02T12:04:00Z (+17 more)
+### Community 394 - "BRIEFING — 2026-11-09T12:22:00Z"
+Cohesion: 0.18
+Nodes (10): Artifact Index, Attack Surface, BRIEFING — 2026-11-09T12:30:00Z, Current Parent, 🔒 Key Constraints, Key Decisions Made, Loaded Skills, Mission (+2 more)
 
 ### Community 395 - "Handoff Report: Challenger 1 (Milestone M9 - Signature Elements Stress)"
 Cohesion: 0.22
@@ -1581,33 +1717,33 @@ Nodes (8): 1.1 Direct Baseline Observations & Code Inspections, 1. Observation, 
 Cohesion: 0.22
 Nodes (8): 1.1 Direct Baseline Observations & Initial Flaws, 1. Observation, 2. Logic Chain, 3. Caveats, 4. Conclusion, 5. Verification Method, Handoff Report: Milestone M9 Replacement Worker, Invalidation Conditions
 
-### Community 397 - "1. Observation"
+### Community 397 - "src/index.js"
 Cohesion: 0.25
-Nodes (6): 1.1 Baseline Project State & Verification Scripts, 1.3 PWA & Offline Experience (R4) Observations, 1.4 Performance & Bundle Analysis (R5) Observations, 1.5 Security & Multi-tenant Authorization (R6, R7) Observations, 1. Observation, reportWebVitals()
+Nodes (4): 1.3 PWA & Offline Experience (R4) Observations, root, reportWebVitals(), isLocalhost
 
 ### Community 398 - "Forensic Audit Report: Milestone M9"
 Cohesion: 0.25
 Nodes (7): 1. Observation, 2. Logic Chain, 3. Caveats, 4. Conclusion, 5. Verification Method, Forensic Audit Report: Milestone M9, Phase Results
 
-### Community 399 - "Dispatch: Worker M4 Concurrency Fix"
-Cohesion: 0.25
-Nodes (7): 2026-11-03T13:04:58Z, 2026-11-03T13:05:35Z, 2026-11-03T13:13:04Z, Dispatch: Worker M4 Concurrency Fix, Inputs, Mandate, Role
+### Community 399 - "Handoff Report: Milestone M1 Review & Adversarial Audit (Reviewer 2)"
+Cohesion: 0.20
+Nodes (9): 1.2 Independent Verification Execution, 1. Observation, 2. Logic Chain, 3. Adversarial Stress-Test Findings, 4. Caveats, 5. Conclusion, 6. Verification Method, Handoff Report: Milestone M1 Review & Adversarial Audit (Reviewer 2) (+1 more)
 
-### Community 400 - "Dispatch: Milestone 4 Worker (Adversarial Coverage Hardening)"
-Cohesion: 0.29
-Nodes (6): 2026-11-03T12:43:12Z, 2026-11-03T12:48:34Z, Dispatch: Milestone 4 Worker (Adversarial Coverage Hardening), Mandatory Integrity Warning, Objectives, Role
+### Community 400 - "feedback.js"
+Cohesion: 0.20
+Nodes (10): 1.1 Console Warnings & React DOM Error Freedom, ANIMATION_SEQUENCE, ToastContainer(), ToastItem(), TYPE_ICONS, confirmListeners, subscribeConfirm(), subscribeToast() (+2 more)
 
-### Community 401 - "Project: HouseHelper Modernization & Visual/Ergonomics Production Overhaul"
-Cohesion: 0.33
-Nodes (5): Design System Tokens Contract (M8 ↔ M9, M10), Feature Inventory, Interface Contracts, Milestones, Project: HouseHelper Modernization & Visual/Ergonomics Production Overhaul
+### Community 401 - "BRIEFING — 2026-11-09T12:21:45Z"
+Cohesion: 0.18
+Nodes (10): Artifact Index, Attack Surface, BRIEFING — 2026-11-09T12:26:00Z, Current Parent, 🔒 Key Constraints, Key Decisions Made, Mission, 🔒 My Identity (+2 more)
 
-### Community 402 - "Challenger M3 Gate 2 Report: Feedback Pub/Sub, Accessibility, Lifecycle Cleanliness & DOM Hardening"
-Cohesion: 0.40
-Nodes (4): 3. Caveats, 4. Conclusion, 5. Verification Method, Challenger M3 Gate 2 Report: Feedback Pub/Sub, Accessibility, Lifecycle Cleanliness & DOM Hardening
+### Community 402 - "InteractiveMascot"
+Cohesion: 0.04
+Nodes (68): Key Decisions Made, 2026-11-02T11:32:24Z, 2026-11-03T12:30:37Z, 2. Logic Chain, 3. Caveats, 4. Conclusion, 5. Verification Method, Milestone 3 Challenger 2 Handoff Report: Feedback Subsystem & Lifecycle Cleanliness Gate Verification (+60 more)
 
-### Community 403 - "Handoff Report: Milestone 3 Chores, Expenses & Grocery Modernization"
-Cohesion: 0.29
-Nodes (6): 1. Observation, 2. Logic Chain, 3. Caveats, 4. Conclusion, 5. Verification Method, Handoff Report: Milestone 3 Chores, Expenses & Grocery Modernization
+### Community 403 - "3. Detailed Component Blueprints"
+Cohesion: 0.09
+Nodes (22): 1. Executive Summary, 1. `MiniGuy.js`:, 2. `InteractiveMascot.js`:, 3.1 `ViewBacheca.js` Blueprint, 3.2 `AggiungiNota.js` Blueprint, 3.3 `ModificaNota.js` Blueprint, 3.4 `ViewCalendario.js` Blueprint, 3.5 `AggiungiEvento.js` Blueprint (+14 more)
 
 ### Community 404 - "Task Assignment: Forensic Auditor for Milestone M9"
 Cohesion: 0.40
@@ -1644,6 +1780,10 @@ Nodes (12): 1.1 Public Repository Secret Security Audit (`npm run audit:secrets`
 ### Community 412 - "1. Observation"
 Cohesion: 0.15
 Nodes (12): 1.1 Public Repository Security Audit, 1.2 Comprehensive Ergonomics Stress Suites, 1.3 Full Test Suite Execution, 1.4 Production Build Verification, 1.5 Zero-Emoji Enforcement Scan, 1.6 Invariant: Zero Occurrences of "Dispensa" in ViewSpesa.js, 1. Observation, 2. Logic Chain (+4 more)
+
+### Community 413 - "BRIEFING — 2026-11-09T11:56:30Z"
+Cohesion: 0.22
+Nodes (8): Artifact Index, BRIEFING — 2026-11-09T11:56:30Z, Current Parent, Investigation State, 🔒 Key Constraints, Key Decisions Made, Mission, 🔒 My Identity
 
 ### Community 419 - "1. Observation"
 Cohesion: 0.15
@@ -1753,21 +1893,21 @@ Nodes (6): 2026-11-08T23:06:13Z, Key Inputs & References, Mission, Output Requir
 Cohesion: 0.29
 Nodes (6): 2026-11-08T23:06:18Z, Key Inputs & References, Mission, Output Requirements, Task Assignment: Reviewer 2 — Milestone M11 Final Pre-Release Verification, Verification Scope
 
-### Community 446 - "Milestone 2 Challenger Handoff Report: Navigation, Design System & Feedback Subsystem Integrity"
-Cohesion: 0.33
-Nodes (5): 1. Observation, 3. Caveats, 4. Conclusion, 5. Verification Method, Milestone 2 Challenger Handoff Report: Navigation, Design System & Feedback Subsystem Integrity
+### Community 446 - "BRIEFING — 2026-11-09T12:41:00Z"
+Cohesion: 0.22
+Nodes (8): Artifact Index, BRIEFING — 2026-11-09T12:41:00Z, Current Parent, Investigation State, 🔒 Key Constraints, Key Decisions Made, Mission, 🔒 My Identity
 
-### Community 447 - "Milestone 2 Review Handoff Report: Design System, Global Navigation & Strict Zero-Emoji Replacement"
-Cohesion: 0.33
-Nodes (5): 1. Observation, 3. Caveats, 4. Conclusion, 5. Verification Method, Milestone 2 Review Handoff Report: Design System, Global Navigation & Strict Zero-Emoji Replacement
+### Community 447 - "BRIEFING — 2026-11-09T12:22:00Z"
+Cohesion: 0.18
+Nodes (10): Artifact Index, Attack Surface, BRIEFING — 2026-11-09T12:26:00Z, Current Parent, 🔒 Key Constraints, Key Decisions Made, Mission, 🔒 My Identity (+2 more)
 
-### Community 448 - "Milestone 3 Handoff Report: Core Domain Pages UI/UX Modernization, Mascot Retirement & Non-Blocking Feedback"
-Cohesion: 0.33
-Nodes (5): 1. Observation, 3. Caveats, 4. Conclusion, 5. Verification Method, Milestone 3 Handoff Report: Core Domain Pages UI/UX Modernization, Mascot Retirement & Non-Blocking Feedback
+### Community 448 - "Milestone M2 Handoff Report: Navigation Localization, Settings Routing & Shell Integration"
+Cohesion: 0.22
+Nodes (8): 1.1 Affected Files and Exclusive Ownership, 1.2 Verification Commands & Verbatim Outputs, 1. Observation, 2. Logic Chain, 3. Caveats, 4. Conclusion, 5. Verification Method, Milestone M2 Handoff Report: Navigation Localization, Settings Routing & Shell Integration
 
-### Community 449 - "4.5 Tier 4: Realistic Household End-to-End Scenarios"
-Cohesion: 0.50
-Nodes (4): 4.5 Tier 4: Realistic Household End-to-End Scenarios, Scenario 1: "The New Apartment Setup & Roommate Onboarding", Scenario 2: "Weekly Cleaning Rotation & Expense Splitting", Scenario 3: "House Departure & Data Isolation"
+### Community 449 - "Milestone M2 Reviewer 1 Handoff Report"
+Cohesion: 0.15
+Nodes (12): 1.1 Source Code Verification, 1.2 Verification Commands & Verbatim Outputs, 1. Observation, 2. Logic Chain, 3. Adversarial Challenges & Stress Testing, 4. Caveats, 5. Conclusion, 6. Verification Method (+4 more)
 
 ### Community 450 - "Progress — Milestone M11 Forensic Integrity Audit"
 Cohesion: 0.50
@@ -1781,33 +1921,381 @@ Nodes (3): Progress — Challenger 2 (Milestone M10), Status, Tasks
 Cohesion: 0.50
 Nodes (3): Plan, Status, Victory Auditor Progress
 
-### Community 453 - "4.6 Automated Verification Scripts"
+### Community 453 - "Milestone 2 Adversarial Challenge Analysis"
+Cohesion: 0.25
+Nodes (7): Challenge Summary, Challenges, [Low] Challenge 2: Unhandled Promise Rejections in Asynchronous `onConfirm` Handlers, [Low] Challenge 3: React DOM Property Warning on Retained Legacy Mascot (`stop-color` vs `stopColor`), [Medium] Challenge 1: Concurrent `showConfirm` Invocations Cause Promise Starvation (Clobbering), Milestone 2 Adversarial Challenge Analysis, Unchallenged Areas
+
+### Community 454 - "Handoff Report: Milestone M1 Challenger 2 (Theme Infrastructure & Test Harness Stress)"
+Cohesion: 0.14
+Nodes (13): 1.1 Empirical Test Suite Execution, 1.2 Verbatim Defect Details, 1. Observation, 3. Challenge Report, 4. Caveats, 5. Conclusion & Actionable Verdict, 6. Verification Method, Challenges (+5 more)
+
+### Community 464 - "BRIEFING — 2026-11-09T12:38:00Z"
+Cohesion: 0.22
+Nodes (8): Artifact Index, BRIEFING — 2026-11-09T12:38:00Z, Current Parent, Investigation State, 🔒 Key Constraints, Key Decisions Made, Mission, 🔒 My Identity
+
+### Community 465 - "BRIEFING — 2026-11-09T12:56:55Z"
+Cohesion: 0.25
+Nodes (7): Artifact Index, BRIEFING — 2026-11-09T12:56:55Z, Current Parent, 🔒 Key Constraints, Key Decisions Made, Mission, 🔒 My Identity
+
+### Community 466 - "Milestone M2 Challenger 2 Handoff Report: Ergonomics, Responsive Breakpoints, Touch Targets & Mobile Drawer Lifecycle"
+Cohesion: 0.20
+Nodes (9): 1.1 Empirical Test Suite Execution, 1.2 Inspection of CSS Responsive Rules & Ergonomics (`src/App.css`), 1.3 Quality Gates & Invariants, 1. Observation, 2. Logic Chain, 3. Caveats, 4. Conclusion, 5. Verification Method (+1 more)
+
+### Community 467 - "BRIEFING — 2026-11-04T00:56:00Z"
+Cohesion: 0.22
+Nodes (8): Artifact Index, BRIEFING — 2026-11-04T00:56:00Z, Current Parent, 🔒 Key Constraints, Key Decisions Made, Mission, 🔒 My Identity, Review Scope
+
+### Community 468 - "Handoff Report: Milestone M1 (Iteration 2) Explorer 3 — Challenger Suite Verification & Remediation Strategy"
+Cohesion: 0.12
+Nodes (15): 1.1 Empirical Baseline Reproduction & Current Test Suite Metrics, 1.2 Verbatim Defect Observations, 1. Observation, 3.1 Proposed Diff for `src/contexts/ThemeContext.js`, 3.2 Proposed Diff for `src/test/mockFirebase.js`, 3. Concrete Remediation Proposal, 4. Verification Plan, 5. Caveats (+7 more)
+
+### Community 469 - "Handoff Report: Implementation Strategy for LanguageContext & 3-Way ThemeContext"
+Cohesion: 0.10
+Nodes (19): 1.1 Existing `ThemeContext.js` (`src/contexts/ThemeContext.js`, lines 1–42), 1.3 Baseline Tests for Theme (`src/components/ThemeToggle.test.jsx`, lines 23–44), 1.4 `window.matchMedia` Test Harness Mock (`src/setupTests.js`, lines 75–87), 1.5 Absence of `src/contexts/LanguageContext.js`, 1.6 CSS Theme Selectors (`src/index.css` & `src/App.css`), 1. In `src/App.js` (Root Provider Hierarchy), 1. Observation, 2.1 ThemeContext 3-Way Mode & Media Query Architecture (+11 more)
+
+### Community 471 - "LanguageProvider"
+Cohesion: 0.10
+Nodes (20): 1.1 `src/test/mockFirebase.js`, 1.2 `src/setupTests.js`, 1.4 Existing Baseline Test Suite Execution, 1.5 Codebase References to `document.documentElement` and `localStorage`, 1. Observation, 2.3 Unit Test Architecture for `LanguageContext.test.jsx`, 2.4 Unit Test Architecture for `ThemeContext.test.jsx`, 2. Logic Chain (+12 more)
+
+### Community 472 - "2. Logic Chain"
+Cohesion: 0.12
+Nodes (16): 1.2 Layout, Breakpoints & Touch Target Dimensions, 1.3 Liquid Glass vs. Content Layer Discipline, 1.4 Project Invariants & Verification Scripts, 1. Observation, 2. Logic Chain, 3. Caveats, 4. Conclusion, 5.1 Automated Command Verifications (+8 more)
+
+### Community 473 - "orchestrator_settings/DISPATCH.md"
+Cohesion: 0.14
+Nodes (13): 2026-11-09T10:50:47Z, Acceptance Criteria, Language & Localization, Orchestrator Coordination Details, R1. Settings Navigation and Apple HIG / Frontend Design UI, R2. Language Switching and i18n, R3. Standard Base Settings Sections, R4. Security, Zero-Emoji, and Quality Invariants (+5 more)
+
+### Community 474 - "Forensic Audit Report: Milestone M1 Work Product"
+Cohesion: 0.14
+Nodes (13): 1.1 Scope and Modified Files, 1.2 Static Code Analysis & Parity Audit, 1.3 Invariant Verification, 1.4 Test Suite & Build Execution, 1.5 Adversarial Cross-Audit Findings, 1. Observation, 2. Logic Chain, 3. Caveats (+5 more)
+
+### Community 475 - "1.2 Inspection of `src/test/mockFirebase.js`"
+Cohesion: 0.33
+Nodes (6): 1.1 Empirical Defect Reproduction, 1.2 Inspection of `src/test/mockFirebase.js`, 1.3 How Mocks Are Integrated into the Test Environment (`setupTests.js`), 1. Observation, A. The Flawed Implementation (lines 357–372), B. The Jest Configuration Constraint in Create React App
+
+### Community 476 - "Handoff Report: Settings Functional Domains & Testing Infrastructure"
+Cohesion: 0.14
+Nodes (13): 1.1 Theme & Appearance Infrastructure, 1.2 Notification Preferences & Existing Reminders, 1.3 Account & Security, 1. Observation, 2.1 Theme / Appearance Preferences Architecture, 2.2 Notification Preferences Storage Model, 2.3 Account & Security Design, 2. Logic Chain (+5 more)
+
+### Community 477 - "BRIEFING — 2026-11-02T12:04:00Z"
+Cohesion: 0.25
+Nodes (7): Artifact Index, BRIEFING — 2026-11-02T12:04:00Z, Current Parent, Investigation State, 🔒 Key Constraints, Mission, 🔒 My Identity
+
+### Community 478 - "Handoff Report: Internationalization (`src/i18n/`) Architecture & Dictionaries"
+Cohesion: 0.15
+Nodes (12): 1.1 Existing Codebase & Environment, 1.2 Existing Navigation and Hardcoded Text Locations, 1.3 Critical Invariant Observation: Zero-Emoji Regex Sensitivity, 1. Observation, 3.1 File Structure, 3.2 Exact Code for `src/i18n/index.js`, 3.3 Exact Code for `src/i18n/it.js` (Italian Default Base), 3.4 Exact Code for `src/i18n/en.js` (English Idiomatic Household Dictionary) (+4 more)
+
+### Community 479 - "BRIEFING — 2026-11-09T11:43:00Z"
+Cohesion: 0.17
+Nodes (11): Active Timers, Artifact Index, BRIEFING — 2026-11-09T12:34:00Z, Current Parent, 🔒 Key Constraints, Key Decisions Made, Mission, 🔒 My Identity (+3 more)
+
+### Community 480 - "BRIEFING — 2026-11-09T11:34:00Z"
+Cohesion: 0.17
+Nodes (11): Artifact Index, Attack Surface, Audit Progress, Audit Scope, BRIEFING — 2026-11-09T11:34:00Z, Current Parent, 🔒 Key Constraints, Key Decisions Made (+3 more)
+
+### Community 481 - "1. Observation"
+Cohesion: 0.17
+Nodes (11): 1.1 Reviewed Work Products, 1.2 Dictionary Structure & 100% Key Parity, 1.3 Terminology & Apple HIG Adherence, 1.5 React 19 Safety, LocalStorage Persistence & HTML Lang Sync, 1.6 Independent Test Verification Commands & Outputs, 1.7 Integrity Check Assessment, 1. Observation, 3. Caveats (+3 more)
+
+### Community 482 - "BRIEFING — 2026-11-09T11:21:40Z"
+Cohesion: 0.17
+Nodes (11): Artifact Index, BRIEFING — 2026-11-09T11:21:40Z, Change Tracker, Current Parent, 🔒 Key Constraints, Key Decisions Made, Loaded Skills, Mission (+3 more)
+
+### Community 483 - "BRIEFING — 2026-11-09T11:44:00Z"
+Cohesion: 0.18
+Nodes (10): Artifact Index, BRIEFING — 2026-11-09T11:47:00Z, Change Tracker, Current Parent, 🔒 Key Constraints, Loaded Skills, Mission, 🔒 My Identity (+2 more)
+
+### Community 484 - "BRIEFING — 2026-11-09T12:30:00Z"
+Cohesion: 0.18
+Nodes (10): Artifact Index, Attack Surface, BRIEFING — 2026-11-09T12:30:00Z, Current Parent, 🔒 Key Constraints, Key Decisions Made, Loaded Skills, Mission (+2 more)
+
+### Community 485 - "1. Observation"
+Cohesion: 0.18
+Nodes (10): 1.1 Scope & Empirical Adversarial Harness, 1.3 Dimension 2: Parameter Interpolation Robustness, 1.4 Dimension 3: Language Switching & Persistence Resilience, 1.5 Dimension 4: Zero-Emoji Invariant & Dictionary Parity, 1.6 Verification Results, 1. Observation, 3. Caveats, 4. Conclusion (+2 more)
+
+### Community 486 - "sendPasswordResetEmail"
+Cohesion: 0.05
+Nodes (49): Architecture, Architecture, 2. Logic Chain, 2026-11-09T11:23:52Z, 2. Logic Chain, [High] Challenge 1: `sendPasswordResetEmail` Mock Implementation Erasure, Verdict: **`REQUEST_CHANGES`**, Progress — Milestone M1 Challenger 2 (+41 more)
+
+### Community 487 - "BRIEFING — 2026-11-09T11:28:30Z"
+Cohesion: 0.18
+Nodes (10): Artifact Index, Attack Surface, BRIEFING — 2026-11-09T11:28:30Z, Current Parent, 🔒 Key Constraints, Key Decisions Made, Mission, 🔒 My Identity (+2 more)
+
+### Community 488 - "BRIEFING — 2026-11-09T12:02:00Z"
+Cohesion: 0.25
+Nodes (7): Artifact Index, BRIEFING — 2026-11-09T12:02:00Z, Current Parent, 🔒 Key Constraints, Key Decisions Made, Mission, 🔒 My Identity
+
+### Community 489 - "1. Observation"
+Cohesion: 0.18
+Nodes (10): 1.1 Scope and File Ownership, 1.2 Translation Catalogs & Key Parity (`src/i18n/`), 1.3 LanguageContext & ThemeContext, 1.4 Test Infrastructure Extensions, 1.5 Verification Results, 1. Observation, 3. Caveats, 4. Conclusion (+2 more)
+
+### Community 490 - "package.json"
+Cohesion: 0.13
+Nodes (18): dependencies, firebase@^12.14.0, react@^19.2.3, react-calendar@^6.0.0, react-dom@^19.2.3, react-router-dom@^7.10.1, react-scripts@5.0.1, @testing-library/dom@^10.4.1 (+10 more)
+
+### Community 491 - "BRIEFING — 2026-11-09T11:06:55Z"
+Cohesion: 0.22
+Nodes (8): Artifact Index, BRIEFING — 2026-11-09T11:06:55Z, Current Parent, Investigation State, 🔒 Key Constraints, Key Decisions Made, Mission, 🔒 My Identity
+
+### Community 492 - "BRIEFING — 2026-11-09T11:07:00Z"
+Cohesion: 0.22
+Nodes (8): Artifact Index, BRIEFING — 2026-11-09T11:07:00Z, Current Parent, Investigation State, 🔒 Key Constraints, Key Decisions Made, Mission, 🔒 My Identity
+
+### Community 493 - "proposed_settings_routing.test.jsx"
+Cohesion: 0.25
+Nodes (3): { MemoryRouter, Routes, Route, Navigate }, @testing-library/user-event@^13.5.0, @testing-library/user-event
+
+### Community 494 - "BRIEFING — 2026-11-09T10:57:30Z"
+Cohesion: 0.22
+Nodes (8): Artifact Index, BRIEFING — 2026-11-09T10:57:30Z, Current Parent, Investigation State, 🔒 Key Constraints, Key Decisions Made, Mission, 🔒 My Identity
+
+### Community 496 - "Handoff Report — Milestone M3: Settings Household Identity Card & Appearance & Language"
+Cohesion: 0.15
+Nodes (12): 1. Observation, 2. Logic Chain, 3. Caveats, 4.1 Component Code Specification: `src/pages/Impostazioni/ViewImpostazioni.js`, 4.2 CSS Rules to Add to `src/App.css`, 4. Conclusion & Concrete Component Design, 5. Verification Method, A. Updated Imports (+4 more)
+
+### Community 497 - "BRIEFING — 2026-11-02T10:45:30Z"
+Cohesion: 0.25
+Nodes (7): Artifact Index, BRIEFING — 2026-11-02T10:45:30Z, Current Parent, 🔒 Key Constraints, Key Decisions Made, Mission, 🔒 My Identity
+
+### Community 498 - "BRIEFING — 2026-11-09T11:07:30Z"
+Cohesion: 0.25
+Nodes (7): Artifact Index, BRIEFING — 2026-11-09T11:07:30Z, Current Parent, Investigation State, 🔒 Key Constraints, Mission, 🔒 My Identity
+
+### Community 499 - "Soft Handoff — Orchestrator Gen 1 to Gen 2"
+Cohesion: 0.29
+Nodes (6): Active Subagents, Key Artifacts, Milestone State, Pending Decisions & Invariants, Remaining Work for Successor (Gen 2), Soft Handoff — Orchestrator Gen 1 to Gen 2
+
+### Community 500 - "BRIEFING — 2026-11-09T11:40:20Z"
+Cohesion: 0.25
+Nodes (7): Artifact Index, BRIEFING — 2026-11-09T11:40:20Z, Current Parent, 🔒 Key Constraints, Key Decisions Made, Mission, 🔒 My Identity
+
+### Community 501 - "1. Observation"
+Cohesion: 0.25
+Nodes (8): 1.1 Existing Dependencies & React 19 Environment (`package.json`), 1.2 Existing State & Context Patterns (`src/contexts/ThemeContext.js`), 1.3 Provider Hierarchy (`src/App.js`), 1.4 Hardcoded Text in Navigation Components, 1.5 Confirmation Dialog & Feedback Bus (`src/components/ConfirmModal.js` & `src/utils/feedback.js`), 1.6 Testing Infrastructure (`src/test/testUtils.jsx` & `src/setupTests.js`), 1.7 Zero-Emoji Guard Verification (`scripts/verify-zero-emojis.js`), 1. Observation
+
+### Community 502 - "scripts"
+Cohesion: 0.25
+Nodes (8): scripts, audit:secrets, build, check:circular, check:emojis, eject, start, test
+
+### Community 503 - "BRIEFING — 2026-11-09T11:00:00Z"
+Cohesion: 0.22
+Nodes (8): Artifact Index, BRIEFING — 2026-11-09T11:00:00Z, Current Parent, Investigation State, 🔒 Key Constraints, Key Decisions Made, Mission, 🔒 My Identity
+
+### Community 504 - "3. Recommended Architecture Specification"
+Cohesion: 0.20
+Nodes (9): 3.1 Directory Structure, 3.2 Core Translation Engine (`src/i18n/index.js`), 3.3 React 19 Language Context (`src/contexts/LanguageContext.js`), 3.4 Complete Master Translation Dictionaries, 3. Recommended Architecture Specification, 6. Verification Method, English Dictionary (`src/i18n/en.js`), Handoff Report: Internationalization (i18n) & Language Switching Architecture (+1 more)
+
+### Community 505 - "Reviewer 2 & Adversarial Critic Report: Milestone M2"
+Cohesion: 0.20
+Nodes (9): 1.1 Inspected Files and Code Lines, 1.2 Verbatim Verification Command Outputs, 1. Observation, 3.1 Attack Scenarios & Evaluated Failure Modes, 3. Adversarial Stress-Testing & Logic Chain, 4. Caveats, 5. Review Summary & Verdict, 6. Verification Method (+1 more)
+
+### Community 506 - "Dispatch: Milestone 4 Worker (Adversarial Coverage Hardening)"
+Cohesion: 0.29
+Nodes (6): 2026-11-03T12:43:12Z, 2026-11-03T12:48:34Z, Dispatch: Milestone 4 Worker (Adversarial Coverage Hardening), Mandatory Integrity Warning, Objectives, Role
+
+### Community 507 - "showConfirm"
+Cohesion: 0.05
+Nodes (37): Progress — challenger_m2_2, Summary of Findings:, 1.2 Empirical Stress Test Findings, Finding C1 (Critical): In-flight async `onConfirm` corrupted to `false` by subsequent `showConfirm` request, Finding C2 (High): Nested confirmation chains inside `onConfirm` abort the outer modal, Finding C3 (Medium): Asynchronous rejections in `onCancel` callbacks escape as unhandled promise rejections, 2026-11-02T10:55:29Z, 1. Observation (+29 more)
+
+### Community 508 - "setupTests.js"
+Cohesion: 0.33
+Nodes (5): @testing-library/jest-dom@^6.9.1, @testing-library/jest-dom, mockLocation, mockNavigate, mockParams
+
+### Community 509 - "Handoff Report: Milestone M3 Forensic Integrity Audit"
+Cohesion: 0.25
+Nodes (7): 2. Logic Chain, 3. Caveats, 4. Conclusion, 5. Verification Method, Forensic Audit Report, Handoff Report: Milestone M3 Forensic Integrity Audit, Phase Results
+
+### Community 510 - "Progress — Settings View & i18n Orchestration"
+Cohesion: 0.50
+Nodes (3): Current Status, Iteration Status, Progress — Settings View & i18n Orchestration
+
+### Community 511 - "extends"
+Cohesion: 0.24
+Nodes (7): browserslist, development, production, eslintConfig, extends, react-app, react-app/jest
+
+### Community 512 - "Milestone 3 Gate Verification: Adversarial Review & Quality Audit Report"
+Cohesion: 0.18
+Nodes (10): 1.1 Automated Verification Suites, 1.3 Non-Blocking Feedback Integration, 1.4 Integrity Audit Observations, 1. Observation, 2. Logic Chain, 3. Adversarial Challenges & Stress-Testing, 4. Caveats, 5. Conclusion (+2 more)
+
+### Community 513 - "Gate Status Tracking"
+Cohesion: 0.33
+Nodes (5): Gate — Milestone M1 (Iteration 1), Gate — Milestone M1 (Iteration 2), Gate — Milestone M2, Gate — Milestone M3, Gate Status Tracking
+
+### Community 517 - "BRIEFING — 2026-11-04T00:17:30Z"
+Cohesion: 0.29
+Nodes (6): Artifact Index, BRIEFING — 2026-11-04T00:17:30Z, Current Parent, 🔒 Key Constraints, Mission, 🔒 My Identity
+
+### Community 520 - "BRIEFING — 2026-11-09T13:00:00Z"
+Cohesion: 0.17
+Nodes (11): Artifact Index, Attack Surface, Audit Progress, Audit Scope, BRIEFING — 2026-11-09T13:00:00Z, Current Parent, 🔒 Key Constraints, Key Decisions Made (+3 more)
+
+### Community 523 - "BRIEFING — 2026-11-09T11:42:00Z"
+Cohesion: 0.25
+Nodes (7): Artifact Index, BRIEFING — 2026-11-09T11:42:00Z, Current Parent, 🔒 Key Constraints, Key Decisions Made, Mission, 🔒 My Identity
+
+### Community 535 - "BRIEFING — 2026-11-09T12:58:00Z"
+Cohesion: 0.18
+Nodes (10): Artifact Index, Attack Surface, BRIEFING — 2026-11-09T13:06:00Z, Current Parent, 🔒 Key Constraints, Key Decisions Made, Loaded Skills, Mission (+2 more)
+
+### Community 536 - "Gate Status Tracking"
+Cohesion: 0.40
+Nodes (4): Gate — Milestone M1 (Iteration 1), Gate — Milestone M1 (Iteration 2), Gate — Milestone M2 (Pending), Gate Status Tracking
+
+### Community 537 - "Project: HouseHelper Modernization"
+Cohesion: 0.40
+Nodes (4): Code Layout, Milestones, Parallel Track: E2E Testing Track, Project: HouseHelper Modernization
+
+### Community 538 - "Milestone M2 Explorer 3 Dispatch: Routing Integration & Settings Shell"
+Cohesion: 0.40
+Nodes (4): 2026-11-09T11:58:18Z, 2026-11-09T12:00:42Z, Milestone M2 Explorer 3 Dispatch: Routing Integration & Settings Shell, Objective
+
+### Community 539 - "Milestone M2 Challenger 1 Handoff Report: Empirical Verification & Stress Testing"
+Cohesion: 0.25
+Nodes (7): 1.1 Authored Empirical Stress Test Harness, 1.2 Verbatim Test Execution Outputs, 1. Observation, 3. Caveats, 4. Conclusion, 5. Verification Method, Milestone M2 Challenger 1 Handoff Report: Empirical Verification & Stress Testing
+
+### Community 544 - "BRIEFING — 2026-11-09T12:40:00Z"
+Cohesion: 0.25
+Nodes (7): Artifact Index, BRIEFING — 2026-11-09T12:40:00Z, Current Parent, 🔒 Key Constraints, Key Decisions Made, Mission, 🔒 My Identity
+
+### Community 545 - "Handoff Report: Milestone M3 Reviewer 1 (Quality & Adversarial Review)"
+Cohesion: 0.25
+Nodes (7): 1.2 Independent Test & Verification Outputs, 1. Observation, 2. Logic Chain, 3. Caveats, 4. Conclusion, 5. Verification Method, Handoff Report: Milestone M3 Reviewer 1 (Quality & Adversarial Review)
+
+### Community 546 - "Handoff Report: Apple HIG & Frontend Design CSS Specifications for Settings"
+Cohesion: 0.25
+Nodes (7): 1. Observation, 2. Logic Chain, 3. Caveats, 4. Conclusion & Complete CSS Specifications, 5. Verification Method, Complete CSS Rules to Append to `src/App.css`, Handoff Report: Apple HIG & Frontend Design CSS Specifications for Settings
+
+### Community 547 - "BRIEFING — 2026-11-09T12:56:40Z"
+Cohesion: 0.18
+Nodes (10): Artifact Index, Attack Surface, BRIEFING — 2026-11-09T13:00:00Z, Current Parent, 🔒 Key Constraints, Key Decisions Made, Mission, 🔒 My Identity (+2 more)
+
+### Community 548 - "Dispatch: Worker M4 Concurrency Fix"
+Cohesion: 0.25
+Nodes (7): 2026-11-03T13:04:58Z, 2026-11-03T13:05:35Z, 2026-11-03T13:13:04Z, Dispatch: Worker M4 Concurrency Fix, Inputs, Mandate, Role
+
+### Community 549 - "Handoff Report: Milestone 2 Strict Zero-Emoji, Zero-Arrow & Script Hardening Specification"
+Cohesion: 0.29
+Nodes (6): 1. Observation, 2. Logic Chain, 3. Caveats, 4. Conclusion, 5. Verification Method, Handoff Report: Milestone 2 Strict Zero-Emoji, Zero-Arrow & Script Hardening Specification
+
+### Community 550 - "4.6 Automated Verification Scripts"
 Cohesion: 0.67
 Nodes (3): 4.6.1 Zero-Emoji Verification Script (`scripts/verify-zero-emojis.js`), 4.6.2 Circular Dependency & Build Verification Script (`scripts/verify-build-integrity.js`), 4.6 Automated Verification Scripts
 
-### Community 454 - "1. Observation"
-Cohesion: 0.67
-Nodes (3): 1.1 Automated Verification Command Outputs (Direct Verbatim Execution), 1.3 Adversarial Integrity Audit, 1. Observation
+### Community 554 - "teamwork_challenger_m2_1/DISPATCH.md"
+Cohesion: 0.50
+Nodes (3): 2026-11-09T12:21:31Z, 2026-11-09T12:29:29Z, 2026-11-09T12:31:56Z
+
+### Community 559 - "BRIEFING — 2026-11-09T11:06:00Z"
+Cohesion: 0.29
+Nodes (6): Artifact Index, BRIEFING — 2026-11-09T11:06:00Z, Current Parent, 🔒 Key Constraints, Mission, 🔒 My Identity
+
+### Community 560 - "Interface Contracts"
+Cohesion: 0.29
+Nodes (6): Interface Contracts, Language Context (`src/contexts/LanguageContext.js`), Navigation Item Contract, Notification Preferences (`src/utils/notificationPrefs.js` / localStorage), Scope: Settings View, Localization (i18n), and Base Preferences, Theme Context (`src/contexts/ThemeContext.js`)
+
+### Community 561 - "BRIEFING — 2026-11-09T13:58:00Z"
+Cohesion: 0.18
+Nodes (10): Artifact Index, Attack Surface, BRIEFING — 2026-11-09T14:02:00Z, Current Parent, 🔒 Key Constraints, Key Decisions Made, Mission, 🔒 My Identity (+2 more)
+
+### Community 562 - "Project: HouseHelper Modernization & Visual/Ergonomics Production Overhaul"
+Cohesion: 0.33
+Nodes (5): Design System Tokens Contract (M8 ↔ M9, M10), Feature Inventory, Interface Contracts, Milestones, Project: HouseHelper Modernization & Visual/Ergonomics Production Overhaul
+
+### Community 563 - "Project: HouseHelper Modernization & Visual/Ergonomics Production Overhaul"
+Cohesion: 0.33
+Nodes (5): Design System Tokens Contract (M8 ↔ M9, M10), Feature Inventory, Interface Contracts, Milestones, Project: HouseHelper Modernization & Visual/Ergonomics Production Overhaul
+
+### Community 564 - "Interface Contracts"
+Cohesion: 0.29
+Nodes (6): Interface Contracts, Language Context (`src/contexts/LanguageContext.js`), Navigation Item Contract, Notification Preferences (`src/utils/notificationPrefs.js` / localStorage), Scope: Settings View, Localization (i18n), and Base Preferences, Theme Context (`src/contexts/ThemeContext.js`)
+
+### Community 565 - "Milestone 2 Review Handoff Report: Design System, Global Navigation & Strict Zero-Emoji Replacement"
+Cohesion: 0.33
+Nodes (5): 2. Logic Chain, 3. Caveats, 4. Conclusion, 5. Verification Method, Milestone 2 Review Handoff Report: Design System, Global Navigation & Strict Zero-Emoji Replacement
+
+### Community 566 - "1. Observation"
+Cohesion: 0.40
+Nodes (5): 1.1 Baseline Test & Verification Status, 1.2 Card Styling & "SaaS Clone Syndrome" Across Primary Views, 1.3 Micro-Copywriting & Adversarial Test Invariants, 1.4 Feedback Components & Modal Dialogs, 1. Observation
+
+### Community 567 - "BRIEFING — 2026-11-09T12:57:00Z"
+Cohesion: 0.20
+Nodes (9): Artifact Index, Attack Surface, BRIEFING — 2026-11-09T13:07:15Z, Current Parent, 🔒 Key Constraints, Key Decisions Made, Mission, 🔒 My Identity (+1 more)
+
+### Community 568 - "BRIEFING — 2026-11-09T11:43:00Z"
+Cohesion: 0.29
+Nodes (6): Artifact Index, BRIEFING — 2026-11-09T11:43:00Z, Current Parent, 🔒 Key Constraints, Mission, 🔒 My Identity
+
+### Community 569 - "Milestone M3 Worker Dispatch: Full Settings View Implementation & Apple HIG Styling"
+Cohesion: 0.29
+Nodes (6): 2026-11-09T12:42:37Z, 2026-11-09T12:53:09Z, Concrete Tasks to Implement, Exclusive File Ownership, MANDATORY INTEGRITY WARNING, Milestone M3 Worker Dispatch: Full Settings View Implementation & Apple HIG Styling
+
+### Community 570 - "BRIEFING — 2026-11-09T11:27:30Z"
+Cohesion: 0.20
+Nodes (9): Artifact Index, Attack Surface, BRIEFING — 2026-11-09T11:27:30Z, Current Parent, 🔒 Key Constraints, Key Decisions Made, Mission, 🔒 My Identity (+1 more)
+
+### Community 571 - "BRIEFING — 2026-11-02T10:47:00Z"
+Cohesion: 0.22
+Nodes (8): Artifact Index, BRIEFING — 2026-11-02T10:47:00Z, Current Parent, Investigation State, 🔒 Key Constraints, Key Decisions Made, Mission, 🔒 My Identity
+
+### Community 572 - "Milestone M6 Orchestrator Final Handoff Report"
+Cohesion: 0.22
+Nodes (8): 1. Milestone State, 2. Active Subagents, 3. Pending Decisions & Blockers, 4. Remaining Work, 5. Key Artifacts, 6. Technical Evidence & Verification Method, 7. Gate Verdict Summary (`GATE_STATUS.md`), Milestone M6 Orchestrator Final Handoff Report
+
+### Community 573 - "Handoff Report: Milestone M3 Adversarial Challenge — Visual Ergonomics, Apple HIG & Touch Target Stress"
+Cohesion: 0.29
+Nodes (6): 1. Observation, 2. Logic Chain, 3. Caveats, 4. Conclusion, 5. Verification Method, Handoff Report: Milestone M3 Adversarial Challenge — Visual Ergonomics, Apple HIG & Touch Target Stress
+
+### Community 575 - "1. Observation"
+Cohesion: 0.33
+Nodes (6): 1.1 `src/App.js` Routing Table & Imports, 1.2 Route Guard Integrity (`src/components/RouteGuards.js`), 1.3 Target Directory Structure (`src/pages/Impostazioni/`), 1.4 i18n Dictionaries (`src/i18n/it.js` and `src/i18n/en.js`), 1.5 Apple HIG Guidelines for Settings & Container Architecture, 1. Observation
+
+### Community 576 - "Milestone M3 Reviewer 1 Dispatch: Settings UI, i18n, Theme & Notifications"
+Cohesion: 0.40
+Nodes (4): 2026-11-09T12:56:17Z, Milestone M3 Reviewer 1 Dispatch: Settings UI, i18n, Theme & Notifications, Review Scope & Focus, Verification Commands
+
+### Community 582 - "Milestone M3 Forensic Auditor Dispatch: Integrity Forensics"
+Cohesion: 0.50
+Nodes (3): 2026-11-09T12:56:17Z, Forensic Audit Scope, Milestone M3 Forensic Auditor Dispatch: Integrity Forensics
+
+### Community 583 - "Milestone M3 Challenger 1 Dispatch: Functional & Edge Case Stress Testing"
+Cohesion: 0.40
+Nodes (4): 2026-11-09T12:56:17Z, 2026-11-09T13:06:46Z, Adversarial Challenge Scope, Milestone M3 Challenger 1 Dispatch: Functional & Edge Case Stress Testing
+
+### Community 584 - "Milestone M3 Challenger 2 Dispatch: Visual Ergonomics, Apple HIG & Touch Target Stress Testing"
+Cohesion: 0.50
+Nodes (3): 2026-11-09T12:56:17Z, Adversarial Challenge Scope, Milestone M3 Challenger 2 Dispatch: Visual Ergonomics, Apple HIG & Touch Target Stress Testing
+
+### Community 585 - "Milestone M3 Reviewer 2 Dispatch: Account & Security, Apple HIG, Responsive CSS & Build"
+Cohesion: 0.50
+Nodes (3): Milestone M3 Reviewer 2 Dispatch: Account & Security, Apple HIG, Responsive CSS & Build, Review Scope & Focus, Verification Commands
+
+### Community 586 - "4. Conclusion"
+Cohesion: 0.40
+Nodes (5): 4.1 Specification for Useful & Emergency Contacts Directory (R3), 4.2 Specification for PWA & Offline Experience (R4), 4.3 Specification for Performance Refactoring (R5), 4.4 Specification for Security & Rules (R6, R7), 4. Conclusion
+
+### Community 592 - "Milestone M4 Forensic Auditor Dispatch: Pre-Release Quality Gates & Integrity Certification"
+Cohesion: 0.50
+Nodes (3): 2026-11-09T13:08:57Z, Forensic Audit Scope, Milestone M4 Forensic Auditor Dispatch: Pre-Release Quality Gates & Integrity Certification
 
 ## Knowledge Gaps
 - **6 isolated node(s):** `react-app`, `react-app/jest`, `RFC-4180`, `RFC-4180`, `RFC-4180` (+1 more)
-  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 2983 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
-- **144 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 3774 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
+- **187 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `showConfirm()` connect `showConfirm` to `ConfirmModal`, `react`, `AppHeader`, `2. Inventory of the 17 Redundant Imports`, `1. Observation`, `1.2 Domain Pages UI/UX Modernization & Design System`, `Dispatch: Milestone 4 Worker (Adversarial Coverage Hardening)`, `Challenger M3 Gate 2 Report: Feedback Pub/Sub, Accessibility, Lifecycle Cleanliness & DOM Hardening`, `Handoff Report: Milestone 3 Chores, Expenses & Grocery Modernization`, `BRIEFING — 2026-11-03T12:41:00Z`, `Milestone M6 Review & Adversarial Challenge Report`, `Reviewer 2 Quality & Adversarial Review Report: Milestone M6`, `Dispatch: Worker M4 Concurrency Fix`, `showToast`, `BRIEFING — 2026-11-03T13:05:00Z`, `triggerConfetti`, `Milestone 3 Gate Verification Report — Reviewer 1 (reviewer_m3_1)`, `useAuth`, `sanitizeFileName`, `BRIEFING — 2026-11-03T13:03:30Z`, `3. Detailed Component Blueprints`, `ViewDebiti`, `Milestone 4 Gate Verification: Challenger Empirical Stress Test & Audit Report`, `MockStorageStore`, `Milestone 2 Challenger Handoff Report: Navigation, Design System & Feedback Subsystem Integrity`, `Milestone 3 Challenger 2 Handoff Report: Feedback Subsystem & Lifecycle Cleanliness Gate Verification`, `Milestone 2 Review Handoff Report: Design System, Global Navigation & Strict Zero-Emoji Replacement`, `Forensic Audit Report: Milestone M4 Gate Verification & Final Acceptance`, `Milestone 4 Gate Verification & Final Review Report`, `Milestone 3 Handoff Report: Core Domain Pages UI/UX Modernization, Mascot Retirement & Non-Blocking Feedback`, `BRIEFING — 2026-11-02T12:30:00Z`, `security.js`, `ref`, `Progress — Challenger M4_1`, `DesktopNavigation`, `Milestone 2 Review and Adversarial Analysis Report`, `Milestone 4 Remediation: Concurrency & Exception Handling Handoff Report`, `ViewDocumenti.js`, `BRIEFING — 2026-11-02T10:54:00Z`, `2. Component Implementation Details`, `homeUtente.js`, `MiniGuy`, `BRIEFING — 2026-11-03T12:43:12Z`, `1. Observation`?**
-  _High betweenness centrality (0.061) - this node is a cross-community bridge._
-- **Are the 78 inferred relationships involving `showConfirm()` (e.g. with `1. Observation` and `Attack Surface`) actually correct?**
-  _`showConfirm()` has 78 INFERRED edges - model-reasoned connections that need verification._
+- **Why does `showConfirm()` connect `showConfirm` to `react`, `MobileNavigation`, `signOut`, `Milestone 3 Analysis & Implementation Blueprint: Chores, Expenses & Grocery Modernization`, `Milestone 2 Challenger Handoff Report: Navigation, Design System & Feedback Subsystem Integrity`, `feedback.js`, `InteractiveMascot`, `3. Detailed Component Blueprints`, `BRIEFING — 2026-11-03T12:41:00Z`, `Milestone M6 Review & Adversarial Challenge Report`, `Reviewer 2 Quality & Adversarial Review Report: Milestone M6`, `BRIEFING — 2026-11-03T13:05:00Z`, `BRIEFING — 2026-11-09T12:43:00Z`, `Dispatch: Challenger M3 Feedback & Lifecycle Challenge`, `useAuth`, `Dispatch: Worker M4 Concurrency Fix`, `sanitizeFileName`, `BRIEFING — 2026-11-03T13:03:30Z`, `Milestone 4 Gate Verification: Challenger Empirical Stress Test & Audit Report`, `Milestone 2 Review Handoff Report: Design System, Global Navigation & Strict Zero-Emoji Replacement`, `MockStorageStore`, `ConfirmModal`, `App.js`, `4. Conclusion & Concrete Design Specifications`, `Forensic Audit Report: Milestone M4 Gate Verification & Final Acceptance`, `Milestone 2 Adversarial Challenge Analysis`, `BRIEFING — 2026-11-02T12:30:00Z`, `ViewDebiti.js`, `ref`, `Progress — Challenger M4_1`, `BRIEFING — 2026-11-02T12:04:00Z`, `Milestone 2 Quality & Adversarial Review Analysis`, `Milestone 2 Review and Adversarial Analysis Report`, `sendPasswordResetEmail`, `Milestone 4 Remediation: Concurrency & Exception Handling Handoff Report`, `ViewDocumenti.js`, `BRIEFING — 2026-11-02T10:54:00Z`, `Milestone 3: Auth & Dashboard UI/UX Modernization — Technical & Design Analysis`, `2. Component Implementation Details`, `Handoff Report: Milestone M2 Explorer 3 — Routing Integration, Settings HIG Shell & Navigation Tests`, `showToast`, `m7_challenger_chores_offline_stress.test.jsx`, `1. Observation`, `Handoff Report: Reviewer 2 — Milestone M3 (Account & Security, Apple HIG, Responsive CSS & Build)`, `Dispatch: Milestone 4 Worker (Adversarial Coverage Hardening)`, `BRIEFING — 2026-11-03T12:43:12Z`, `1. Observation`?**
+  _High betweenness centrality (0.052) - this node is a cross-community bridge._
+- **Are the 94 inferred relationships involving `showConfirm()` (e.g. with `1. Observation` and `Attack Surface`) actually correct?**
+  _`showConfirm()` has 94 INFERRED edges - model-reasoned connections that need verification._
 - **What connects `react-app`, `react-app/jest`, `RFC-4180` to the rest of the system?**
   _6 weakly-connected nodes found - possible documentation gaps or missing edges._
-- **Should `package.json` be split into smaller, more focused modules?**
-  _Cohesion score 0.05574912891986063 - nodes in this community are weakly interconnected._
-- **Why does `ConfirmModal()` connect `ConfirmModal` to `react`, `AppHeader`, `showConfirm`, `Dispatch: Milestone 4 Worker (Adversarial Coverage Hardening)`, `Challenger M3 Gate 2 Report: Feedback Pub/Sub, Accessibility, Lifecycle Cleanliness & DOM Hardening`, `Reviewer 2 Quality & Adversarial Review Report: Milestone M6`, `2. Logic Chain`, `showToast`, `Dispatch`, `useAuth`, `sanitizeFileName`, `BRIEFING — 2026-11-09T00:04:40Z`, `ViewDebiti`, `BRIEFING — 2026-11-08T13:38:00Z`, `Milestone 3 Gate Review & Independent Verification Report`, `Task Assignment: Survey Explorer 3 (Cards, Distinctiveness, Micro-copy, Iconography & Modals)`, `Milestone 3 Challenger 2 Handoff Report: Feedback Subsystem & Lifecycle Cleanliness Gate Verification`, `App.js`, `ref`, `3.3 Structural Gaps in the Testing Suite`, `Milestone M6 Orchestrator Final Handoff Report`, `DesktopNavigation`, `Milestone 2 Review and Adversarial Analysis Report`, `MiniGuy`, `Scope: Milestone M6 — Household Document Management & Cross-Device Ergonomics`?**
-  _High betweenness centrality (0.036) - this node is a cross-community bridge._
-- **Are the 47 inferred relationships involving `showToast()` (e.g. with `Stress Test Results` and `1. Observation`) actually correct?**
-  _`showToast()` has 47 INFERRED edges - model-reasoned connections that need verification._
+- **Should `2. Logic Chain` be split into smaller, more focused modules?**
+  _Cohesion score 0.10526315789473684 - nodes in this community are weakly interconnected._
+- **Why does `MobileBottomBar()` connect `useLanguage` to `4. Conclusion & Recommended Code Changes`, `Milestone M2 Handoff Report: Navigation Localization, Settings Routing & Shell Integration`, `react`, `MobileNavigation`, `useAuth`, `BRIEFING — 2026-11-08T13:41:00Z`, `orchestrator_gen2/DISPATCH.md`, `Acceptance Criteria`, `orchestrator/DISPATCH.md`, `1. Observation`, `2. Logic Chain`, `BRIEFING — 2026-11-08T13:38:00Z`, `1. Observation`, `m7_challenger_chores_offline_stress.test.jsx`, `Investigation Report: Navigation Structure, Cross-Device Ergonomics, Touch Targets & Safe Areas`, `App.js`?**
+  _High betweenness centrality (0.035) - this node is a cross-community bridge._
+- **Are the 51 inferred relationships involving `showToast()` (e.g. with `Stress Test Results` and `1. Observation`) actually correct?**
+  _`showToast()` has 51 INFERRED edges - model-reasoned connections that need verification._
 - **Should `stress-test-m8-ergonomics.js` be split into smaller, more focused modules?**
   _Cohesion score 0.08333333333333333 - nodes in this community are weakly interconnected._

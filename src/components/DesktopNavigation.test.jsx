@@ -28,7 +28,7 @@ describe("DesktopNavigation Component", () => {
     });
   });
 
-  test("renders all 8 navigation links when user is authenticated with casaId", async () => {
+  test("renders all 9 navigation links when user is authenticated with casaId", async () => {
     const user = { uid: "user_1", email: "user1@test.com" };
     renderWithProviders(<DesktopNavigation />, {
       route: "/home",
@@ -41,7 +41,7 @@ describe("DesktopNavigation Component", () => {
     });
 
     const links = screen.getAllByRole("link");
-    expect(links).toHaveLength(8);
+    expect(links).toHaveLength(9);
 
     expect(screen.getByText("Dashboard")).toBeInTheDocument();
     expect(screen.getByText("Turni")).toBeInTheDocument();
@@ -51,9 +51,37 @@ describe("DesktopNavigation Component", () => {
     expect(screen.getByText("Calendario")).toBeInTheDocument();
     expect(screen.getByText("Documenti")).toBeInTheDocument();
     expect(screen.getByText("Contatti")).toBeInTheDocument();
+    expect(screen.getByText("Impostazioni")).toBeInTheDocument();
   });
 
-  test("uses FontAwesome icon classes for all navigation items", async () => {
+  test("renders all 9 navigation links with English localized labels when language is 'en'", async () => {
+    const user = { uid: "user_1", email: "user1@test.com" };
+    renderWithProviders(<DesktopNavigation />, {
+      route: "/home",
+      user,
+      userData: { username: "Marco", casaId: "casa_1" },
+      language: "en",
+    });
+
+    await waitFor(() => {
+      expect(screen.getByRole("navigation", { name: /main navigation/i })).toBeInTheDocument();
+    });
+
+    const links = screen.getAllByRole("link");
+    expect(links).toHaveLength(9);
+
+    expect(screen.getByText("Dashboard")).toBeInTheDocument();
+    expect(screen.getByText("Chores")).toBeInTheDocument();
+    expect(screen.getByText("Balances")).toBeInTheDocument();
+    expect(screen.getByText("Groceries")).toBeInTheDocument();
+    expect(screen.getByText("Notice Board")).toBeInTheDocument();
+    expect(screen.getByText("Calendar")).toBeInTheDocument();
+    expect(screen.getByText("Documents")).toBeInTheDocument();
+    expect(screen.getByText("Contacts")).toBeInTheDocument();
+    expect(screen.getByText("Settings")).toBeInTheDocument();
+  });
+
+  test("uses FontAwesome icon classes for all 9 navigation items", async () => {
     const user = { uid: "user_1", email: "user1@test.com" };
     const { container } = renderWithProviders(<DesktopNavigation />, {
       route: "/home",
@@ -66,7 +94,7 @@ describe("DesktopNavigation Component", () => {
     });
 
     const icons = container.querySelectorAll("i.fas");
-    expect(icons.length).toBe(8);
+    expect(icons.length).toBe(9);
 
     const classes = Array.from(icons).map((i) => i.className);
     expect(classes.some((c) => c.includes("fa-home"))).toBe(true);
@@ -77,6 +105,7 @@ describe("DesktopNavigation Component", () => {
     expect(classes.some((c) => c.includes("fa-calendar-alt"))).toBe(true);
     expect(classes.some((c) => c.includes("fa-folder-open"))).toBe(true);
     expect(classes.some((c) => c.includes("fa-address-book"))).toBe(true);
+    expect(classes.some((c) => c.includes("fa-sliders-h"))).toBe(true);
   });
 
   test("marks current route link as active", async () => {
@@ -90,6 +119,35 @@ describe("DesktopNavigation Component", () => {
     await waitFor(() => {
       const turniLink = screen.getByText("Turni").closest("a");
       expect(turniLink).toHaveClass("active");
+    });
+  });
+
+  test("marks Settings link as active on canonical /impostazioni route", async () => {
+    const user = { uid: "user_1", email: "user1@test.com" };
+    renderWithProviders(<DesktopNavigation />, {
+      route: "/impostazioni",
+      user,
+      userData: { username: "Marco", casaId: "casa_1" },
+    });
+
+    await waitFor(() => {
+      const settingsLink = screen.getByText("Impostazioni").closest("a");
+      expect(settingsLink).toHaveClass("active");
+      expect(settingsLink).toHaveAttribute("href", "/impostazioni");
+    });
+  });
+
+  test("marks Settings link as active on alias /settings route", async () => {
+    const user = { uid: "user_1", email: "user1@test.com" };
+    renderWithProviders(<DesktopNavigation />, {
+      route: "/settings",
+      user,
+      userData: { username: "Marco", casaId: "casa_1" },
+    });
+
+    await waitFor(() => {
+      const settingsLink = screen.getByText("Impostazioni").closest("a");
+      expect(settingsLink).toHaveClass("active");
     });
   });
 });

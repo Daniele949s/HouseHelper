@@ -146,15 +146,72 @@
   transform: scale(1.1);
 }
 
-/* Medium Desktop Viewport Compact Tuning (769px - 992px) */
-@media (min-width: 769px) and (max-width: 992px) {
+/* Medium Desktop Viewport Compact Tuning (769px - 1023px) */
+@media (min-width: 769px) and (max-width: 890px) {
+  .desktop-nav-root {
+    margin: 0 6px;
+    flex-shrink: 1;
+    min-width: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .desktop-nav-list {
+    gap: 3px;
+    flex-wrap: nowrap;
+  }
   .desktop-nav-link {
-    padding: 6px 10px;
-    font-size: var(--font-size-xs);
-    gap: 6px;
+    padding: 10px;
+    gap: 0;
+    min-height: 44px;
+    min-width: 44px;
+    justify-content: center;
+  }
+  .desktop-nav-label {
+    display: none;
+  }
+  .desktop-nav-icon {
+    font-size: 1rem;
+  }
+}
+
+@media (min-width: 891px) and (max-width: 1023px) {
+  .desktop-nav-root {
+    margin: 0 8px;
+    flex-shrink: 1;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .desktop-nav-list {
+    gap: 3px;
+    flex-wrap: nowrap;
+  }
+  .desktop-nav-link {
+    padding: 8px 8px;
+    font-size: 0.76rem;
+    gap: 5px;
+    min-height: 44px;
+  }
+  .desktop-nav-label {
+    display: inline;
+  }
+  .desktop-nav-icon {
+    font-size: 0.85rem;
+  }
+}
+
+@media (min-width: 1024px) and (max-width: 1199px) {
+  .desktop-nav-root {
+    margin: 0 12px;
   }
   .desktop-nav-list {
     gap: 4px;
+    flex-wrap: nowrap;
+  }
+  .desktop-nav-link {
+    padding: 8px 11px;
+    font-size: 0.84rem;
+    gap: 6px;
+    min-height: 44px;
   }
 }
 
@@ -4015,11 +4072,19 @@ a:focus-visible,
   }
 
   .desktop-nav-link {
-    padding: 8px 14px;
-    font-size: 0.92rem;
-    gap: 8px;
+    padding: 8px 11px;
+    font-size: 0.84rem;
+    gap: 6px;
     border-radius: var(--radius-full);
     transition: all var(--duration-fast) var(--ease-apple);
+  }
+
+  @media (min-width: 1200px) {
+    .desktop-nav-link {
+      padding: 8px 14px;
+      font-size: 0.92rem;
+      gap: 8px;
+    }
   }
 
   .desktop-nav-link:hover {
@@ -4197,4 +4262,692 @@ a:focus-visible,
   border-color: var(--color-primary) !important;
   transform: translateY(-1px);
 }
+
+/* ==========================================================================
+   MILESTONE M3: SETTINGS VIEW & APPLE HIG GROUPED TABLES
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. SETTINGS CONTAINER & WIDESCREEN DESKTOP ERGONOMICS
+   -------------------------------------------------------------------------- */
+.settings-container {
+  width: 100%;
+  max-width: 960px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  box-sizing: border-box;
+}
+
+.settings-header {
+  margin-bottom: 8px;
+}
+
+.settings-header .dashboard-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 1.75rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--text-primary);
+  margin: 0 0 6px 0;
+}
+
+.settings-header .dashboard-subtitle {
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  margin: 0;
+  max-width: 65ch;
+  line-height: 1.45;
+}
+
+/* --------------------------------------------------------------------------
+   2. SIGNATURE ELEMENT: HOUSEHOLD IDENTITY PROFILE CARD
+   Frontend Design: "Spend your boldness in one place"
+   -------------------------------------------------------------------------- */
+.household-identity-card {
+  width: 100% !important;
+  max-width: 100% !important;
+  text-align: left !important;
+  background: var(--bg-card) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-xl);
+  padding: 24px 28px;
+  box-shadow: var(--shadow-card);
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 24px;
+  box-sizing: border-box;
+  transition: border-color var(--duration-normal) var(--ease-apple),
+              box-shadow var(--duration-normal) var(--ease-apple);
+}
+
+.household-identity-card:hover {
+  box-shadow: var(--shadow-card-hover);
+  border-color: var(--border-medium);
+}
+
+/* Top accent gradient line */
+.household-identity-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--color-primary), #818cf8, #38bdf8);
+}
+
+.household-identity-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.household-identity-left {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex: 1;
+  min-width: 280px;
+}
+
+.household-emblem-badge {
+  width: 58px;
+  height: 58px;
+  min-width: 58px;
+  min-height: 58px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, var(--color-primary), #818cf8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-size: 1.55rem;
+  box-shadow: var(--shadow-glow);
+  flex-shrink: 0;
+  transition: transform var(--duration-normal) var(--ease-apple);
+}
+
+.household-identity-card:hover .household-emblem-badge {
+  transform: scale(1.04);
+}
+
+.household-info-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.household-eyebrow {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+
+.household-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.household-name-heading {
+  margin: 0;
+  font-family: var(--font-family-display);
+  font-size: 1.35rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+  line-height: 1.25;
+}
+
+.household-role-badge {
+  background: var(--color-primary-light);
+  color: var(--color-primary-text);
+  border: 1px solid var(--color-primary-border);
+  padding: 3px 9px;
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.household-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 2px;
+}
+
+.household-roommate-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  background: var(--bg-subtle);
+  padding: 3px 8px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-subtle);
+}
+
+.household-identity-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.household-user-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-color);
+  padding: 6px 14px 6px 6px;
+  border-radius: var(--radius-full);
+  min-height: 44px;
+  box-sizing: border-box;
+}
+
+.household-user-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-full);
+  background: linear-gradient(135deg, var(--color-primary), #4f46e5);
+  color: #ffffff;
+  font-size: 0.85rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.household-user-name {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.2;
+}
+
+.household-code-wrapper {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg-input);
+  border: 1px solid var(--border-color);
+  padding: 4px 6px 4px 12px;
+  border-radius: var(--radius-md);
+  min-height: 44px;
+  box-sizing: border-box;
+}
+
+.household-code-text {
+  font-family: var(--font-family-mono);
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--text-primary);
+}
+
+.btn-code-copy {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-standard);
+  box-sizing: border-box;
+}
+
+.btn-code-copy:hover {
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+  border-color: var(--color-primary-border);
+}
+
+.btn-code-copy.copied {
+  background: var(--color-success-light);
+  color: var(--color-success-text);
+  border-color: var(--color-success-border);
+}
+
+/* --------------------------------------------------------------------------
+   3. APPLE HIG GROUPED TABLE CARD
+   Strict Content Discipline: 100% Opaque var(--bg-card), Zero Glass Blur
+   -------------------------------------------------------------------------- */
+.settings-group-card {
+  width: 100% !important;
+  max-width: 100% !important;
+  text-align: left !important;
+  background: var(--bg-card) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 22px 24px !important;
+  box-shadow: var(--shadow-card);
+  margin-bottom: 24px;
+  box-sizing: border-box;
+  transition: border-color var(--duration-normal) var(--ease-apple),
+              box-shadow var(--duration-normal) var(--ease-apple);
+}
+
+.settings-group-card:hover {
+  border-color: var(--border-medium);
+}
+
+.settings-section-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 0;
+  margin-bottom: 18px;
+}
+
+.settings-section-title i {
+  color: var(--color-primary);
+}
+
+.settings-group-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.settings-group-icon-badge {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  background: linear-gradient(135deg, var(--color-primary), #4f46e5);
+  font-size: 1rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  flex-shrink: 0;
+}
+
+.settings-group-title {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.settings-group-subtitle {
+  margin: 2px 0 0 0;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+/* --------------------------------------------------------------------------
+   4. SETTINGS ROW & INSET DIVIDERS
+   Apple HIG: Inset dividers skipping leading category icon
+   -------------------------------------------------------------------------- */
+.settings-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--border-subtle);
+  position: relative;
+  gap: 16px;
+  min-height: 56px;
+  box-sizing: border-box;
+}
+
+.settings-row:last-child {
+  border-bottom: none;
+  padding-bottom: 4px;
+}
+
+.settings-row-leading {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.settings-row-info {
+  flex: 1;
+  min-width: 240px;
+}
+
+.settings-row-title,
+.settings-row-label {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.settings-row-desc {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.35;
+  margin: 2px 0 0 0;
+  max-width: 60ch;
+}
+
+.settings-row-leading-icon {
+  margin-right: 8px;
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  width: 16px;
+  text-align: center;
+}
+
+.settings-row-action {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+/* --------------------------------------------------------------------------
+   5. SQUIRCLE ICON BADGES
+   -------------------------------------------------------------------------- */
+.settings-squircle {
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  min-height: 36px;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  color: #ffffff;
+  flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+  transition: transform var(--duration-fast) var(--ease-standard);
+}
+
+.settings-row:hover .settings-squircle {
+  transform: scale(1.06);
+}
+
+.settings-squircle.theme { background: linear-gradient(135deg, #6366f1, #4f46e5); }
+.settings-squircle.language { background: linear-gradient(135deg, #0ea5e9, #0284c7); }
+.settings-squircle.notifications { background: linear-gradient(135deg, #f59e0b, #d97706); }
+.settings-squircle.chores { background: linear-gradient(135deg, #14b8a6, #0d9488); }
+.settings-squircle.expenses { background: linear-gradient(135deg, #f43f5e, #e11d48); }
+.settings-squircle.notices { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
+.settings-squircle.security { background: linear-gradient(135deg, #10b981, #059669); }
+.settings-squircle.account { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+.settings-squircle.password { background: linear-gradient(135deg, #64748b, #475569); }
+
+/* --------------------------------------------------------------------------
+   6. APPLE HIG SEGMENTED PILL CONTROLS (IT/EN, Light/Dark/System)
+   -------------------------------------------------------------------------- */
+.ios-segmented-control {
+  display: inline-flex;
+  align-items: center;
+  background: var(--bg-input);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-full);
+  padding: 4px;
+  gap: 2px;
+  box-sizing: border-box;
+}
+
+.ios-segmented-item {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  min-width: 44px;
+  padding: 8px 16px;
+  border-radius: var(--radius-full);
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 0.88rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--duration-normal) var(--ease-apple);
+  outline: none;
+  user-select: none;
+  box-sizing: border-box;
+}
+
+.ios-segmented-item:hover:not(.active) {
+  color: var(--text-primary);
+  background: var(--bg-subtle);
+}
+
+.ios-segmented-item:focus-visible {
+  box-shadow: 0 0 0 2px var(--color-primary);
+}
+
+.ios-segmented-item.active {
+  background: var(--color-primary);
+  color: #ffffff;
+  font-weight: 600;
+  box-shadow: var(--shadow-sm), 0 2px 8px var(--color-primary-glow);
+}
+
+.ios-segmented-badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.15);
+  letter-spacing: 0.04em;
+}
+
+.ios-segmented-item.active .ios-segmented-badge {
+  background: rgba(255, 255, 255, 0.25);
+  color: #ffffff;
+}
+
+/* --------------------------------------------------------------------------
+   7. ACCESSIBLE APPLE TOGGLE SWITCH (role="switch")
+   44x44px touch region, spring bounce thumb transition, green/primary active fill
+   -------------------------------------------------------------------------- */
+.apple-switch-toggle {
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  min-width: 52px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.apple-switch-toggle:focus-visible .apple-switch-track {
+  box-shadow: 0 0 0 3px var(--color-primary-light);
+  border-color: var(--color-primary);
+}
+
+.apple-switch-track {
+  width: 50px;
+  height: 30px;
+  background: var(--bg-input);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-full);
+  position: relative;
+  transition: background-color var(--duration-normal) var(--ease-standard),
+              border-color var(--duration-normal) var(--ease-standard);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+
+.apple-switch-toggle.is-active .apple-switch-track,
+.apple-switch-toggle[aria-checked="true"] .apple-switch-track {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.apple-switch-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 24px;
+  height: 24px;
+  background: #ffffff;
+  border-radius: 50%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
+  transition: transform var(--duration-normal) var(--ease-bounce);
+}
+
+.apple-switch-toggle.is-active .apple-switch-thumb,
+.apple-switch-toggle[aria-checked="true"] .apple-switch-thumb {
+  transform: translateX(20px);
+}
+
+/* --------------------------------------------------------------------------
+   8. STATUS BADGES & ACCOUNT UTILITIES
+   -------------------------------------------------------------------------- */
+.badge-amber {
+  background: var(--color-warning-light);
+  color: var(--color-warning);
+  border: 1px solid var(--color-warning-border);
+  border-radius: var(--radius-full);
+  padding: 4px 12px;
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.monospace-pill {
+  font-family: var(--font-family-mono);
+  background: var(--bg-subtle);
+  color: var(--text-primary);
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color);
+  letter-spacing: 0.05em;
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+/* --------------------------------------------------------------------------
+   9. RESPONSIVE BREAKPOINTS (MOBILE & WIDESCREEN)
+   -------------------------------------------------------------------------- */
+@media (max-width: 768px) {
+  .household-identity-card {
+    padding: 20px 16px !important;
+  }
+  .household-identity-inner {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+  .household-identity-left {
+    min-width: 100%;
+  }
+  .household-identity-right {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .settings-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+  .settings-row.has-switch {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .ios-segmented-control {
+    width: 100%;
+  }
+  .ios-segmented-item {
+    flex: 1;
+    padding: 8px 10px;
+    font-size: 0.82rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .settings-container {
+    max-width: 960px;
+    margin: 0 auto;
+    gap: 28px;
+  }
+  .household-identity-card {
+    padding: 28px 32px !important;
+  }
+  .settings-row {
+    padding: 18px 0;
+  }
+}
+
+@media (min-width: 1240px) {
+  .settings-container {
+    max-width: 1000px;
+    margin: 0 auto;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   10. ACCESSIBILITY OVERRIDES (Reduced Motion, Reduced Transparency, Contrast)
+   -------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  .settings-group-card,
+  .household-identity-card,
+  .settings-row,
+  .settings-squircle,
+  .apple-switch-thumb,
+  .ios-segmented-item,
+  .btn-code-copy {
+    transition: none !important;
+    transform: none !important;
+    animation: none !important;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .settings-group-card,
+  .household-identity-card {
+    background: var(--bg-card) !important;
+  }
+}
+
+@media (prefers-contrast: more) {
+  .settings-group-card,
+  .household-identity-card {
+    border-width: 2px !important;
+    border-color: var(--text-primary) !important;
+  }
+  .settings-row {
+    border-bottom-color: var(--border-medium) !important;
+  }
+}
+
 

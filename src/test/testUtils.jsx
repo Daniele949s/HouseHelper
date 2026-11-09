@@ -4,10 +4,11 @@ import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { AuthProvider } from '../contexts/AuthContext';
 import { ThemeProvider } from '../contexts/ThemeContext';
+import { LanguageProvider } from '../contexts/LanguageContext';
 import mockStore from './mockFirebase';
 
 /**
- * Custom render helper that wraps components with ThemeProvider, AuthProvider,
+ * Custom render helper that wraps components with ThemeProvider, LanguageProvider, AuthProvider,
  * and MemoryRouter, while syncing mockStore with test user and household data.
  */
 export function renderWithProviders(ui, options = {}) {
@@ -16,6 +17,7 @@ export function renderWithProviders(ui, options = {}) {
     initialEntries = [route],
     user = null,
     userData = null,
+    language = 'it',
     ...renderOptions
   } = options;
 
@@ -37,11 +39,13 @@ export function renderWithProviders(ui, options = {}) {
   function Wrapper({ children }) {
     return (
       <ThemeProvider>
-        <AuthProvider>
-          <MemoryRouter initialEntries={initialEntries}>
-            {children}
-          </MemoryRouter>
-        </AuthProvider>
+        <LanguageProvider initialLanguage={language}>
+          <AuthProvider>
+            <MemoryRouter initialEntries={initialEntries}>
+              {children}
+            </MemoryRouter>
+          </AuthProvider>
+        </LanguageProvider>
       </ThemeProvider>
     );
   }

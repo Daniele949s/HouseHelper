@@ -50,7 +50,7 @@ describe("Milestone 2 Adversarial Stress Suite", () => {
       expect(c2.querySelector(".desktop-nav-root")).toBeNull();
     });
 
-    test("renders exactly 7 navigation links with valid SVG/FA icons when authenticated with casaId", async () => {
+    test("renders exactly 9 navigation links with valid SVG/FA icons when authenticated with casaId", async () => {
       const user = { uid: "user_valid", email: "valid@test.com" };
       const { container } = renderWithProviders(<DesktopNavigation />, {
         route: "/home",
@@ -63,7 +63,7 @@ describe("Milestone 2 Adversarial Stress Suite", () => {
       });
 
       const links = screen.getAllByRole("link");
-      expect(links).toHaveLength(8);
+      expect(links).toHaveLength(9);
 
       const expectedLinks = [
         { label: "Dashboard", href: "/home" },
@@ -74,6 +74,7 @@ describe("Milestone 2 Adversarial Stress Suite", () => {
         { label: "Calendario", href: "/calendario" },
         { label: "Documenti", href: "/documenti" },
         { label: "Contatti", href: "/contatti" },
+        { label: "Impostazioni", href: "/impostazioni" },
       ];
 
       expectedLinks.forEach(({ label, href }) => {

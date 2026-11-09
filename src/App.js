@@ -1,8 +1,9 @@
 import React, { Suspense, lazy } from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import "./App.css";
 
 // Import Providers
+import { LanguageProvider } from "./contexts/LanguageContext";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
 
@@ -55,6 +56,7 @@ const ViewBacheca = lazy(() => import("./pages/Bacheca/ViewBacheca"));
 const ViewCalendario = lazy(() => import("./pages/Bacheca/ViewCalendario"));
 const ViewDocumenti = lazy(() => import("./pages/Documenti/ViewDocumenti"));
 const ViewContatti = lazy(() => import("./pages/Contatti/ViewContatti"));
+const ViewImpostazioni = lazy(() => import("./pages/Impostazioni/ViewImpostazioni"));
 
 function LoadingFallback() {
   return (
@@ -82,9 +84,10 @@ function LoadingFallback() {
 
 function App() {
   return (
-    <ThemeProvider>
-      <AuthProvider>
-        <Router>
+    <LanguageProvider>
+      <ThemeProvider>
+        <AuthProvider>
+          <Router>
           <ScrollProgressBar />
           <BackgroundSlideshow />
           <ToastContainer />
@@ -172,6 +175,20 @@ function App() {
                     </Suspense>
                   }
                 />
+
+                {/* Impostazioni / Settings */}
+                <Route
+                  path="/impostazioni"
+                  element={
+                    <Suspense fallback={<LoadingFallback />}>
+                      <ViewImpostazioni />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="/settings"
+                  element={<Navigate to="/impostazioni" replace />}
+                />
               </Route>
 
               {/* Catch-all 404 Route for URL manipulation / invalid links */}
@@ -183,6 +200,7 @@ function App() {
         </Router>
       </AuthProvider>
     </ThemeProvider>
+    </LanguageProvider>
   );
 }
 
