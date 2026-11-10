@@ -404,6 +404,7 @@ export const firestoreMock = {
   collection,
   doc,
   where,
+  limit,
   query,
   getDoc,
   getDocs,
