@@ -138,7 +138,7 @@ describe("Milestone M2 Adversarial Challenger Suite: Ergonomics, Responsive Brea
       expect(cssContent).toMatch(/\.app-topbar\s*\{[^}]*max-width:\s*var\(--container-xl\)/);
     });
 
-    test("CHALLENGE 1.7: AppHeader renders brand, desktop nav (9 items), theme toggle, and mobile burger cleanly", async () => {
+    test("CHALLENGE 1.7: AppHeader renders brand, desktop nav (9 items), and mobile burger cleanly (theme toggle moved to Settings)", async () => {
       const { container } = renderWithProviders(<AppHeader />, {
         user: alice,
         userData: mockUserData,
@@ -153,7 +153,7 @@ describe("Milestone M2 Adversarial Challenger Suite: Ergonomics, Responsive Brea
       expect(topbar.querySelector(".brand-wrapper")).toBeInTheDocument();
       expect(topbar.querySelector(".desktop-nav-root")).toBeInTheDocument();
       expect(topbar.querySelectorAll(".desktop-nav-item")).toHaveLength(9);
-      expect(topbar.querySelector(".theme-toggle-wrapper")).toBeInTheDocument();
+      expect(topbar.querySelector(".theme-toggle-wrapper")).toBeNull();
       expect(topbar.querySelector(".mobile-nav-root")).toBeInTheDocument();
     });
   });

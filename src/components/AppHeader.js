@@ -2,13 +2,13 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { useLanguage } from "../contexts/LanguageContext";
-import ThemeToggle from "./ThemeToggle";
 import MobileNavigation from "./MobileNavigation";
 import DesktopNavigation from "./DesktopNavigation";
 import logo from "../logo.png";
 
 /**
- * AppHeader component providing responsive navigation, branding, and theme switching.
+ * AppHeader component providing responsive navigation and branding.
+ * Theme switching is centralized in Settings (ViewImpostazioni).
  */
 export default function AppHeader() {
   const navigate = useNavigate();
@@ -49,9 +49,8 @@ export default function AppHeader() {
       {/* Desktop Navigation links (hidden <= 768px via CSS) */}
       <DesktopNavigation />
 
-      {/* Right controls: Theme Switch + Mobile Burger */}
-      <div className="topbar-actions" style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-        <ThemeToggle />
+      {/* Right controls: Mobile Navigation burger (hidden > 768px via CSS) */}
+      <div className="topbar-actions">
         <MobileNavigation />
       </div>
     </header>

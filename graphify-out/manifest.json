@@ -654,9 +654,9 @@
     "semantic_hash": ""
   },
   "src/components/AppHeader.js": {
-    "mtime": 1794226121.0804338,
-    "seen": 1794226781.6085885,
-    "ast_hash": "6043e47f33307fc55bb454dfddb97895",
+    "mtime": 1794315799.8283608,
+    "seen": 1794315969.1898663,
+    "ast_hash": "505d90bed95f0a36506ec7ebaeb4d062",
     "semantic_hash": ""
   },
   "src/components/ConfirmModal.js": {
@@ -3582,9 +3582,9 @@
     "semantic_hash": ""
   },
   "src/test/tier5_adversarial/m2_challenger_ergonomics_drawer_stress.test.jsx": {
-    "mtime": 1794227277.795339,
-    "seen": 1794227508.659541,
-    "ast_hash": "4d05c8a5fdda4ae2bcee83bf274bce42",
+    "mtime": 1794315819.1492708,
+    "seen": 1794315969.190317,
+    "ast_hash": "a9e3ad307282e79e20b4b82f8c4a0a23",
     "semantic_hash": ""
   },
   "src/test/tier5_adversarial/m2_challenger_routing_i18n_stress.test.jsx": {
