@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { subscribeConfirm } from "../utils/feedback";
+import { useLanguage } from "../contexts/LanguageContext";
 
 export default function ConfirmModal() {
+  const { t } = useLanguage();
   const [modalData, setModalData] = useState(null);
   const modalDataRef = useRef(null);
   const cancelBtnRef = useRef(null);
@@ -174,13 +176,13 @@ export default function ConfirmModal() {
             ></i>
           </div>
           <h3 id="confirm-modal-title" className="confirm-modal-title">
-            {modalData.title || "Conferma operazione"}
+            {modalData.title || t("common.confirmOperation", {}, "Conferma operazione")}
           </h3>
           <button
             type="button"
             className="confirm-modal-close"
             onClick={handleCancel}
-            aria-label="Chiudi finestra modale"
+            aria-label={t("common.closeModal", {}, "Chiudi finestra modale")}
           >
             <i className="fas fa-times" aria-hidden="true"></i>
           </button>
@@ -199,7 +201,7 @@ export default function ConfirmModal() {
             className="btn-secondary"
             onClick={handleCancel}
           >
-            {modalData.cancelText || "Annulla"}
+            {modalData.cancelText || t("common.cancel", {}, "Annulla")}
           </button>
           <button
             type="button"
@@ -207,7 +209,7 @@ export default function ConfirmModal() {
             className={modalData.isDanger ? "btn-danger" : "btn-primary"}
             onClick={handleConfirm}
           >
-            {modalData.confirmText || "Conferma"}
+            {modalData.confirmText || t("common.confirm", {}, "Conferma")}
           </button>
         </div>
       </div>

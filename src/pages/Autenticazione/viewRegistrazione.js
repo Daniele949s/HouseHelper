@@ -10,8 +10,10 @@ import {
   checkRegistrationRateLimit,
   recordRegistrationAttempt
 } from "../../utils/security";
+import { useLanguage } from "../../contexts/LanguageContext";
 
 export default function ViewRegistrazione() {
+  const { t } = useLanguage();
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -35,7 +37,7 @@ export default function ViewRegistrazione() {
     // Anti-Bot Control 1: Honeypot trap (bots fill all fields automatically)
     if (honeypot && honeypot.trim().length > 0) {
       console.warn("Bot detected via honeypot trap.");
-      setError("Richiesta non valida. Riprova.");
+      setError(t("auth.invalidRequest", {}, "Richiesta non valida. Riprova."));
       return;
     }
 
@@ -50,7 +52,7 @@ export default function ViewRegistrazione() {
 
     // Anti-Bot Control 3: Speed gate (bots submit form in < 2.5s)
     if (process.env.NODE_ENV !== "test" && Date.now() - mountTimeRef.current < 2500) {
-      setError("Compilazione troppo rapida. Riprova tra qualche istante.");
+      setError(t("auth.tooFastSubmission", {}, "Compilazione troppo rapida. Riprova tra qualche istante."));
       return;
     }
 
@@ -58,7 +60,7 @@ export default function ViewRegistrazione() {
     if (process.env.NODE_ENV !== "test") {
       const parsedAns = parseInt(securityAnswer.trim(), 10);
       if (isNaN(parsedAns) || parsedAns !== securityQuestion.answer) {
-        setError("Risposta di sicurezza non corretta. Inserisci il risultato della somma.");
+        setError(t("auth.invalidSecurityAnswer", {}, "Risposta di sicurezza non corretta. Inserisci il risultato della somma."));
         return;
       }
     }
@@ -66,31 +68,31 @@ export default function ViewRegistrazione() {
     // 1. Username Sanitization & Length Check
     const cleanedUsername = sanitizeText(username, 30);
     if (!cleanedUsername || cleanedUsername.length < 2) {
-      setError("Il nome utente deve contenere almeno 2 caratteri (massimo 30).");
+      setError(t("auth.usernameLengthError", {}, "Il nome utente deve contenere almeno 2 caratteri (massimo 30)."));
       return;
     }
 
     // 2. Email Validation
     const trimmedEmail = email.trim().toLowerCase();
     if (!isValidEmail(trimmedEmail)) {
-      setError("Inserisci un indirizzo email valido.");
+      setError(t("auth.invalidEmailAddress", {}, "Inserisci un indirizzo email valido."));
       return;
     }
 
     // Anti-Bot Control 5: Disposable / burner email blacklist
     if (isDisposableEmail(trimmedEmail)) {
-      setError("I domini email temporanei o usa-e-getta non sono ammessi. Usa un indirizzo email personale reale.");
+      setError(t("auth.disposableEmailError", {}, "I domini email temporanei o usa-e-getta non sono ammessi. Usa un indirizzo email personale reale."));
       return;
     }
 
     // 3. Password Length & Security Boundaries
     if (password.length < 6) {
-      setError("La password deve contenere almeno 6 caratteri.");
+      setError(t("auth.passwordMinLength", {}, "La password deve contenere almeno 6 caratteri."));
       return;
     }
 
     if (password.length > 128) {
-      setError("La password non può superare i 128 caratteri.");
+      setError(t("auth.passwordMaxLength", {}, "La password non può superare i 128 caratteri."));
       return;
     }
 
@@ -124,11 +126,11 @@ export default function ViewRegistrazione() {
     } catch (err) {
       console.error("Errore di registrazione:", err);
       if (err.code === "auth/email-already-in-use") {
-        setError("Questo indirizzo email è già registrato.");
+        setError(t("auth.emailAlreadyInUse", {}, "Questo indirizzo email è già registrato."));
       } else if (err.code === "auth/weak-password") {
-        setError("La password scelta è troppo debole.");
+        setError(t("auth.weakPassword", {}, "La password scelta è troppo debole."));
       } else {
-        setError(err.message || "Errore durante la registrazione.");
+        setError(err.message || t("auth.registrationError", {}, "Errore durante la registrazione."));
       }
     } finally {
       setLoading(false);
@@ -145,7 +147,7 @@ export default function ViewRegistrazione() {
       const userDoc = await getDoc(userDocRef);
 
       if (!userDoc.exists()) {
-        const cleanedName = sanitizeText(user.displayName, 30) || "Utente Google";
+        const cleanedName = sanitizeText(user.displayName, 30) || t("auth.googleUserFallback", {}, "Utente Google");
         await setDoc(userDocRef, {
           username: cleanedName,
           email: user.email ? user.email.toLowerCase() : "",
@@ -162,7 +164,7 @@ export default function ViewRegistrazione() {
       }
     } catch (err) {
       console.error(err);
-      setError("Errore durante l'accesso con Google.");
+      setError(t("auth.googleAuthError", {}, "Errore durante l'accesso con Google."));
     } finally {
       setLoading(false);
     }
@@ -176,8 +178,8 @@ export default function ViewRegistrazione() {
       </div>
 
       <div className="auth-header">
-        <h1>Crea Account</h1>
-        <p className="subtitle">Unisciti alla gestione intelligente di HouseHelper</p>
+        <h1>{t("auth.createAccountTitle", {}, "Crea Account")}</h1>
+        <p className="subtitle">{t("auth.registerSubtitle", {}, "Unisciti alla gestione intelligente di HouseHelper")}</p>
       </div>
 
       {error && (
@@ -201,13 +203,13 @@ export default function ViewRegistrazione() {
           <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
           <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
         </svg>
-        <span>Registrati con Google</span>
+        <span>{t("auth.registerWithGoogle", {}, "Registrati con Google")}</span>
       </button>
 
       {/* Divider */}
       <div className="auth-divider" style={{ display: "flex", alignItems: "center", margin: "18px 0" }}>
         <hr style={{ flex: 1, border: "none", borderTop: "1px solid var(--border-color)" }} />
-        <span style={{ margin: "0 12px", color: "var(--text-muted)", fontSize: "0.85rem" }}>oppure con email</span>
+        <span style={{ margin: "0 12px", color: "var(--text-muted)", fontSize: "0.85rem" }}>{t("auth.orWithEmail", {}, "oppure con email")}</span>
         <hr style={{ flex: 1, border: "none", borderTop: "1px solid var(--border-color)" }} />
       </div>
 
@@ -225,7 +227,7 @@ export default function ViewRegistrazione() {
           }}
           aria-hidden="true"
         >
-          <label htmlFor="reg-company-trap">Non compilare questo campo</label>
+          <label htmlFor="reg-company-trap">{t("auth.honeypotLabel", {}, "Non compilare questo campo")}</label>
           <input
             id="reg-company-trap"
             type="text"
@@ -238,13 +240,13 @@ export default function ViewRegistrazione() {
         </div>
 
         <div className="input-group">
-          <label htmlFor="reg-username">Nome Utente / Nickname (2-30 caratteri)</label>
+          <label htmlFor="reg-username">{t("auth.usernameNicknameLabel", {}, "Nome Utente / Nickname (2-30 caratteri)")}</label>
           <div className="input-with-icon">
             <i className="fas fa-user input-prefix-icon" aria-hidden="true"></i>
             <input
               id="reg-username"
               type="text"
-              placeholder="Come ti chiamano i coinquilini?"
+              placeholder={t("auth.usernamePlaceholder", {}, "Come ti chiamano i coinquilini?")}
               value={username}
               maxLength={30}
               onChange={(e) => setUsername(e.target.value)}
@@ -254,14 +256,14 @@ export default function ViewRegistrazione() {
         </div>
 
         <div className="input-group">
-          <label htmlFor="reg-email">Email</label>
+          <label htmlFor="reg-email">{t("auth.emailLabel", {}, "Email")}</label>
           <div className="input-with-icon">
             <i className="fas fa-envelope input-prefix-icon" aria-hidden="true"></i>
             <input
               id="reg-email"
               ref={emailInputRef}
               type="email"
-              placeholder="es. mario@email.com"
+              placeholder={t("auth.emailPlaceholder", {}, "es. mario@email.com")}
               value={email}
               maxLength={100}
               onChange={(e) => setEmail(e.target.value)}
@@ -271,13 +273,13 @@ export default function ViewRegistrazione() {
         </div>
 
         <div className="input-group">
-          <label htmlFor="reg-password">Password (minimo 6 caratteri)</label>
+          <label htmlFor="reg-password">{t("auth.passwordMinLabel", {}, "Password (minimo 6 caratteri)")}</label>
           <div className="input-with-icon">
             <i className="fas fa-lock input-prefix-icon" aria-hidden="true"></i>
             <input
               id="reg-password"
               type="password"
-              placeholder="Scegli una password sicura"
+              placeholder={t("auth.passwordPlaceholder", {}, "Scegli una password sicura")}
               value={password}
               maxLength={128}
               onChange={(e) => setPassword(e.target.value)}
@@ -290,7 +292,13 @@ export default function ViewRegistrazione() {
         <div className="input-group">
           <label htmlFor="reg-security-challenge" style={{ display: "flex", alignItems: "center", gap: "6px" }}>
             <i className="fas fa-shield-alt" aria-hidden="true" style={{ color: "var(--color-primary)" }}></i>
-            <span>Controllo anti-bot: quanto fa {securityQuestion.num1} + {securityQuestion.num2}?</span>
+            <span>
+              {t(
+                "auth.securityChallengeLabel",
+                { num1: securityQuestion.num1, num2: securityQuestion.num2 },
+                `Controllo anti-bot: quanto fa ${securityQuestion.num1} + ${securityQuestion.num2}?`
+              )}
+            </span>
           </label>
           <div className="input-with-icon">
             <i className="fas fa-calculator input-prefix-icon" aria-hidden="true"></i>
@@ -298,7 +306,7 @@ export default function ViewRegistrazione() {
               id="reg-security-challenge"
               type="text"
               inputMode="numeric"
-              placeholder="Inserisci il risultato numerico"
+              placeholder={t("auth.securityChallengePlaceholder", {}, "Inserisci il risultato numerico")}
               value={securityAnswer}
               onChange={(e) => setSecurityAnswer(e.target.value)}
               required={process.env.NODE_ENV !== "test"}
@@ -309,9 +317,9 @@ export default function ViewRegistrazione() {
 
         <button type="submit" className="btn-primary" disabled={loading} style={{ marginTop: "6px" }}>
           {loading ? (
-            <span><i className="fas fa-spinner fa-spin" aria-hidden="true"></i> Creazione in corso...</span>
+            <span><i className="fas fa-spinner fa-spin" aria-hidden="true"></i> {t("auth.creatingAccount", {}, "Creazione in corso...")}</span>
           ) : (
-            <span><i className="fas fa-check" aria-hidden="true"></i> Completa Registrazione</span>
+            <span><i className="fas fa-check" aria-hidden="true"></i> {t("auth.completeRegistration", {}, "Completa Registrazione")}</span>
           )}
         </button>
       </form>
@@ -319,7 +327,7 @@ export default function ViewRegistrazione() {
       {/* Navigation to Login */}
       <div style={{ marginTop: "24px" }}>
         <button type="button" className="btn-text" onClick={() => navigate("/login")}>
-          Hai già un account? <span className="highlight">Accedi qui</span>
+          {t("auth.hasAccountPrompt", {}, "Hai già un account?")} <span className="highlight">{t("auth.loginHere", {}, "Accedi qui")}</span>
         </button>
       </div>
     </div>

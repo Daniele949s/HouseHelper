@@ -5,10 +5,20 @@ import 'react-calendar/dist/Calendar.css';
 import { db } from "../../firebase";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { useAuth } from "../../contexts/AuthContext";
+import { useLanguage } from "../../contexts/LanguageContext";
+
+const EVENT_CATEGORY_KEYS = {
+  "Generale": "calendar.catGeneral",
+  "Cena / Festa": "calendar.catDinnerParty",
+  "Manutenzione": "calendar.catMaintenance",
+  "Bollette / Scadenze": "calendar.catBillsFull",
+  "Ospiti": "calendar.catGuests"
+};
 
 export default function ViewCalendario() {
   const navigate = useNavigate();
   const { userData } = useAuth();
+  const { t, language } = useLanguage();
 
   const [eventi, setEventi] = useState([]);
   const [turni, setTurni] = useState([]);
@@ -34,7 +44,7 @@ export default function ViewCalendario() {
         ]);
 
         const map = {};
-        snapUtenti.forEach(d => { map[d.id] = d.data().username || "Sconosciuto"; });
+        snapUtenti.forEach(d => { map[d.id] = d.data().username || t("calendar.unknownAuthor", null, "Sconosciuto"); });
         setUtentiMap(map);
 
         const eventiC = [];
@@ -87,11 +97,19 @@ export default function ViewCalendario() {
     return null;
   };
 
+  const dateLocale = language === "en" ? "en-US" : "it-IT";
+  const formattedSelectedDate = dataSelezionata.toLocaleDateString(dateLocale, {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric'
+  });
+
   if (loading) {
     return (
       <div className="card" style={{ maxWidth: '800px' }}>
         <p><i className="fas fa-spinner fa-spin fa-2x"></i></p>
-        <p style={{ marginTop: '10px' }}>Caricamento calendario...</p>
+        <p style={{ marginTop: '10px' }}>{t("calendar.loadingCalendar", null, "Caricamento calendario...")}</p>
       </div>
     );
   }
@@ -100,9 +118,9 @@ export default function ViewCalendario() {
     <div className="card domain-page-card">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '12px' }}>
         <div>
-          <h1 style={{ margin: 0, textAlign: 'left' }}>Calendario Casa</h1>
+          <h1 style={{ margin: 0, textAlign: 'left' }}>{t("calendar.title", null, "Calendario Casa")}</h1>
           <p style={{ margin: '4px 0 0 0', color: 'var(--text-secondary)', textAlign: 'left', fontSize: '0.92rem' }}>
-            Visualizza tutti gli eventi, le scadenze e i turni pulizia
+            {t("calendar.pageSubtitle", null, "Visualizza tutti gli eventi, le scadenze e i turni pulizia")}
           </p>
         </div>
       </div>
@@ -113,21 +131,21 @@ export default function ViewCalendario() {
             onChange={setDataSelezionata}
             value={dataSelezionata}
             tileContent={tileContent}
-            locale="it-IT"
+            locale={dateLocale}
           />
         </div>
 
         <div className="calendar-split-right calendar-agenda-pane" style={{ textAlign: 'left' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
             <h3 style={{ margin: 0, fontSize: '1.2rem' }}>
-              Impegni del {dataSelezionata.toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+              {t("calendar.eventsForDate", { date: formattedSelectedDate }, "Impegni del {date}")}
             </h3>
             <div style={{ display: 'flex', gap: '12px', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
               <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', background: 'var(--color-warning)' }} /> Turno
+                <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', background: 'var(--color-warning)' }} /> {t("calendar.legendChore", null, "Turno")}
               </span>
               <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', background: 'var(--color-purple)' }} /> Evento
+                <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', background: 'var(--color-purple)' }} /> {t("calendar.legendEvent", null, "Evento")}
               </span>
             </div>
           </div>
@@ -135,12 +153,14 @@ export default function ViewCalendario() {
           {itemsDelGiorno.length === 0 ? (
             <div className="agenda-empty-state">
               <i className="fas fa-calendar-check agenda-empty-icon" aria-hidden="true"></i>
-              <p style={{ color: 'var(--text-secondary)', marginTop: '8px', margin: 0 }}>Nessun evento o turno in questa data. Tempo libero!</p>
+              <p style={{ color: 'var(--text-secondary)', marginTop: '8px', margin: 0 }}>{t("calendar.emptyDay", null, "Nessun evento o turno in questa data. Tempo libero!")}</p>
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {itemsDelGiorno.map(item => {
                 const isTurno = item.tipo === 'turno';
+                const catKey = item.categoria ? EVENT_CATEGORY_KEYS[item.categoria] : null;
+                const displayCategoria = catKey ? t(catKey, null, item.categoria) : item.categoria;
                 return (
                   <div key={item.id} className="calendar-agenda-card">
                     <div className={`agenda-date-badge ${isTurno ? "badge-turno" : ""}`}>
@@ -148,7 +168,7 @@ export default function ViewCalendario() {
                         <i className={isTurno ? "fas fa-broom" : "fas fa-calendar-day"} aria-hidden="true"></i>
                       </span>
                       <span className="month-txt">
-                        {isTurno ? "Turno" : "Evento"}
+                        {isTurno ? t("calendar.badgeChore", null, "Turno") : t("calendar.badgeEvent", null, "Evento")}
                       </span>
                     </div>
 
@@ -156,10 +176,10 @@ export default function ViewCalendario() {
                       {isTurno ? (
                         <>
                           <h4 style={{ margin: '0 0 6px 0', fontSize: '1.2rem', color: 'var(--text-main)' }}>
-                            {Array.isArray(item.luoghi) ? item.luoghi.join(", ") : (item.luoghi || item.mansione || "Pulizia")}
+                            {Array.isArray(item.luoghi) ? item.luoghi.join(", ") : (item.luoghi || item.mansione || t("calendar.choreFallbackTitle", null, "Pulizia"))}
                           </h4>
                           <p style={{ margin: '2px 0', fontSize: '0.92rem', color: 'var(--text-secondary)' }}>
-                            Assegnato a: <strong style={{ color: 'var(--text-main)' }}>{Array.isArray(item.nomi) ? item.nomi.join(", ") : item.nomi}</strong>
+                            {t("calendar.assignedTo", null, "Assegnato a:")} <strong style={{ color: 'var(--text-main)' }}>{Array.isArray(item.nomi) ? item.nomi.join(", ") : item.nomi}</strong>
                           </p>
                           <p style={{ margin: '2px 0', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
                             <i className="far fa-clock" style={{ marginRight: '6px' }} aria-hidden="true"></i>
@@ -172,13 +192,13 @@ export default function ViewCalendario() {
                             <h4 style={{ margin: '0 0 6px 0', fontSize: '1.2rem', color: 'var(--text-main)' }}>{item.titolo}</h4>
                             {item.categoria && (
                               <span className="timeslot-pill" style={{ fontSize: '0.75rem' }}>
-                                <i className="fas fa-tag" style={{ fontSize: '0.75em' }} aria-hidden="true"></i> {item.categoria}
+                                <i className="fas fa-tag" style={{ fontSize: '0.75em' }} aria-hidden="true"></i> {displayCategoria}
                               </span>
                             )}
                           </div>
                           <p style={{ margin: '2px 0', fontSize: '0.95rem', color: 'var(--text-secondary)' }}>{item.contenuto}</p>
                           <p style={{ margin: '6px 0 0 0', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
-                            Creato da: <strong style={{ color: 'var(--text-main)' }}>{utentiMap[item.autoreId] || "Coinquilino"}</strong>
+                            {t("calendar.createdBy", null, "Creato da:")} <strong style={{ color: 'var(--text-main)' }}>{utentiMap[item.autoreId] || t("calendar.roommateFallback", null, "Coinquilino")}</strong>
                           </p>
                         </>
                       )}
@@ -194,13 +214,13 @@ export default function ViewCalendario() {
             onClick={() => navigate('/calendario/aggiungi', { state: { dataPreimpostata: dataSelezionata } })}
             style={{ marginTop: '24px', width: '100%' }}
           >
-            <i className="fas fa-plus" aria-hidden="true"></i> Aggiungi Evento a questa data
+            <i className="fas fa-plus" aria-hidden="true"></i> {t("calendar.addEventForDate", null, "Aggiungi Evento a questa data")}
           </button>
         </div>
       </div>
 
       <button className="btn-text" onClick={() => navigate('/home')} style={{ marginTop: '24px' }}>
-        <i className="fas fa-arrow-left" style={{ marginRight: '6px' }}></i> Torna alla Dashboard
+        <i className="fas fa-arrow-left" style={{ marginRight: '6px' }}></i> {t("calendar.backToDashboard", null, "Torna alla Dashboard")}
       </button>
     </div>
   );

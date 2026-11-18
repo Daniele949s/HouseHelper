@@ -3,12 +3,14 @@ import { useNavigate } from "react-router-dom";
 import { db } from "../../firebase";
 import { collection, query, where, getDocs, addDoc, doc, updateDoc, deleteDoc } from "firebase/firestore";
 import { useAuth } from "../../contexts/AuthContext";
+import { useLanguage } from "../../contexts/LanguageContext";
 import { showToast } from "../../utils/feedback";
 import { sanitizeText } from "../../utils/security";
 
 export default function ViewSpesa() {
   const navigate = useNavigate();
   const { userData, currentUser } = useAuth();
+  const { t } = useLanguage();
 
   const [items, setItems] = useState([]);
   const [newItem, setNewItem] = useState("");
@@ -72,7 +74,7 @@ export default function ViewSpesa() {
         createdAt: new Date()
       });
       setNewItem("");
-      showToast("Prodotto aggiunto alla lista", "success", 2000);
+      showToast(t("groceries.itemAdded", null, "Prodotto aggiunto alla lista"), "success", 2000);
       fetchSpesaReload();
     } catch (error) {
       console.error("Errore aggiunta spesa:", error);
@@ -91,7 +93,11 @@ export default function ViewSpesa() {
         autoreId: currentUser?.uid || "anonymous",
         createdAt: new Date()
       });
-      showToast(`"${cleanedItem}" aggiunto alla lista`, "success", 2000);
+      showToast(
+        t("groceries.stapleAdded", { item: cleanedItem }, `"${cleanedItem}" aggiunto alla lista`),
+        "success",
+        2000
+      );
       fetchSpesaReload();
     } catch (err) {
       console.error("Errore aggiunta staple:", err);
@@ -120,7 +126,7 @@ export default function ViewSpesa() {
 
     try {
       await deleteDoc(doc(db, "spesa", id));
-      showToast("Prodotto rimosso", "info", 2000);
+      showToast(t("groceries.itemRemoved", null, "Prodotto rimosso"), "info", 2000);
       fetchSpesaReload();
     } catch (error) {
       console.error("Errore eliminazione:", error);
@@ -131,7 +137,7 @@ export default function ViewSpesa() {
     return (
       <div className="card" style={{ maxWidth: "800px" }}>
         <p><i className="fas fa-spinner fa-spin fa-2x"></i></p>
-        <p style={{ marginTop: "10px" }}>Caricamento lista spesa...</p>
+        <p style={{ marginTop: "10px" }}>{t("groceries.loading", null, "Caricamento lista spesa...")}</p>
       </div>
     );
   }
@@ -143,9 +149,9 @@ export default function ViewSpesa() {
     <div className="card domain-page-card">
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem", flexWrap: "wrap", gap: "10px" }}>
         <div>
-          <h1 style={{ margin: 0, textAlign: "left" }}>Lista della Spesa</h1>
+          <h1 style={{ margin: 0, textAlign: "left" }}>{t("groceries.title", null, "Lista della Spesa")}</h1>
           <p style={{ margin: "4px 0 0 0", color: "var(--text-secondary)", textAlign: "left", fontSize: "0.92rem" }}>
-            Aggiungi e spunta gli articoli da comprare per la casa
+            {t("groceries.viewSubtitle", null, "Aggiungi e spunta gli articoli da comprare per la casa")}
           </p>
         </div>
       </div>
@@ -181,12 +187,16 @@ export default function ViewSpesa() {
             </div>
             <div style={{ textAlign: "left" }}>
               <span style={{ fontSize: "0.82rem", color: "var(--text-muted)", fontWeight: "500", display: "block" }}>
-                Avanzamento acquisti
+                {t("groceries.progressTitle", null, "Avanzamento acquisti")}
               </span>
               <strong style={{ fontSize: "1.15rem", color: "var(--text-main)" }}>
                 {items.length === 0
-                  ? "Nessun articolo in lista"
-                  : `${comprati} su ${items.length} presi (${daComprare} da comprare)`}
+                  ? t("groceries.noItemsInList", null, "Nessun articolo in lista")
+                  : t(
+                      "groceries.progressSummary",
+                      { bought: comprati, total: items.length, remaining: daComprare },
+                      `${comprati} su ${items.length} presi (${daComprare} da comprare)`
+                    )}
               </strong>
             </div>
           </div>
@@ -206,7 +216,7 @@ export default function ViewSpesa() {
                 fontWeight: "600"
               }}
             >
-              <span>Da comprare:</span>
+              <span>{t("groceries.toBuyLabel", null, "Da comprare:")}</span>
               <strong style={{ fontSize: "1.1rem" }}>{daComprare}</strong>
             </div>
             <div
@@ -222,7 +232,7 @@ export default function ViewSpesa() {
                 fontWeight: "600"
               }}
             >
-              <span>Presi:</span>
+              <span>{t("groceries.boughtLabel", null, "Presi:")}</span>
               <strong style={{ fontSize: "1.1rem" }}>{comprati}</strong>
             </div>
           </div>
@@ -264,9 +274,16 @@ export default function ViewSpesa() {
           }}
         >
           <span style={{ fontSize: "0.82rem", color: "var(--text-muted)", alignSelf: "center", marginRight: "4px" }}>
-            Frequenti:
+            {t("groceries.frequentLabel", null, "Frequenti:")}
           </span>
-          {["Latte", "Caffè", "Pane", "Pasta", "Uova", "Detersivo"].map((staple) => (
+          {[
+            t("groceries.stapleMilk", null, "Latte"),
+            t("groceries.stapleCoffee", null, "Caffè"),
+            t("groceries.stapleBread", null, "Pane"),
+            t("groceries.staplePasta", null, "Pasta"),
+            t("groceries.stapleEggs", null, "Uova"),
+            t("groceries.stapleDetergent", null, "Detersivo")
+          ].map((staple) => (
             <button
               key={staple}
               type="button"
@@ -301,7 +318,7 @@ export default function ViewSpesa() {
           value={newItem}
           maxLength={80}
           onChange={(e) => setNewItem(e.target.value)}
-          placeholder="Aggiungi prodotto da comprare (es. Latte, Detersivo piatti)..."
+          placeholder={t("groceries.addPlaceholder", null, "Aggiungi prodotto da comprare (es. Latte, Detersivo piatti)...")}
           style={{
             flex: 1,
             padding: "14px 20px",
@@ -318,7 +335,7 @@ export default function ViewSpesa() {
           className="btn-primary"
           style={{ width: "auto", padding: "0 26px", borderRadius: "var(--radius-full)", minHeight: "44px" }}
         >
-          <i className="fas fa-plus"></i> Aggiungi alla lista
+          <i className="fas fa-plus"></i> {t("groceries.addToListBtn", null, "Aggiungi alla lista")}
         </button>
       </form>
 
@@ -328,7 +345,7 @@ export default function ViewSpesa() {
           <div style={{ padding: "3rem 1rem", textAlign: "center", background: "var(--bg-input)", borderRadius: "var(--radius-md)" }}>
             <i className="fas fa-shopping-basket" style={{ fontSize: "3rem", opacity: 0.7 }}></i>
             <p className="subtitle" style={{ marginTop: "12px", marginBottom: 0 }}>
-              Nessun prodotto in lista. Casa ben rifornita!
+              {t("groceries.emptyHouseList", null, "Nessun prodotto in lista. Casa ben rifornita!")}
             </p>
           </div>
         ) : (
@@ -374,8 +391,8 @@ export default function ViewSpesa() {
                   justifyContent: "center",
                   width: "auto"
                 }}
-                title="Rimuovi prodotto"
-                aria-label="Rimuovi prodotto dalla lista"
+                title={t("groceries.removeItemTitle", null, "Rimuovi prodotto")}
+                aria-label={t("groceries.removeItemAria", null, "Rimuovi prodotto dalla lista")}
               >
                 <i className="fas fa-trash" aria-hidden="true"></i>
               </button>
@@ -385,7 +402,7 @@ export default function ViewSpesa() {
       </div>
 
       <button className="btn-text" onClick={() => navigate("/home")} style={{ marginTop: "30px" }}>
-        <i className="fas fa-arrow-left" style={{ marginRight: "6px" }}></i> Torna alla Dashboard
+        <i className="fas fa-arrow-left" style={{ marginRight: "6px" }}></i> {t("groceries.backToDashboard", null, "Torna alla Dashboard")}
       </button>
     </div>
   );

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { db } from "../../firebase";
 import { collection, query, where, getDocs, addDoc } from "firebase/firestore";
 import { useAuth } from "../../contexts/AuthContext";
+import { useLanguage } from "../../contexts/LanguageContext";
 import { validateNumber, sanitizeText, safeFloat } from "../../utils/security";
 import { showToast } from "../../utils/feedback";
 import { calculateSplitAllocations } from "../../utils/debtSimplification";
@@ -10,6 +11,7 @@ import { calculateSplitAllocations } from "../../utils/debtSimplification";
 export default function AggiungiDebito() {
   const navigate = useNavigate();
   const { userData, currentUser } = useAuth();
+  const { t } = useLanguage();
 
   const [coinquilini, setCoinquilini] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -42,7 +44,7 @@ export default function AggiungiDebito() {
         setCoinquilini(utenti);
       } catch (err) {
         console.error("Errore fetch coinquilini:", err);
-        setError("Impossibile caricare l'elenco dei coinquilini.");
+        setError(t("expenses.loadRoommatesError", null, "Impossibile caricare l'elenco dei coinquilini."));
       }
     };
     fetchCoinquilini();
@@ -117,7 +119,7 @@ export default function AggiungiDebito() {
     // 1. Text Sanitization (Anti-Injection & XSS)
     const cleanedDescrizione = sanitizeText(debito.descrizione, 100);
     if (!cleanedDescrizione) {
-      setError("Inserisci una descrizione valida per la spesa.");
+      setError(t("expenses.invalidDescription", null, "Inserisci una descrizione valida per la spesa."));
       return;
     }
 
@@ -130,19 +132,19 @@ export default function AggiungiDebito() {
     });
 
     if (!numValidation.isValid) {
-      setError(numValidation.error || "Importo non valido.");
+      setError(numValidation.error || t("expenses.invalidAmount", null, "Importo non valido."));
       return;
     }
 
     // 3. Creditor Verification
     if (!debito.creditoreId) {
-      setError("Seleziona chi ha sostenuto la spesa.");
+      setError(t("expenses.selectPayerError", null, "Seleziona chi ha sostenuto la spesa."));
       return;
     }
 
     const creditoreValido = coinquilini.some((c) => c.uid === debito.creditoreId);
     if (!creditoreValido) {
-      setError("Il creditore selezionato non appartiene alla tua abitazione.");
+      setError(t("expenses.creditorNotInHouse", null, "Il creditore selezionato non appartiene alla tua abitazione."));
       return;
     }
 
@@ -151,7 +153,7 @@ export default function AggiungiDebito() {
     try {
       if (isDiviso) {
         if (coinquilini.length < 2) {
-          setError("Sei l'unico membro registrato nella casa: impossibile dividere la spesa.");
+          setError(t("expenses.onlyMemberError", null, "Sei l'unico membro registrato nella casa: impossibile dividere la spesa."));
           setLoading(false);
           return;
         }
@@ -165,14 +167,14 @@ export default function AggiungiDebito() {
         );
 
         if (!allocResult.valid) {
-          setError(allocResult.error || "Ripartizione della spesa non valida.");
+          setError(allocResult.error || t("expenses.invalidSplit", null, "Ripartizione della spesa non valida."));
           setLoading(false);
           return;
         }
 
         const allocations = allocResult.allocations || [];
         if (allocations.length === 0) {
-          setError("L'importo inserito è troppo basso per essere suddiviso.");
+          setError(t("expenses.amountTooLowToSplit", null, "L'importo inserito è troppo basso per essere suddiviso."));
           setLoading(false);
           return;
         }
@@ -180,7 +182,7 @@ export default function AggiungiDebito() {
         const promesse = allocations.map((alloc) => {
           return addDoc(collection(db, "debiti"), {
             importo: alloc.amount,
-            descrizione: `${cleanedDescrizione} (Quota)`,
+            descrizione: `${cleanedDescrizione} (${t("expenses.quotaSuffix", null, "Quota")})`,
             debitoreId: alloc.debitoreId,
             creditoreId: debito.creditoreId,
             casaId: userData.casaId,
@@ -191,20 +193,20 @@ export default function AggiungiDebito() {
         await Promise.all(promesse);
       } else {
         if (!debito.debitoreId) {
-          setError("Seleziona chi deve restituire i soldi.");
+          setError(t("expenses.selectDebtorError", null, "Seleziona chi deve restituire i soldi."));
           setLoading(false);
           return;
         }
 
         if (debito.debitoreId === debito.creditoreId) {
-          setError("Non puoi registrare un debito verso te stesso.");
+          setError(t("expenses.selfDebtError", null, "Non puoi registrare un debito verso te stesso."));
           setLoading(false);
           return;
         }
 
         const debitoreValido = coinquilini.some((c) => c.uid === debito.debitoreId);
         if (!debitoreValido) {
-          setError("Il debitore selezionato non appartiene alla tua abitazione.");
+          setError(t("expenses.debtorNotInHouse", null, "Il debitore selezionato non appartiene alla tua abitazione."));
           setLoading(false);
           return;
         }
@@ -219,11 +221,11 @@ export default function AggiungiDebito() {
         });
       }
 
-      showToast("Spesa registrata con successo!", "success");
+      showToast(t("expenses.saveSuccess", null, "Spesa registrata con successo!"), "success");
       navigate("/debiti");
     } catch (err) {
       console.error("Errore salvataggio debito:", err);
-      setError("Errore durante il salvataggio della spesa.");
+      setError(t("expenses.saveError", null, "Errore durante il salvataggio della spesa."));
     } finally {
       setLoading(false);
     }
@@ -232,10 +234,10 @@ export default function AggiungiDebito() {
   return (
     <div className="card" style={{ maxWidth: "680px", margin: "2rem auto" }}>
       <h1 style={{ marginBottom: "6px" }}>
-        Nuova Spesa
+        {t("expenses.newExpenseTitle", null, "Nuova Spesa")}
       </h1>
       <p className="subtitle" style={{ marginBottom: "24px" }}>
-        Inserisci una spesa e dividila con i coinquilini
+        {t("expenses.newExpenseSubtitle", null, "Inserisci una spesa e dividila con i coinquilini")}
       </p>
 
       {error && (
@@ -248,11 +250,11 @@ export default function AggiungiDebito() {
       <form onSubmit={handleSubmit} className="auth-form" style={{ textAlign: "left" }}>
         {/* Descrizione */}
         <div className="input-group">
-          <label htmlFor="debito-descrizione">Descrizione della spesa * (massimo 100 caratteri)</label>
+          <label htmlFor="debito-descrizione">{t("expenses.descriptionLabel", null, "Descrizione della spesa * (massimo 100 caratteri)")}</label>
           <input
             id="debito-descrizione"
             type="text"
-            placeholder="es. Spesa supermercato, Bolletta luce, Detersivi"
+            placeholder={t("expenses.descriptionPlaceholder", null, "es. Spesa supermercato, Bolletta luce, Detersivi")}
             value={debito.descrizione}
             onChange={(e) => setDebito({ ...debito, descrizione: e.target.value })}
             maxLength={100}
@@ -263,7 +265,7 @@ export default function AggiungiDebito() {
 
         {/* Importo Totale */}
         <div className="input-group">
-          <label htmlFor="debito-importo">Importo Totale (€) * (Min: 0.01 €, Max: 50.000 €)</label>
+          <label htmlFor="debito-importo">{t("expenses.amountLabel", null, "Importo Totale (€) * (Min: 0.01 €, Max: 50.000 €)")}</label>
           <div style={{ display: "flex", gap: "6px", marginBottom: "8px" }}>
             {[5, 10, 20, 50].map((inc) => (
               <button
@@ -295,7 +297,7 @@ export default function AggiungiDebito() {
             step="0.01"
             min="0.01"
             max="50000"
-            placeholder="es. 45.50"
+            placeholder={t("expenses.amountPlaceholder", null, "es. 45.50")}
             value={debito.importo}
             onKeyDown={handleKeyDownNumber}
             onChange={(e) => setDebito({ ...debito, importo: e.target.value })}
@@ -306,7 +308,7 @@ export default function AggiungiDebito() {
 
         {/* Chi ha pagato */}
         <div className="input-group">
-          <label htmlFor="debito-creditore">Chi ha pagato la spesa? *</label>
+          <label htmlFor="debito-creditore">{t("expenses.whoPaidLabel", null, "Chi ha pagato la spesa? *")}</label>
           <select
             id="debito-creditore"
             value={debito.creditoreId}
@@ -316,7 +318,7 @@ export default function AggiungiDebito() {
           >
             {coinquilini.map((c) => (
               <option key={c.uid} value={c.uid}>
-                {c.username} {c.uid === currentUser?.uid ? "(Tu)" : ""}
+                {c.username} {c.uid === currentUser?.uid ? t("expenses.youSuffix", null, "(Tu)") : ""}
               </option>
             ))}
           </select>
@@ -352,7 +354,7 @@ export default function AggiungiDebito() {
               style={{ width: "20px", height: "20px", margin: 0, accentColor: "var(--color-primary)" }}
             />
             <span style={{ fontSize: "0.95rem", color: "var(--text-main)", fontWeight: "600" }}>
-              Dividi automaticamente l'importo tra tutti i coinquilini ({coinquilini.length > 0 ? `${coinquilini.length} persone` : ""})
+              {t("expenses.autoSplitLabel", null, "Dividi automaticamente l'importo tra tutti i coinquilini")} ({coinquilini.length > 0 ? t("expenses.peopleCount", { count: coinquilini.length }, `${coinquilini.length} persone`) : ""})
             </span>
           </label>
 
@@ -379,7 +381,7 @@ export default function AggiungiDebito() {
                     cursor: "pointer"
                   }}
                 >
-                  <i className="fas fa-users" aria-hidden="true" style={{ marginRight: "4px" }}></i> Parti uguali
+                  <i className="fas fa-users" aria-hidden="true" style={{ marginRight: "4px" }}></i> {t("expenses.splitModeEqual", null, "Parti uguali")}
                 </button>
 
                 <button
@@ -401,7 +403,7 @@ export default function AggiungiDebito() {
                     cursor: "pointer"
                   }}
                 >
-                  <i className="fas fa-euro-sign" aria-hidden="true" style={{ marginRight: "4px" }}></i> Quote Fisse
+                  <i className="fas fa-euro-sign" aria-hidden="true" style={{ marginRight: "4px" }}></i> {t("expenses.splitModeFixed", null, "Quote Fisse")}
                 </button>
 
                 <button
@@ -423,7 +425,7 @@ export default function AggiungiDebito() {
                     cursor: "pointer"
                   }}
                 >
-                  <i className="fas fa-percent" aria-hidden="true" style={{ marginRight: "4px" }}></i> Percentuali
+                  <i className="fas fa-percent" aria-hidden="true" style={{ marginRight: "4px" }}></i> {t("expenses.splitModePercent", null, "Percentuali")}
                 </button>
 
                 <button
@@ -445,7 +447,7 @@ export default function AggiungiDebito() {
                     cursor: "pointer"
                   }}
                 >
-                  <i className="fas fa-user-minus" aria-hidden="true" style={{ marginRight: "4px" }}></i> Esclusioni
+                  <i className="fas fa-user-minus" aria-hidden="true" style={{ marginRight: "4px" }}></i> {t("expenses.splitModeExclude", null, "Esclusioni")}
                 </button>
               </div>
 
@@ -454,11 +456,11 @@ export default function AggiungiDebito() {
                 <div style={{ padding: "10px 14px", background: "rgba(13, 148, 136, 0.1)", borderRadius: "var(--radius-sm)", color: "var(--color-accent)", fontSize: "0.88rem" }}>
                   <div>
                     <i className="fas fa-calculator" aria-hidden="true" style={{ marginRight: "6px" }}></i>
-                    Diviso in parti uguali tra {coinquilini.length} coinquilini con calcolo esatto dei centesimi.
+                    {t("expenses.equalSplitInfo", { count: coinquilini.length }, `Diviso in parti uguali tra ${coinquilini.length} coinquilini con calcolo esatto dei centesimi.`)}
                   </div>
                   {coinquilini.length > 0 && safeFloat(debito.importo) > 0 && (
                     <div style={{ marginTop: "6px", fontWeight: "600" }}>
-                      Quota individuale: <span>{(safeFloat(debito.importo) / coinquilini.length).toFixed(2)} €</span>
+                      {t("expenses.individualShare", null, "Quota individuale:")} <span>{(safeFloat(debito.importo) / coinquilini.length).toFixed(2)} €</span>
                     </div>
                   )}
                 </div>
@@ -469,7 +471,7 @@ export default function AggiungiDebito() {
                 <div>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
                     <span style={{ fontSize: "0.85rem", color: "var(--text-secondary)" }}>
-                      Indica la quota a carico di ciascun coinquilino:
+                      {t("expenses.fixedAmountsHint", null, "Indica la quota a carico di ciascun coinquilino:")}
                     </span>
                     <button
                       type="button"
@@ -477,14 +479,14 @@ export default function AggiungiDebito() {
                       className="btn-text"
                       style={{ fontSize: "0.8rem", padding: "8px 12px", minHeight: "44px", display: "inline-flex", alignItems: "center" }}
                     >
-                      <i className="fas fa-balance-scale" aria-hidden="true" style={{ marginRight: "6px" }}></i> Dividi in parti uguali
+                      <i className="fas fa-balance-scale" aria-hidden="true" style={{ marginRight: "6px" }}></i> {t("expenses.splitEvenly", null, "Dividi in parti uguali")}
                     </button>
                   </div>
 
                   {coinquilini.map((c) => (
                     <div key={c.uid} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "8px" }}>
                       <span style={{ fontSize: "0.9rem", color: "var(--text-main)" }}>
-                        {c.username} {c.uid === debito.creditoreId ? "(Pagatore)" : ""}:
+                        {c.username} {c.uid === debito.creditoreId ? t("expenses.payerSuffix", null, "(Pagatore)") : ""}:
                       </span>
                       <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
                         <input
@@ -512,7 +514,7 @@ export default function AggiungiDebito() {
                 <div>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
                     <span style={{ fontSize: "0.85rem", color: "var(--text-secondary)" }}>
-                      Indica la percentuale per ciascun coinquilino (totale 100%):
+                      {t("expenses.percentagesHint", null, "Indica la percentuale per ciascun coinquilino (totale 100%):")}
                     </span>
                     <button
                       type="button"
@@ -520,14 +522,14 @@ export default function AggiungiDebito() {
                       className="btn-text"
                       style={{ fontSize: "0.8rem", padding: "8px 12px", minHeight: "44px", display: "inline-flex", alignItems: "center" }}
                     >
-                      <i className="fas fa-balance-scale" aria-hidden="true" style={{ marginRight: "6px" }}></i> Dividi in parti uguali
+                      <i className="fas fa-balance-scale" aria-hidden="true" style={{ marginRight: "6px" }}></i> {t("expenses.splitEvenly", null, "Dividi in parti uguali")}
                     </button>
                   </div>
 
                   {coinquilini.map((c) => (
                     <div key={c.uid} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "8px" }}>
                       <span style={{ fontSize: "0.9rem", color: "var(--text-main)" }}>
-                        {c.username} {c.uid === debito.creditoreId ? "(Pagatore)" : ""}:
+                        {c.username} {c.uid === debito.creditoreId ? t("expenses.payerSuffix", null, "(Pagatore)") : ""}:
                       </span>
                       <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
                         <input
@@ -554,7 +556,7 @@ export default function AggiungiDebito() {
               {splitMode === "esclusioni" && (
                 <div>
                   <p style={{ fontSize: "0.85rem", color: "var(--text-secondary)", marginBottom: "8px" }}>
-                    Seleziona i coinquilini da escludere dalla spesa:
+                    {t("expenses.exclusionsHint", null, "Seleziona i coinquilini da escludere dalla spesa:")}
                   </p>
                   <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
                     {coinquilini.map((c) => {
@@ -580,7 +582,7 @@ export default function AggiungiDebito() {
                             style={{ width: "16px", height: "16px", accentColor: "var(--color-danger)" }}
                           />
                           <span style={{ fontSize: "0.88rem", textDecoration: isExcluded ? "line-through" : "none", color: isExcluded ? "var(--color-danger)" : "var(--text-main)" }}>
-                            {c.username} {isExcluded ? "(Escluso dal conteggio)" : ""}
+                            {c.username} {isExcluded ? t("expenses.excludedSuffix", null, "(Escluso dal conteggio)") : ""}
                           </span>
                         </label>
                       );
@@ -595,7 +597,9 @@ export default function AggiungiDebito() {
                   {splitResult.valid ? (
                     <div style={{ padding: "8px 12px", background: "rgba(16, 185, 129, 0.1)", border: "1px solid rgba(16, 185, 129, 0.3)", borderRadius: "var(--radius-sm)", color: "var(--color-success)", fontSize: "0.85rem" }}>
                       <i className="fas fa-check-circle" aria-hidden="true" style={{ marginRight: "6px" }}></i>
-                      Ripartizione valida: {splitResult.allocations?.length} coinquilin{splitResult.allocations?.length === 1 ? "o" : "i"} debitor{splitResult.allocations?.length === 1 ? "e" : "i"}.
+                      {splitResult.allocations?.length === 1
+                        ? t("expenses.validSplitOne", { count: 1 }, "Ripartizione valida: 1 coinquilino debitore.")
+                        : t("expenses.validSplitMany", { count: splitResult.allocations?.length }, `Ripartizione valida: ${splitResult.allocations?.length} coinquilini debitori.`)}
                     </div>
                   ) : (
                     <div style={{ padding: "8px 12px", background: "rgba(239, 68, 68, 0.1)", border: "1px solid rgba(239, 68, 68, 0.3)", borderRadius: "var(--radius-sm)", color: "var(--color-danger)", fontSize: "0.85rem" }}>
@@ -612,7 +616,7 @@ export default function AggiungiDebito() {
         {/* Debitore singolo (Only when not divided) */}
         {!isDiviso && (
           <div className="input-group">
-            <label htmlFor="debito-debitore">Chi deve restituire la quota? *</label>
+            <label htmlFor="debito-debitore">{t("expenses.whoOwesLabel", null, "Chi deve restituire la quota? *")}</label>
             <select
               id="debito-debitore"
               value={debito.debitoreId}
@@ -620,10 +624,10 @@ export default function AggiungiDebito() {
               required
               disabled={loading}
             >
-              <option value="">-- Seleziona coinquilino debitore --</option>
+              <option value="">{t("expenses.selectDebtorPlaceholder", null, "-- Seleziona coinquilino debitore --")}</option>
               {coinquilini.map((c) => (
                 <option key={c.uid} value={c.uid}>
-                  {c.username} {c.uid === currentUser?.uid ? "(Tu)" : ""}
+                  {c.username} {c.uid === currentUser?.uid ? t("expenses.youSuffix", null, "(Tu)") : ""}
                 </option>
               ))}
             </select>
@@ -633,9 +637,9 @@ export default function AggiungiDebito() {
         <div style={{ display: "flex", gap: "12px", marginTop: "24px" }}>
           <button type="submit" className="btn-primary" disabled={loading}>
             {loading ? (
-              <span><i className="fas fa-spinner fa-spin" aria-hidden="true"></i> Salvataggio...</span>
+              <span><i className="fas fa-spinner fa-spin" aria-hidden="true"></i> {t("expenses.saving", null, "Salvataggio...")}</span>
             ) : (
-              <span><i className="fas fa-save" aria-hidden="true"></i> Salva Spesa</span>
+              <span><i className="fas fa-save" aria-hidden="true"></i> {t("expenses.saveExpense", null, "Salva Spesa")}</span>
             )}
           </button>
           <button
@@ -644,7 +648,7 @@ export default function AggiungiDebito() {
             onClick={() => navigate("/debiti")}
             disabled={loading}
           >
-            Annulla
+            {t("common.cancel", null, "Annulla")}
           </button>
         </div>
       </form>

@@ -1,0 +1,303 @@
+{
+  "version": 1,
+  "dependencyRules": [],
+  "moduleBoundaries": [],
+  "protectedAreas": [],
+  "complexityThresholds": {
+    "maxLoc": 800,
+    "maxCyclomaticComplexity": 60,
+    "forbidNewCycles": true,
+    "severity": "warn"
+  },
+  "mandatoryPatterns": [],
+  "ownership": [
+    {
+      "pattern": "public",
+      "owners": [
+        "public maintainers"
+      ],
+      "testPaths": [
+        "tests/public"
+      ],
+      "docPaths": [
+        "docs/public"
+      ]
+    },
+    {
+      "pattern": "scripts",
+      "owners": [
+        "scripts maintainers"
+      ],
+      "testPaths": [
+        "tests/scripts"
+      ],
+      "docPaths": [
+        "docs/scripts"
+      ]
+    },
+    {
+      "pattern": "src",
+      "owners": [
+        "src maintainers"
+      ],
+      "testPaths": [
+        "tests/src"
+      ],
+      "docPaths": [
+        "docs/src"
+      ]
+    },
+    {
+      "pattern": "src/__mocks__",
+      "owners": [
+        "src/__mocks__ maintainers"
+      ],
+      "testPaths": [
+        "tests/src/__mocks__"
+      ],
+      "docPaths": [
+        "docs/src/__mocks__"
+      ]
+    },
+    {
+      "pattern": "src/components",
+      "owners": [
+        "src/components maintainers"
+      ],
+      "testPaths": [
+        "tests/src/components"
+      ],
+      "docPaths": [
+        "docs/src/components"
+      ]
+    },
+    {
+      "pattern": "src/contexts",
+      "owners": [
+        "src/contexts maintainers"
+      ],
+      "testPaths": [
+        "tests/src/contexts"
+      ],
+      "docPaths": [
+        "docs/src/contexts"
+      ]
+    },
+    {
+      "pattern": "src/i18n",
+      "owners": [
+        "src/i18n maintainers"
+      ],
+      "testPaths": [
+        "tests/src/i18n"
+      ],
+      "docPaths": [
+        "docs/src/i18n"
+      ]
+    },
+    {
+      "pattern": "src/pages",
+      "owners": [
+        "src/pages maintainers"
+      ],
+      "testPaths": [
+        "tests/src/pages"
+      ],
+      "docPaths": [
+        "docs/src/pages"
+      ]
+    },
+    {
+      "pattern": "src/pages/Autenticazione",
+      "owners": [
+        "src/pages/Autenticazione maintainers"
+      ],
+      "testPaths": [
+        "tests/src/pages/Autenticazione"
+      ],
+      "docPaths": [
+        "docs/src/pages/Autenticazione"
+      ]
+    },
+    {
+      "pattern": "src/pages/Bacheca",
+      "owners": [
+        "src/pages/Bacheca maintainers"
+      ],
+      "testPaths": [
+        "tests/src/pages/Bacheca"
+      ],
+      "docPaths": [
+        "docs/src/pages/Bacheca"
+      ]
+    },
+    {
+      "pattern": "src/pages/Contatti",
+      "owners": [
+        "src/pages/Contatti maintainers"
+      ],
+      "testPaths": [
+        "tests/src/pages/Contatti"
+      ],
+      "docPaths": [
+        "docs/src/pages/Contatti"
+      ]
+    },
+    {
+      "pattern": "src/pages/Debiti",
+      "owners": [
+        "src/pages/Debiti maintainers"
+      ],
+      "testPaths": [
+        "tests/src/pages/Debiti"
+      ],
+      "docPaths": [
+        "docs/src/pages/Debiti"
+      ]
+    },
+    {
+      "pattern": "src/pages/Documenti",
+      "owners": [
+        "src/pages/Documenti maintainers"
+      ],
+      "testPaths": [
+        "tests/src/pages/Documenti"
+      ],
+      "docPaths": [
+        "docs/src/pages/Documenti"
+      ]
+    },
+    {
+      "pattern": "src/pages/Impostazioni",
+      "owners": [
+        "src/pages/Impostazioni maintainers"
+      ],
+      "testPaths": [
+        "tests/src/pages/Impostazioni"
+      ],
+      "docPaths": [
+        "docs/src/pages/Impostazioni"
+      ]
+    },
+    {
+      "pattern": "src/pages/Spesa",
+      "owners": [
+        "src/pages/Spesa maintainers"
+      ],
+      "testPaths": [
+        "tests/src/pages/Spesa"
+      ],
+      "docPaths": [
+        "docs/src/pages/Spesa"
+      ]
+    },
+    {
+      "pattern": "src/pages/TurniPulizia",
+      "owners": [
+        "src/pages/TurniPulizia maintainers"
+      ],
+      "testPaths": [
+        "tests/src/pages/TurniPulizia"
+      ],
+      "docPaths": [
+        "docs/src/pages/TurniPulizia"
+      ]
+    },
+    {
+      "pattern": "src/services",
+      "owners": [
+        "src/services maintainers"
+      ],
+      "testPaths": [
+        "tests/src/services"
+      ],
+      "docPaths": [
+        "docs/src/services"
+      ]
+    },
+    {
+      "pattern": "src/test",
+      "owners": [
+        "src/test maintainers"
+      ],
+      "testPaths": [
+        "tests/src/test"
+      ],
+      "docPaths": [
+        "docs/src/test"
+      ]
+    },
+    {
+      "pattern": "src/test/tier1_features",
+      "owners": [
+        "src/test/tier1_features maintainers"
+      ],
+      "testPaths": [
+        "tests/src/test/tier1_features"
+      ],
+      "docPaths": [
+        "docs/src/test/tier1_features"
+      ]
+    },
+    {
+      "pattern": "src/test/tier2_boundaries",
+      "owners": [
+        "src/test/tier2_boundaries maintainers"
+      ],
+      "testPaths": [
+        "tests/src/test/tier2_boundaries"
+      ],
+      "docPaths": [
+        "docs/src/test/tier2_boundaries"
+      ]
+    },
+    {
+      "pattern": "src/test/tier3_interactions",
+      "owners": [
+        "src/test/tier3_interactions maintainers"
+      ],
+      "testPaths": [
+        "tests/src/test/tier3_interactions"
+      ],
+      "docPaths": [
+        "docs/src/test/tier3_interactions"
+      ]
+    },
+    {
+      "pattern": "src/test/tier4_scenarios",
+      "owners": [
+        "src/test/tier4_scenarios maintainers"
+      ],
+      "testPaths": [
+        "tests/src/test/tier4_scenarios"
+      ],
+      "docPaths": [
+        "docs/src/test/tier4_scenarios"
+      ]
+    },
+    {
+      "pattern": "src/test/tier5_adversarial",
+      "owners": [
+        "src/test/tier5_adversarial maintainers"
+      ],
+      "testPaths": [
+        "tests/src/test/tier5_adversarial"
+      ],
+      "docPaths": [
+        "docs/src/test/tier5_adversarial"
+      ]
+    },
+    {
+      "pattern": "src/utils",
+      "owners": [
+        "src/utils maintainers"
+      ],
+      "testPaths": [
+        "tests/src/utils"
+      ],
+      "docPaths": [
+        "docs/src/utils"
+      ]
+    }
+  ]
+}

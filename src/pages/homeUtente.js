@@ -10,10 +10,12 @@ import { safeFloat, validateDate } from "../utils/security";
 import { showToast, showConfirm } from "../utils/feedback";
 import { isUserOnVacation } from "../utils/choreRotation";
 import { getOfflineData, saveOfflineData } from "../utils/offlineStorage";
+import { useLanguage } from "../contexts/LanguageContext";
 
 export default function HomeUtente() {
   const navigate = useNavigate();
   const { currentUser, userData, setUserData } = useAuth();
+  const { t, language } = useLanguage();
 
   const cachedInitial = useMemo(() => {
     if (userData?.casaId) {
@@ -101,7 +103,7 @@ export default function HomeUtente() {
         // 2. Roommates map
         const uMap = {};
         snapUtenti.forEach((d) => {
-          uMap[d.id] = d.data().username || "Coinquilino";
+          uMap[d.id] = d.data().username || t("dashboard.roommateFallback", {}, "Coinquilino");
         });
         setUtentiMap(uMap);
 
@@ -186,15 +188,15 @@ export default function HomeUtente() {
     if (savingVacanza) return;
 
     if (vacanzaInizio && !validateDate(vacanzaInizio).isValid) {
-      showToast("Data inizio vacanza non valida.", "error");
+      showToast(t("dashboard.invalidVacationStart", {}, "Data inizio vacanza non valida."), "error");
       return;
     }
     if (vacanzaFine && !validateDate(vacanzaFine).isValid) {
-      showToast("Data fine vacanza non valida.", "error");
+      showToast(t("dashboard.invalidVacationEnd", {}, "Data fine vacanza non valida."), "error");
       return;
     }
     if (vacanzaInizio && vacanzaFine && vacanzaFine < vacanzaInizio) {
-      showToast("La data di fine non può essere precedente alla data di inizio.", "error");
+      showToast(t("dashboard.vacationEndBeforeStart", {}, "La data di fine non può essere precedente alla data di inizio."), "error");
       return;
     }
 
@@ -211,13 +213,13 @@ export default function HomeUtente() {
       setUserData({ ...userData, ...payload });
       showToast(
         inVacanza
-          ? "Modalità vacanza attivata! I turni non ti verranno assegnati."
-          : "Modalità vacanza disattivata. Bentornato a casa!",
+          ? t("dashboard.vacationEnabledToast", {}, "Modalità vacanza attivata! I turni non ti verranno assegnati.")
+          : t("dashboard.vacationDisabledToast", {}, "Modalità vacanza disattivata. Bentornato a casa!"),
         "success"
       );
     } catch (err) {
       console.error("Errore salvataggio stato vacanza:", err);
-      showToast("Errore durante il salvataggio dello stato vacanza.", "error");
+      showToast(t("dashboard.vacationSaveError", {}, "Errore durante il salvataggio dello stato vacanza."), "error");
     } finally {
       setSavingVacanza(false);
     }
@@ -232,22 +234,23 @@ export default function HomeUtente() {
     const domani = domaniDate.toISOString().split("T")[0];
 
     // 1. Chores due in <24h
-    turniList.forEach((t) => {
-      const isAssigned = (t.nomi && t.nomi.includes(userData?.username)) || t.utenteId === currentUser?.uid;
-      if (isAssigned && !t.completato) {
-        if (t.data === oggi) {
+    turniList.forEach((turno) => {
+      const isAssigned = (turno.nomi && turno.nomi.includes(userData?.username)) || turno.utenteId === currentUser?.uid;
+      if (isAssigned && !turno.completato) {
+        const choreName = turno.mansione || (turno.luoghi && turno.luoghi.join(", ")) || t("dashboard.cleaningFallback", {}, "Pulizia");
+        if (turno.data === oggi) {
           list.push({
-            id: `chore_today_${t.id}`,
+            id: `chore_today_${turno.id}`,
             icon: "fa-bell",
             type: "warning",
-            text: `Turno di oggi: ${t.mansione || (t.luoghi && t.luoghi.join(", ")) || "Pulizia"}! Ricordati di completarlo.`
+            text: t("dashboard.reminderChoreToday", { chore: choreName }, `Turno di oggi: ${choreName}! Ricordati di completarlo.`)
           });
-        } else if (t.data === domani) {
+        } else if (turno.data === domani) {
           list.push({
-            id: `chore_tomorrow_${t.id}`,
+            id: `chore_tomorrow_${turno.id}`,
             icon: "fa-calendar-check",
             type: "info",
-            text: `Promemoria: domani hai il turno "${t.mansione || (t.luoghi && t.luoghi.join(", ")) || "Pulizia"}".`
+            text: t("dashboard.reminderChoreTomorrow", { chore: choreName }, `Promemoria: domani hai il turno "${choreName}".`)
           });
         }
       }
@@ -259,18 +262,23 @@ export default function HomeUtente() {
       if (d.creditoreId !== currentUser?.uid) {
         const created = d.createdAt?.toDate ? d.createdAt.toDate() : new Date(d.createdAt);
         if (created >= oneDayAgo) {
+          const amountStr = safeFloat(d.importo).toFixed(2);
           list.push({
             id: `expense_${d.id}`,
             icon: "fa-receipt",
             type: "info",
-            text: `Nuova spesa registrata: "${d.descrizione}" (${safeFloat(d.importo).toFixed(2)} €).`
+            text: t(
+              "dashboard.reminderNewExpense",
+              { description: d.descrizione, amount: amountStr },
+              `Nuova spesa registrata: "${d.descrizione}" (${amountStr} €).`
+            )
           });
         }
       }
     });
 
     return list.filter((r) => !dismissedReminders.includes(r.id));
-  }, [turniList, debitiList, currentUser?.uid, userData?.username, dismissedReminders]);
+  }, [turniList, debitiList, currentUser?.uid, userData?.username, dismissedReminders, t]);
 
   const dismissReminder = (id) => {
     setDismissedReminders((prev) => [...prev, id]);
@@ -278,10 +286,10 @@ export default function HomeUtente() {
 
   const lasciaCasa = async () => {
     const confirmed = await showConfirm({
-      title: "Lascia Casa",
-      message: "Sei sicuro di voler uscire da questa casa? Perderai l'accesso alle spese e ai turni condivisi.",
-      confirmText: "Lascia Casa",
-      cancelText: "Annulla",
+      title: t("dashboard.leaveHouseTitle", {}, "Lascia Casa"),
+      message: t("dashboard.leaveHouseConfirm", {}, "Sei sicuro di voler uscire da questa casa? Perderai l'accesso alle spese e ai turni condivisi."),
+      confirmText: t("dashboard.leaveHouseBtn", {}, "Lascia Casa"),
+      cancelText: t("common.cancel", {}, "Annulla"),
       isDanger: true
     });
 
@@ -291,11 +299,11 @@ export default function HomeUtente() {
       const userDocRef = doc(db, "utenti", currentUser.uid);
       await updateDoc(userDocRef, { casaId: null });
       setUserData({ ...userData, casaId: null });
-      showToast("Hai lasciato la casa.", "info");
+      showToast(t("dashboard.leftHouseToast", {}, "Hai lasciato la casa."), "info");
       navigate("/scelta-casa");
     } catch (e) {
       console.error(e);
-      showToast("Errore durante l'uscita.", "error");
+      showToast(t("dashboard.leaveHouseError", {}, "Errore durante l'uscita."), "error");
     }
   };
 
@@ -309,13 +317,14 @@ export default function HomeUtente() {
 
   // Active roommate presence list
   const roommatesList = useMemo(() => {
+    const fallbackName = t("dashboard.roommateFallback", {}, "Coinquilino");
     return Object.entries(utentiMap).map(([id, userVal]) => {
       const name =
         typeof userVal === "object" && userVal !== null
-          ? userVal.username || userVal.nome || "Coinquilino"
+          ? userVal.username || userVal.nome || fallbackName
           : typeof userVal === "string"
           ? userVal
-          : "Coinquilino";
+          : fallbackName;
       const initial =
         name && typeof name === "string" && name.length > 0
           ? name.charAt(0).toUpperCase()
@@ -326,7 +335,7 @@ export default function HomeUtente() {
         initial
       };
     });
-  }, [utentiMap]);
+  }, [utentiMap, t]);
 
   // Quiet status pill computation
   const choreStatusPill = useMemo(() => {
@@ -336,27 +345,29 @@ export default function HomeUtente() {
         (prossimoTurno.nomi && prossimoTurno.nomi.includes(userData?.username)) ||
         prossimoTurno.utenteId === currentUser?.uid;
       if (prossimoTurno.data === oggi && isAssignedToMe) {
-        return { text: "Tocca a te oggi", type: "urgent", icon: "fa-bell" };
+        return { text: t("dashboard.statusYourTurnToday", {}, "Tocca a te oggi"), type: "urgent", icon: "fa-bell" };
       }
       if (prossimoTurno.data === oggi) {
-        return { text: `Oggi: ${prossimoTurno.mansione || "Turno"}`, type: "active", icon: "fa-broom" };
+        const choreLabel = prossimoTurno.mansione || t("dashboard.choreFallback", {}, "Turno");
+        return { text: t("dashboard.statusTodayChore", { chore: choreLabel }, `Oggi: ${choreLabel}`), type: "active", icon: "fa-broom" };
       }
+      const dateStr = new Date(prossimoTurno.data).toLocaleDateString(language === "en" ? "en-US" : "it-IT", {
+        day: "numeric",
+        month: "short"
+      });
       return {
-        text: `Prossimo: ${new Date(prossimoTurno.data).toLocaleDateString("it-IT", {
-          day: "numeric",
-          month: "short"
-        })}`,
+        text: t("dashboard.statusNextDate", { date: dateStr }, `Prossimo: ${dateStr}`),
         type: "normal",
         icon: "fa-calendar-check"
       };
     }
-    return { text: "Nessun turno oggi", type: "success", icon: "fa-check" };
-  }, [prossimoTurno, userData?.username, currentUser?.uid]);
+    return { text: t("dashboard.statusNoChoreToday", {}, "Nessun turno oggi"), type: "success", icon: "fa-check" };
+  }, [prossimoTurno, userData?.username, currentUser?.uid, t, language]);
 
   return (
     <div className="dashboard-container">
       {/* ================= COMMAND CENTER HERO: PRESENCE & HOUSE IDENTITY ================= */}
-      <section className="household-command-center-hero" aria-label="Centro di Controllo Casa">
+      <section className="household-command-center-hero" aria-label={t("dashboard.commandCenterAria", {}, "Centro di Controllo Casa")}>
         {/* User Greeting & Status Banner */}
         <div className="dashboard-welcome-banner" style={{ marginBottom: "16px", display: "flex", alignItems: "center", gap: "16px", flexWrap: "wrap" }}>
           <div className="welcome-avatar" style={{ fontSize: "2.4rem", color: "var(--color-primary)" }}>
@@ -364,10 +375,11 @@ export default function HomeUtente() {
           </div>
           <div className="welcome-text" style={{ flex: 1, minWidth: "180px", textAlign: "left" }}>
             <span className="welcome-greeting" style={{ fontSize: "0.85rem", color: "var(--text-muted)", letterSpacing: "0.02em" }}>
-              Panoramica della casa
+              {t("dashboard.overviewLabel", {}, "Panoramica della casa")}
             </span>
             <h1 className="welcome-username" style={{ margin: "2px 0 0 0", fontSize: "1.6rem" }}>
-              Bentornato, <strong style={{ color: "var(--text-main)" }}>{userData?.username || "Utente"}</strong>
+              {t("dashboard.welcomePrefix", {}, "Bentornato,")}{" "}
+              <strong style={{ color: "var(--text-main)" }}>{userData?.username || t("dashboard.userFallback", {}, "Utente")}</strong>
             </h1>
           </div>
 
@@ -403,7 +415,7 @@ export default function HomeUtente() {
                   gap: "6px"
                 }}
               >
-                <i className="fas fa-sync-alt fa-spin" aria-hidden="true"></i> Aggiornamento in corso...
+                <i className="fas fa-sync-alt fa-spin" aria-hidden="true"></i> {t("dashboard.syncing", {}, "Aggiornamento in corso...")}
               </span>
             )}
             {userCurrentlyAway && (
@@ -420,7 +432,7 @@ export default function HomeUtente() {
                   gap: "6px"
                 }}
               >
-                <i className="fas fa-plane-departure" aria-hidden="true"></i> Fuori casa
+                <i className="fas fa-plane-departure" aria-hidden="true"></i> {t("dashboard.awayBadge", {}, "Fuori casa")}
               </span>
             )}
           </div>
@@ -429,7 +441,7 @@ export default function HomeUtente() {
         {/* Roommate Presence Avatars row */}
         {roommatesList.length > 0 && (
           <div className="roommate-presence-bar" style={{ display: "flex", alignItems: "center", gap: "10px", margin: "12px 0 16px 0", flexWrap: "wrap" }}>
-            <span style={{ fontSize: "0.8rem", color: "var(--text-muted)", fontWeight: "500" }}>Coinquilini:</span>
+            <span style={{ fontSize: "0.8rem", color: "var(--text-muted)", fontWeight: "500" }}>{t("dashboard.roommatesLabel", {}, "Coinquilini:")}</span>
             <div style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
               {roommatesList.map((r) => (
                 <div
@@ -498,7 +510,7 @@ export default function HomeUtente() {
                 <button
                   type="button"
                   onClick={() => dismissReminder(r.id)}
-                  aria-label="Nascondi promemoria"
+                  aria-label={t("dashboard.dismissReminderAria", {}, "Nascondi promemoria")}
                   style={{
                     background: "none",
                     border: "none",
@@ -527,13 +539,13 @@ export default function HomeUtente() {
               <i className="fas fa-sync-alt fa-spin fa-2x" aria-hidden="true"></i>
             </p>
             <p style={{ margin: 0, color: "var(--text-secondary)", fontSize: "0.95rem" }}>
-              Caricamento dati della casa...
+              {t("dashboard.loadingHouseData", {}, "Caricamento dati della casa...")}
             </p>
           </div>
         ) : (
           <div
             onClickCapture={(e) => {
-              const btn = e.target.closest('button[title*="codice invito"]');
+              const btn = e.target.closest('button.invite-code-card-btn, button[title*="codice invito"]');
               if (btn && casa?.codiceUnivoco) {
                 if (navigator.clipboard && navigator.clipboard.writeText) {
                   navigator.clipboard.writeText(casa.codiceUnivoco);
@@ -550,7 +562,7 @@ export default function HomeUtente() {
               variant="full"
             />
             {copiedCode && (
-              <span style={{ position: "absolute", opacity: 0, pointerEvents: "none" }}>Copiato!</span>
+              <span style={{ position: "absolute", opacity: 0, pointerEvents: "none" }}>{t("dashboard.copiedShort", {}, "Copiato!")}</span>
             )}
           </div>
         )}
@@ -586,10 +598,10 @@ export default function HomeUtente() {
             </div>
             <div>
               <h3 style={{ margin: 0, fontSize: "1.05rem", color: "var(--text-main)" }}>
-                Modalità In vacanza
+                {t("dashboard.vacationModeTitle", {}, "Modalità In vacanza")}
               </h3>
               <p style={{ margin: "2px 0 0 0", fontSize: "0.85rem", color: "var(--text-secondary)" }}>
-                Quando sei assente, i turni di pulizia non ti vengono assegnati.
+                {t("dashboard.vacationModeDesc", {}, "Quando sei assente, i turni di pulizia non ti vengono assegnati.")}
               </p>
             </div>
           </div>
@@ -602,7 +614,7 @@ export default function HomeUtente() {
               style={{ width: "22px", height: "22px", accentColor: "#f59e0b" }}
             />
             <span style={{ fontWeight: "700", color: inVacanza ? "#f59e0b" : "var(--text-main)" }}>
-              {inVacanza ? "Attiva (fuori casa)" : "Non attiva"}
+              {inVacanza ? t("dashboard.vacationActive", {}, "Attiva (fuori casa)") : t("dashboard.vacationInactive", {}, "Non attiva")}
             </span>
           </label>
         </div>
@@ -612,7 +624,7 @@ export default function HomeUtente() {
             <div style={{ display: "flex", gap: "12px", flexWrap: "wrap", alignItems: "flex-end" }}>
               <div style={{ flex: 1, minWidth: "140px" }}>
                 <label style={{ fontSize: "0.82rem", color: "var(--text-muted)", display: "block", marginBottom: "4px" }}>
-                  Data di partenza
+                  {t("dashboard.vacationStartDate", {}, "Data di partenza")}
                 </label>
                 <input
                   type="date"
@@ -625,7 +637,7 @@ export default function HomeUtente() {
 
               <div style={{ flex: 1, minWidth: "140px" }}>
                 <label style={{ fontSize: "0.82rem", color: "var(--text-muted)", display: "block", marginBottom: "4px" }}>
-                  Data di rientro
+                  {t("dashboard.vacationEndDate", {}, "Data di rientro")}
                 </label>
                 <input
                   type="date"
@@ -645,11 +657,11 @@ export default function HomeUtente() {
               >
                 {savingVacanza ? (
                   <>
-                    <i className="fas fa-spinner fa-spin" aria-hidden="true"></i> Salvataggio...
+                    <i className="fas fa-spinner fa-spin" aria-hidden="true"></i> {t("dashboard.saving", {}, "Salvataggio...")}
                   </>
                 ) : (
                   <>
-                    <i className="fas fa-save" aria-hidden="true"></i> Salva date assenza
+                    <i className="fas fa-save" aria-hidden="true"></i> {t("dashboard.saveAbsenceDates", {}, "Salva date assenza")}
                   </>
                 )}
               </button>
@@ -660,34 +672,34 @@ export default function HomeUtente() {
 
       <div className="bento-grid">
         {/* ================= 3. QUICK SERVICES NAVIGATION ================= */}
-        <div className="bento-services" aria-label="Servizi Rapidi">
+        <div className="bento-services" aria-label={t("dashboard.quickServicesAria", {}, "Servizi Rapidi")}>
           <button type="button" onClick={() => navigate("/turni")} className="service-btn">
             <span className="service-icon"><i className="fas fa-broom" aria-hidden="true"></i></span>
-            <span>Turni</span>
+            <span>{t("dashboard.serviceChores", {}, "Turni")}</span>
           </button>
           <button type="button" onClick={() => navigate("/debiti")} className="service-btn">
             <span className="service-icon"><i className="fas fa-wallet" aria-hidden="true"></i></span>
-            <span>Spese</span>
+            <span>{t("dashboard.serviceExpenses", {}, "Spese")}</span>
           </button>
           <button type="button" onClick={() => navigate("/spesa")} className="service-btn">
             <span className="service-icon"><i className="fas fa-shopping-cart" aria-hidden="true"></i></span>
-            <span>Spesa</span>
+            <span>{t("dashboard.serviceGroceries", {}, "Spesa")}</span>
           </button>
           <button type="button" onClick={() => navigate("/calendario")} className="service-btn">
             <span className="service-icon"><i className="fas fa-calendar-alt" aria-hidden="true"></i></span>
-            <span>Calendario</span>
+            <span>{t("dashboard.serviceCalendar", {}, "Calendario")}</span>
           </button>
           <button type="button" onClick={() => navigate("/bacheca")} className="service-btn">
             <span className="service-icon"><i className="fas fa-thumbtack" aria-hidden="true"></i></span>
-            <span>Bacheca</span>
+            <span>{t("dashboard.serviceBoard", {}, "Bacheca")}</span>
           </button>
-          <button type="button" onClick={() => navigate("/documenti")} className="service-btn" aria-label="Gestione Documenti e Contratti">
+          <button type="button" onClick={() => navigate("/documenti")} className="service-btn" aria-label={t("dashboard.serviceDocumentsAria", {}, "Gestione Documenti e Contratti")}>
             <span className="service-icon"><i className="fas fa-folder-open" aria-hidden="true"></i></span>
-            <span>Documenti</span>
+            <span>{t("dashboard.serviceDocuments", {}, "Documenti")}</span>
           </button>
-          <button type="button" onClick={() => navigate("/contatti")} className="service-btn" aria-label="Rubrica Contatti Utili">
+          <button type="button" onClick={() => navigate("/contatti")} className="service-btn" aria-label={t("dashboard.serviceContactsAria", {}, "Rubrica Contatti Utili")}>
             <span className="service-icon"><i className="fas fa-address-book" aria-hidden="true"></i></span>
-            <span>Contatti</span>
+            <span>{t("dashboard.serviceContacts", {}, "Contatti")}</span>
           </button>
         </div>
 
@@ -715,7 +727,7 @@ export default function HomeUtente() {
                     margin: 0
                   }}
                 >
-                  Prossimo turno
+                  {t("dashboard.nextChoreTitle", {}, "Prossimo turno")}
                 </h3>
               </div>
             </div>
@@ -723,7 +735,7 @@ export default function HomeUtente() {
             {prossimoTurno ? (
               <div style={{ marginTop: "10px" }}>
                 <h2 style={{ fontSize: "1.6rem", color: "var(--text-main)", marginBottom: "4px" }}>
-                  {prossimoTurno.mansione || "Pulizia"}
+                  {prossimoTurno.mansione || t("dashboard.cleaningFallback", {}, "Pulizia")}
                 </h2>
                 <p
                   style={{
@@ -737,7 +749,7 @@ export default function HomeUtente() {
                 >
                   <i className="far fa-calendar-alt" aria-hidden="true"></i>
                   <span>
-                    {new Date(prossimoTurno.data).toLocaleDateString("it-IT", {
+                    {new Date(prossimoTurno.data).toLocaleDateString(language === "en" ? "en-US" : "it-IT", {
                       weekday: "long",
                       day: "numeric",
                       month: "long"
@@ -749,7 +761,7 @@ export default function HomeUtente() {
               <div style={{ padding: "12px 0" }}>
                 <p style={{ color: "var(--color-success)", fontSize: "1.05rem", margin: 0, fontWeight: "500" }}>
                   <i className="fas fa-check-circle" style={{ marginRight: "6px" }} aria-hidden="true"></i>
-                  Nessun turno oggi. Casa splendente!
+                  {t("dashboard.noChoresToday", {}, "Nessun turno oggi. Casa splendente!")}
                 </p>
               </div>
             )}
@@ -761,7 +773,7 @@ export default function HomeUtente() {
             onClick={() => navigate("/turni")}
             style={{ alignSelf: "flex-start", padding: "8px 0", minHeight: "44px", display: "inline-flex", alignItems: "center", marginTop: "16px", color: "#f59e0b" }}
           >
-            <span>Gestisci tutti i turni</span>
+            <span>{t("dashboard.manageAllChores", {}, "Gestisci tutti i turni")}</span>
           </button>
         </div>
 
@@ -789,7 +801,7 @@ export default function HomeUtente() {
                     margin: 0
                   }}
                 >
-                  Bilancio spese
+                  {t("dashboard.expensesBalanceTitle", {}, "Bilancio spese")}
                 </h3>
               </div>
             </div>
@@ -808,10 +820,10 @@ export default function HomeUtente() {
               </h2>
               <p style={{ color: "var(--text-muted)", fontSize: "0.9rem", margin: "6px 0 0 0" }}>
                 {saldo > 0
-                  ? "Gli altri coinquilini ti devono dei soldi"
+                  ? t("dashboard.balanceOwedToYou", {}, "Gli altri coinquilini ti devono dei soldi")
                   : saldo < 0
-                  ? "Hai debiti pendenti verso la casa"
-                  : "Siete tutti in parità!"}
+                  ? t("dashboard.balanceYouOwe", {}, "Hai debiti pendenti verso la casa")
+                  : t("dashboard.balanceSettled", {}, "Siete tutti in parità!")}
               </p>
             </div>
           </div>
@@ -822,7 +834,7 @@ export default function HomeUtente() {
             onClick={() => navigate("/debiti")}
             style={{ alignSelf: "flex-start", padding: "8px 0", minHeight: "44px", display: "inline-flex", alignItems: "center", marginTop: "16px", color: "var(--color-primary)" }}
           >
-            <span>Vedi spese e saldi</span>
+            <span>{t("dashboard.viewExpensesAndBalances", {}, "Vedi spese e saldi")}</span>
           </button>
         </div>
 
@@ -850,7 +862,7 @@ export default function HomeUtente() {
                     margin: 0
                   }}
                 >
-                  Lista della spesa
+                  {t("dashboard.groceryListTitle", {}, "Lista della spesa")}
                 </h3>
               </div>
             </div>
@@ -861,10 +873,10 @@ export default function HomeUtente() {
               </h2>
               <p style={{ color: "var(--text-muted)", fontSize: "0.9rem", margin: "6px 0 0 0" }}>
                 {activeGroceriesCount === 0
-                  ? "Casa ben rifornita! Nessun articolo da comprare."
+                  ? t("dashboard.groceriesEmpty", {}, "Casa ben rifornita! Nessun articolo da comprare.")
                   : activeGroceriesCount === 1
-                  ? "1 articolo da comprare per la casa."
-                  : `${activeGroceriesCount} articoli da comprare per la casa.`}
+                  ? t("dashboard.groceriesSingle", {}, "1 articolo da comprare per la casa.")
+                  : t("dashboard.groceriesPlural", { count: activeGroceriesCount }, `${activeGroceriesCount} articoli da comprare per la casa.`)}
               </p>
             </div>
           </div>
@@ -875,7 +887,7 @@ export default function HomeUtente() {
             onClick={() => navigate("/spesa")}
             style={{ alignSelf: "flex-start", padding: "8px 0", minHeight: "44px", display: "inline-flex", alignItems: "center", marginTop: "16px", color: "var(--color-primary)" }}
           >
-            <span>Apri lista della spesa</span>
+            <span>{t("dashboard.openGroceryList", {}, "Apri lista della spesa")}</span>
           </button>
         </div>
 
@@ -900,7 +912,7 @@ export default function HomeUtente() {
                 margin: 0
               }}
             >
-              Ultimo avviso in bacheca
+              {t("dashboard.latestNoticeTitle", {}, "Ultimo avviso in bacheca")}
             </h3>
           </div>
 
@@ -921,7 +933,7 @@ export default function HomeUtente() {
               </p>
             </div>
           ) : (
-            <p style={{ color: "var(--text-muted)", margin: 0 }}>Nessun avviso in bacheca. Lascia un messaggio ai coinquilini!</p>
+            <p style={{ color: "var(--text-muted)", margin: 0 }}>{t("dashboard.noNoticesYet", {}, "Nessun avviso in bacheca. Lascia un messaggio ai coinquilini!")}</p>
           )}
 
           <button
@@ -930,7 +942,7 @@ export default function HomeUtente() {
             onClick={() => navigate("/bacheca")}
             style={{ alignSelf: "flex-start", padding: "8px 0", minHeight: "44px", display: "inline-flex", alignItems: "center", marginTop: "16px", color: "var(--color-primary)" }}
           >
-            <span>Apri la bacheca</span>
+            <span>{t("dashboard.openBoard", {}, "Apri la bacheca")}</span>
           </button>
         </div>
 
@@ -947,7 +959,7 @@ export default function HomeUtente() {
         <div className="bento-item bento-account">
           <p style={{ margin: 0, color: "var(--text-muted)", fontSize: "0.9rem" }}>
             <i className="fas fa-user-shield" style={{ marginRight: "8px" }} aria-hidden="true"></i>
-            <span>Il tuo account</span>
+            <span>{t("dashboard.yourAccount", {}, "Il tuo account")}</span>
           </p>
           <div style={{ display: "flex", gap: "10px" }}>
             <button
@@ -957,7 +969,7 @@ export default function HomeUtente() {
               style={{ fontSize: "0.88rem", minHeight: "44px", display: "inline-flex", alignItems: "center", gap: "6px", padding: "10px 16px" }}
             >
               <i className="fas fa-door-open" aria-hidden="true"></i>
-              <span>Lascia Casa</span>
+              <span>{t("dashboard.leaveHouseBtn", {}, "Lascia Casa")}</span>
             </button>
             <button
               type="button"
@@ -966,7 +978,7 @@ export default function HomeUtente() {
               style={{ padding: "10px 18px", minHeight: "44px", display: "inline-flex", alignItems: "center", gap: "6px", width: "auto", fontSize: "0.88rem" }}
             >
               <i className="fas fa-sign-out-alt" aria-hidden="true"></i>
-              <span>Esci</span>
+              <span>{t("dashboard.logoutShort", {}, "Esci")}</span>
             </button>
           </div>
         </div>

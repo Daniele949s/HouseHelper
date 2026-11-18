@@ -3,19 +3,21 @@ import { useNavigate } from "react-router-dom";
 import { db } from "../../firebase";
 import { collection, addDoc } from "firebase/firestore";
 import { useAuth } from "../../contexts/AuthContext";
+import { useLanguage } from "../../contexts/LanguageContext";
 import { showToast } from "../../utils/feedback";
 import { sanitizeText, validateDate } from "../../utils/security";
 
 const PRIORITY_OPTIONS = [
-  { id: "info", label: "Info", icon: "fas fa-info-circle" },
-  { id: "importante", label: "Importante", icon: "fas fa-star" },
-  { id: "urgente", label: "Urgente", icon: "fas fa-exclamation-triangle" },
-  { id: "promemoria", label: "Promemoria", icon: "fas fa-bell" }
+  { id: "info", labelKey: "board.priorityInfo", fallback: "Info", icon: "fas fa-info-circle" },
+  { id: "importante", labelKey: "board.priorityImportant", fallback: "Importante", icon: "fas fa-star" },
+  { id: "urgente", labelKey: "board.priorityUrgent", fallback: "Urgente", icon: "fas fa-exclamation-triangle" },
+  { id: "promemoria", labelKey: "board.priorityReminder", fallback: "Promemoria", icon: "fas fa-bell" }
 ];
 
 export default function AggiungiNota() {
   const navigate = useNavigate();
   const { userData, currentUser } = useAuth();
+  const { t } = useLanguage();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -35,12 +37,12 @@ export default function AggiungiNota() {
     const cleanedContenuto = sanitizeText(nota.contenuto, 1500);
 
     if (!cleanedTitolo) {
-      setError("Il titolo dell'avviso è obbligatorio.");
+      setError(t("board.errorTitleRequired", null, "Il titolo dell'avviso è obbligatorio."));
       return;
     }
 
     if (!cleanedContenuto) {
-      setError("Il messaggio dell'avviso è obbligatorio.");
+      setError(t("board.errorContentRequired", null, "Il messaggio dell'avviso è obbligatorio."));
       return;
     }
 
@@ -48,7 +50,7 @@ export default function AggiungiNota() {
     if (nota.data) {
       const dateRes = validateDate(nota.data);
       if (!dateRes.isValid) {
-        setError(dateRes.error || "Data non valida.");
+        setError(dateRes.error || t("board.errorInvalidDate", null, "Data non valida."));
         return;
       }
       validDate = dateRes.date;
@@ -65,11 +67,11 @@ export default function AggiungiNota() {
         casaId: userData.casaId,
         createdAt: new Date()
       });
-      showToast("Avviso pubblicato con successo!", "success");
+      showToast(t("board.publishSuccess", null, "Avviso pubblicato con successo!"), "success");
       navigate("/bacheca");
     } catch (err) {
       console.error("Errore salvataggio nota:", err);
-      setError("Errore durante il salvataggio dell'avviso.");
+      setError(t("board.saveError", null, "Errore durante il salvataggio dell'avviso."));
     } finally {
       setLoading(false);
     }
@@ -77,8 +79,8 @@ export default function AggiungiNota() {
 
   return (
     <div className="card" style={{ maxWidth: "620px" }}>
-      <h1 style={{ marginBottom: "6px" }}>Nuovo Avviso</h1>
-      <p className="subtitle" style={{ marginBottom: "24px" }}>Condividi una comunicazione con tutti i coinquilini</p>
+      <h1 style={{ marginBottom: "6px" }}>{t("board.newNoticeTitle", null, "Nuovo Avviso")}</h1>
+      <p className="subtitle" style={{ marginBottom: "24px" }}>{t("board.newNoticeSubtitle", null, "Condividi una comunicazione con tutti i coinquilini")}</p>
 
       {error && (
         <div className="error-alert" style={{ marginBottom: "20px" }}>
@@ -89,7 +91,7 @@ export default function AggiungiNota() {
 
       <form onSubmit={handleSubmit} className="auth-form" style={{ textAlign: "left" }}>
         <div className="input-group">
-          <label>Priorità avviso</label>
+          <label>{t("board.priorityLabel", null, "Priorità avviso")}</label>
           <div className="pill-selector-group">
             {PRIORITY_OPTIONS.map((opt) => (
               <button
@@ -98,7 +100,7 @@ export default function AggiungiNota() {
                 className={`pill-selector-btn ${nota.priorita === opt.id ? "active" : ""}`}
                 onClick={() => setNota({ ...nota, priorita: opt.id })}
               >
-                <i className={opt.icon}></i> {opt.label}
+                <i className={opt.icon}></i> {t(opt.labelKey, null, opt.fallback)}
               </button>
             ))}
           </div>
@@ -106,14 +108,14 @@ export default function AggiungiNota() {
 
         <div className="input-group">
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <label>Titolo (massimo 80 caratteri)</label>
+            <label>{t("board.titleLabel", null, "Titolo (massimo 80 caratteri)")}</label>
             <span className="char-counter">{nota.titolo.length} / 80</span>
           </div>
           <input
             type="text"
             value={nota.titolo}
             onChange={(e) => setNota({ ...nota, titolo: e.target.value })}
-            placeholder="Oggetto dell'avviso"
+            placeholder={t("board.titlePlaceholder", null, "Oggetto dell'avviso")}
             maxLength={80}
             required
           />
@@ -121,13 +123,13 @@ export default function AggiungiNota() {
 
         <div className="input-group">
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <label>Messaggio / Dettagli (massimo 1500 caratteri)</label>
+            <label>{t("board.messageDetailsLabel", null, "Messaggio / Dettagli (massimo 1500 caratteri)")}</label>
             <span className="char-counter">{nota.contenuto.length} / 1500</span>
           </div>
           <textarea
             value={nota.contenuto}
             onChange={(e) => setNota({ ...nota, contenuto: e.target.value })}
-            placeholder="Scrivi qui il messaggio dettagliato..."
+            placeholder={t("board.messagePlaceholder", null, "Scrivi qui il messaggio dettagliato...")}
             maxLength={1500}
             required
             style={{ minHeight: "110px" }}
@@ -135,7 +137,7 @@ export default function AggiungiNota() {
         </div>
 
         <div className="input-group">
-          <label>Data scadenza o evento (opzionale)</label>
+          <label>{t("board.optionalDateLabel", null, "Data scadenza o evento (opzionale)")}</label>
           <input
             type="date"
             value={nota.data}
@@ -147,10 +149,10 @@ export default function AggiungiNota() {
 
         <div style={{ display: "flex", gap: "12px", marginTop: "16px" }}>
           <button type="submit" className="btn-primary" disabled={loading}>
-            {loading ? <i className="fas fa-spinner fa-spin"></i> : "Pubblica Avviso"}
+            {loading ? <i className="fas fa-spinner fa-spin"></i> : t("board.publishBtn", null, "Pubblica Avviso")}
           </button>
           <button type="button" className="btn-secondary" onClick={() => navigate("/bacheca")}>
-            Annulla
+            {t("common.cancel", null, "Annulla")}
           </button>
         </div>
       </form>

@@ -1,5 +1,6 @@
 import React from "react";
 import { useTheme } from "../contexts/ThemeContext";
+import { useLanguage } from "../contexts/LanguageContext";
 
 /**
  * Minimalist, accessible pill theme switch.
@@ -8,6 +9,7 @@ import { useTheme } from "../contexts/ThemeContext";
  */
 export default function ThemeToggle() {
   const { toggleTheme, isDark } = useTheme();
+  const { t } = useLanguage();
 
   return (
     <div className="theme-toggle-wrapper">
@@ -17,8 +19,8 @@ export default function ThemeToggle() {
         onClick={toggleTheme}
         role="switch"
         aria-checked={isDark}
-        aria-label={isDark ? "Attiva modalità chiara" : "Attiva modalità scura"}
-        title={isDark ? "Passa al tema chiaro" : "Passa al tema scuro"}
+        aria-label={isDark ? t("themeToggle.enableLight", {}, "Attiva modalità chiara") : t("themeToggle.enableDark", {}, "Attiva modalità scura")}
+        title={isDark ? t("themeToggle.switchToLight", {}, "Passa al tema chiaro") : t("themeToggle.switchToDark", {}, "Passa al tema scuro")}
       >
         <span className="theme-pill-track">
           {/* Background track icons */}

@@ -3,13 +3,15 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { auth } from "../../firebase";
 import { sendEmailVerification, signOut } from "firebase/auth";
 import { useAuth } from "../../contexts/AuthContext";
+import { useLanguage } from "../../contexts/LanguageContext";
 
 export default function ViewVerificaEmail() {
   const navigate = useNavigate();
   const location = useLocation();
   const { currentUser } = useAuth();
+  const { t } = useLanguage();
 
-  const email = location.state?.email || currentUser?.email || "il tuo indirizzo email";
+  const email = location.state?.email || currentUser?.email || t("auth.yourEmailFallback", {}, "il tuo indirizzo email");
   const [checking, setChecking] = useState(false);
   const [resending, setResending] = useState(false);
   const [cooldown, setCooldown] = useState(0);
@@ -34,17 +36,17 @@ export default function ViewVerificaEmail() {
       if (auth.currentUser) {
         await auth.currentUser.reload();
         if (auth.currentUser.emailVerified) {
-          setMessage("Email verificata con successo! Reindirizzamento...");
+          setMessage(t("auth.emailVerifiedSuccess", {}, "Email verificata con successo! Reindirizzamento..."));
           setTimeout(() => {
             navigate("/scelta-casa", { replace: true });
           }, 1000);
           return;
         }
       }
-      setError("L'indirizzo email non risulta ancora verificato. Clicca prima sul link ricevuto via email e riprova tra qualche istante.");
+      setError(t("auth.emailNotVerifiedYet", {}, "L'indirizzo email non risulta ancora verificato. Clicca prima sul link ricevuto via email e riprova tra qualche istante."));
     } catch (err) {
       console.error("Errore verifica:", err);
-      setError("Impossibile verificare lo stato dell'account. Riprova tra qualche istante.");
+      setError(t("auth.verifyStatusError", {}, "Impossibile verificare lo stato dell'account. Riprova tra qualche istante."));
     } finally {
       setChecking(false);
     }
@@ -59,17 +61,17 @@ export default function ViewVerificaEmail() {
     try {
       if (auth.currentUser) {
         await sendEmailVerification(auth.currentUser);
-        setMessage("Email di verifica inviata nuovamente! Controlla la posta in arrivo e lo spam.");
+        setMessage(t("auth.verificationResent", {}, "Email di verifica inviata nuovamente! Controlla la posta in arrivo e lo spam."));
         setCooldown(60); // 60s cooldown to prevent abuse
       } else {
-        setError("Nessuna sessione attiva trovata. Effettua nuovamente il login.");
+        setError(t("auth.noActiveSession", {}, "Nessuna sessione attiva trovata. Effettua nuovamente il login."));
       }
     } catch (err) {
       console.error("Errore invio verifica:", err);
       if (err.code === "auth/too-many-requests") {
-        setError("Troppe richieste di invio ravvicinate. Attendi qualche minuto prima di riprovare.");
+        setError(t("auth.resendTooManyRequests", {}, "Troppe richieste di invio ravvicinate. Attendi qualche minuto prima di riprovare."));
       } else {
-        setError("Errore durante l'invio dell'email. Riprova più tardi.");
+        setError(t("auth.resendError", {}, "Errore durante l'invio dell'email. Riprova più tardi."));
       }
     } finally {
       setResending(false);
@@ -108,9 +110,9 @@ export default function ViewVerificaEmail() {
       </div>
 
       <div className="auth-header" style={{ marginBottom: "20px" }}>
-        <h1 style={{ fontSize: "1.7rem", marginBottom: "6px" }}>Verifica la tua Email</h1>
+        <h1 style={{ fontSize: "1.7rem", marginBottom: "6px" }}>{t("auth.verifyEmailTitle", {}, "Verifica la tua Email")}</h1>
         <p className="subtitle" style={{ fontSize: "0.95rem", color: "var(--text-secondary)" }}>
-          Un ultimo passaggio per attivare il tuo account
+          {t("auth.verifyEmailSubtitle", {}, "Un ultimo passaggio per attivare il tuo account")}
         </p>
       </div>
 
@@ -154,14 +156,14 @@ export default function ViewVerificaEmail() {
         }}
       >
         <p style={{ margin: "0 0 10px 0", fontSize: "0.92rem", color: "var(--text-main)", lineHeight: 1.5 }}>
-          Abbiamo inviato un messaggio con il link di attivazione a:
+          {t("auth.verifyEmailSentTo", {}, "Abbiamo inviato un messaggio con il link di attivazione a:")}
         </p>
         <p style={{ margin: "0 0 12px 0", fontWeight: "700", color: "var(--color-primary)", wordBreak: "break-all", fontSize: "1rem" }}>
           {email}
         </p>
         <p style={{ margin: 0, fontSize: "0.82rem", color: "var(--text-muted)", lineHeight: 1.4 }}>
           <i className="fas fa-info-circle" style={{ marginRight: "6px" }} aria-hidden="true"></i>
-          Apri la tua casella di posta e fai clic sul link per confermare. Se non trovi l'email, controlla la cartella <strong>Spam</strong> o <strong>Posta Indesiderata</strong>.
+          {t("auth.verifyEmailInstruction", {}, "Apri la tua casella di posta e fai clic sul link per confermare. Se non trovi l'email, controlla la cartella Spam o Posta Indesiderata.")}
         </p>
       </div>
 
@@ -176,12 +178,12 @@ export default function ViewVerificaEmail() {
           {checking ? (
             <>
               <i className="fas fa-spinner fa-spin" aria-hidden="true"></i>
-              <span>Verifica in corso...</span>
+              <span>{t("auth.checkingVerification", {}, "Verifica in corso...")}</span>
             </>
           ) : (
             <>
               <i className="fas fa-check" aria-hidden="true"></i>
-              <span>Ho confermato l'email</span>
+              <span>{t("auth.confirmEmailBtn", {}, "Ho confermato l'email")}</span>
             </>
           )}
         </button>
@@ -196,17 +198,17 @@ export default function ViewVerificaEmail() {
           {resending ? (
             <>
               <i className="fas fa-spinner fa-spin" aria-hidden="true"></i>
-              <span>Invio in corso...</span>
+              <span>{t("auth.resendingEmail", {}, "Invio in corso...")}</span>
             </>
           ) : cooldown > 0 ? (
             <>
               <i className="fas fa-clock" aria-hidden="true"></i>
-              <span>Rinvia tra {cooldown}s</span>
+              <span>{t("auth.resendCooldown", { seconds: cooldown }, `Rinvia tra ${cooldown}s`)}</span>
             </>
           ) : (
             <>
               <i className="fas fa-paper-plane" aria-hidden="true"></i>
-              <span>Invia di nuovo l'email</span>
+              <span>{t("auth.resendEmailBtn", {}, "Invia di nuovo l'email")}</span>
             </>
           )}
         </button>
@@ -220,7 +222,7 @@ export default function ViewVerificaEmail() {
           style={{ fontSize: "0.88rem", color: "var(--text-muted)" }}
         >
           <i className="fas fa-arrow-left" style={{ marginRight: "6px" }} aria-hidden="true"></i>
-          Torna alla schermata di accesso
+          {t("auth.backToLogin", {}, "Torna alla schermata di accesso")}
         </button>
       </div>
     </div>

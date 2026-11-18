@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { useAuth } from "../../contexts/AuthContext";
+import { useLanguage } from "../../contexts/LanguageContext";
 import { showToast, showConfirm } from "../../utils/feedback";
 import { isSafeDownloadUrl } from "../../utils/security";
 import {
@@ -49,12 +50,12 @@ function getCategoryIcon(categoria = "") {
   }
 }
 
-function formatDate(dateStr) {
+function formatDate(dateStr, locale = "it-IT") {
   if (!dateStr) return "-";
   try {
     const d = new Date(dateStr);
     if (isNaN(d.getTime())) return "-";
-    return d.toLocaleDateString("it-IT", {
+    return d.toLocaleDateString(locale, {
       day: "2-digit",
       month: "short",
       year: "numeric"
@@ -66,6 +67,32 @@ function formatDate(dateStr) {
 
 export default function ViewDocumenti() {
   const { currentUser, userData } = useAuth();
+  const { t, language } = useLanguage();
+  const dateLocale = language === "en" ? "en-US" : "it-IT";
+
+  const getCategoryLabel = useCallback(
+    (cat) => {
+      switch (cat) {
+        case "Tutti":
+          return t("documents.catAll", null, "Tutti");
+        case "Contratti":
+          return t("documents.catContracts", null, "Contratti");
+        case "Contratto":
+          return t("documents.catContractSingular", null, "Contratto");
+        case "Bollette":
+          return t("documents.catBills", null, "Bollette");
+        case "Garanzie":
+          return t("documents.catWarranties", null, "Garanzie");
+        case "Ricevute":
+          return t("documents.catReceipts", null, "Ricevute");
+        case "Altro":
+          return t("documents.catOther", null, "Altro");
+        default:
+          return cat;
+      }
+    },
+    [t]
+  );
   const [documents, setDocuments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState("Tutti");
@@ -95,11 +122,11 @@ export default function ViewDocumenti() {
       setDocuments(docs);
     } catch (err) {
       console.error("Errore recupero documenti:", err);
-      showToast("Impossibile caricare i documenti della casa.", "error");
+      showToast(t("documents.loadError", null, "Impossibile caricare i documenti della casa."), "error");
     } finally {
       setLoading(false);
     }
-  }, [userData?.casaId]);
+  }, [userData?.casaId, t]);
 
   useEffect(() => {
     fetchDocuments();
@@ -175,11 +202,11 @@ export default function ViewDocumenti() {
   const handleUploadSubmit = async (e) => {
     e.preventDefault();
     if (!file) {
-      showToast("Seleziona un file da caricare.", "warning");
+      showToast(t("documents.selectFileWarning", null, "Seleziona un file da caricare."), "warning");
       return;
     }
     if (!nome.trim()) {
-      showToast("Inserisci un nome per il documento.", "warning");
+      showToast(t("documents.enterNameWarning", null, "Inserisci un nome per il documento."), "warning");
       return;
     }
 
@@ -194,13 +221,13 @@ export default function ViewDocumenti() {
         currentUser,
         userData
       });
-      showToast("Documento caricato con successo!", "success");
+      showToast(t("documents.uploadSuccess", null, "Documento caricato con successo!"), "success");
       resetForm();
       setShowUploadCard(false);
       await fetchDocuments();
     } catch (err) {
       console.error("Errore caricamento documento:", err);
-      showToast(err.message || "Errore durante il caricamento del documento.", "error");
+      showToast(err.message || t("documents.uploadError", null, "Errore durante il caricamento del documento."), "error");
     } finally {
       setUploading(false);
     }
@@ -209,10 +236,14 @@ export default function ViewDocumenti() {
   // Delete handler
   const handleDelete = async (docItem) => {
     const confirmed = await showConfirm({
-      title: "Elimina Documento",
-      message: `Sei sicuro di voler eliminare "${docItem.nome}"? Il documento verrà rimosso per tutti i coinquilini.`,
-      confirmText: "Elimina",
-      cancelText: "Annulla",
+      title: t("documents.deleteTitle", null, "Elimina Documento"),
+      message: t(
+        "documents.deleteConfirmMsg",
+        { name: docItem.nome },
+        `Sei sicuro di voler eliminare "${docItem.nome}"? Il documento verrà rimosso per tutti i coinquilini.`
+      ),
+      confirmText: t("common.delete", null, "Elimina"),
+      cancelText: t("common.cancel", null, "Annulla"),
       isDanger: true
     });
 
@@ -223,11 +254,11 @@ export default function ViewDocumenti() {
         docId: docItem.id,
         storagePath: docItem.storagePath
       });
-      showToast("Documento eliminato.", "success");
+      showToast(t("documents.deleteSuccess", null, "Documento eliminato."), "success");
       await fetchDocuments();
     } catch (err) {
       console.error("Errore eliminazione:", err);
-      showToast("Errore durante l'eliminazione del documento.", "error");
+      showToast(t("documents.deleteError", null, "Errore durante l'eliminazione del documento."), "error");
     }
   };
 
@@ -283,9 +314,9 @@ export default function ViewDocumenti() {
       {/* Page Header */}
       <div className="documents-header">
         <div className="documents-title-group">
-          <h1>Documenti & Contratti</h1>
+          <h1>{t("documents.title", null, "Documenti & Contratti")}</h1>
           <p className="documents-subtitle">
-            Archivio condiviso di contratti, bollette, garanzie e ricevute della casa
+            {t("documents.viewSubtitle", null, "Archivio condiviso di contratti, bollette, garanzie e ricevute della casa")}
           </p>
         </div>
         <button
@@ -293,13 +324,13 @@ export default function ViewDocumenti() {
           onClick={() => setShowUploadCard((prev) => !prev)}
           className="btn-primary"
           aria-expanded={showUploadCard}
-          aria-label={showUploadCard ? "Chiudi pannello caricamento" : "Carica Documento"}
+          aria-label={showUploadCard ? t("documents.closeUploadAria", null, "Chiudi pannello caricamento") : t("documents.upload", null, "Carica Documento")}
         >
           <i
             className={`fas ${showUploadCard ? "fa-chevron-up" : "fa-cloud-upload-alt"}`}
             aria-hidden="true"
           ></i>
-          <span>{showUploadCard ? "Chiudi" : "Carica Documento"}</span>
+          <span>{showUploadCard ? t("common.close", null, "Chiudi") : t("documents.upload", null, "Carica Documento")}</span>
         </button>
       </div>
 
@@ -309,13 +340,13 @@ export default function ViewDocumenti() {
           <div className="doc-upload-card-header">
             <h2>
               <i className="fas fa-cloud-upload-alt" aria-hidden="true"></i>
-              Carica Nuovo Documento
+              {t("documents.uploadCardTitle", null, "Carica Nuovo Documento")}
             </h2>
             <button
               type="button"
               className="btn-link"
               onClick={() => setShowUploadCard(false)}
-              aria-label="Annulla caricamento"
+              aria-label={t("documents.cancelUploadAria", null, "Annulla caricamento")}
             >
               <i className="fas fa-times" aria-hidden="true"></i>
             </button>
@@ -338,14 +369,14 @@ export default function ViewDocumenti() {
               }}
               tabIndex={0}
               role="button"
-              aria-label="Trascina qui il file oppure clicca per selezionarlo"
+              aria-label={t("documents.dropzoneAria", null, "Trascina qui il file oppure clicca per selezionarlo")}
             >
               <i className="fas fa-cloud-upload-alt doc-dropzone-icon" aria-hidden="true"></i>
               <p className="doc-dropzone-text">
-                Trascina qui il file oppure <span className="btn-link">sfoglia</span>
+                {t("documents.dropzoneText", null, "Trascina qui il file oppure")} <span className="btn-link">{t("documents.browse", null, "sfoglia")}</span>
               </p>
               <p className="doc-dropzone-hint">
-                PDF, Immagini (JPG, PNG, WEBP), Word o Testo. Dimensione massima 15 MB.
+                {t("documents.dropzoneHint", null, "PDF, Immagini (JPG, PNG, WEBP), Word o Testo. Dimensione massima 15 MB.")}
               </p>
               <input
                 ref={fileInputRef}
@@ -371,7 +402,7 @@ export default function ViewDocumenti() {
                   type="button"
                   onClick={handleClearSelectedFile}
                   className="btn-link"
-                  aria-label="Rimuovi file selezionato"
+                  aria-label={t("documents.removeSelectedFileAria", null, "Rimuovi file selezionato")}
                 >
                   <i className="fas fa-times" aria-hidden="true"></i>
                 </button>
@@ -381,41 +412,41 @@ export default function ViewDocumenti() {
             {/* Form Fields */}
             <div className="doc-upload-form-grid">
               <div className="input-group">
-                <label htmlFor="doc-name-input">Nome Documento *</label>
+                <label htmlFor="doc-name-input">{t("documents.nameLabel", null, "Nome Documento *")}</label>
                 <input
                   id="doc-name-input"
                   type="text"
                   value={nome}
                   onChange={(e) => setNome(e.target.value)}
-                  placeholder="es. Contratto Affitto 2026"
+                  placeholder={t("documents.namePlaceholder", null, "es. Contratto Affitto 2026")}
                   maxLength={120}
                   required
                 />
               </div>
 
               <div className="input-group">
-                <label htmlFor="doc-category-select">Categoria *</label>
+                <label htmlFor="doc-category-select">{t("documents.categoryLabel", null, "Categoria *")}</label>
                 <select
                   id="doc-category-select"
                   value={categoria}
                   onChange={(e) => setCategoria(e.target.value)}
                 >
-                  <option value="Contratti">Contratti</option>
-                  <option value="Bollette">Bollette</option>
-                  <option value="Garanzie">Garanzie</option>
-                  <option value="Ricevute">Ricevute</option>
-                  <option value="Altro">Altro</option>
+                  <option value="Contratti">{getCategoryLabel("Contratti")}</option>
+                  <option value="Bollette">{getCategoryLabel("Bollette")}</option>
+                  <option value="Garanzie">{getCategoryLabel("Garanzie")}</option>
+                  <option value="Ricevute">{getCategoryLabel("Ricevute")}</option>
+                  <option value="Altro">{getCategoryLabel("Altro")}</option>
                 </select>
               </div>
 
               <div className="input-group doc-upload-form-full">
-                <label htmlFor="doc-note-input">Note o Dettagli (opzionale)</label>
+                <label htmlFor="doc-note-input">{t("documents.notesLabel", null, "Note o Dettagli (opzionale)")}</label>
                 <textarea
                   id="doc-note-input"
                   rows={2}
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
-                  placeholder="Informazioni aggiuntive (es. scadenza, intestatario, IBAN)..."
+                  placeholder={t("documents.notesPlaceholder", null, "Informazioni aggiuntive (es. scadenza, intestatario, IBAN)...")}
                   maxLength={300}
                 />
               </div>
@@ -431,7 +462,7 @@ export default function ViewDocumenti() {
                 }}
                 disabled={uploading}
               >
-                Annulla
+                {t("common.cancel", null, "Annulla")}
               </button>
               <button
                 type="submit"
@@ -442,12 +473,12 @@ export default function ViewDocumenti() {
                 {uploading ? (
                   <>
                     <i className="fas fa-spinner fa-spin" aria-hidden="true"></i>
-                    <span>Caricamento in corso...</span>
+                    <span>{t("documents.uploading", null, "Caricamento in corso...")}</span>
                   </>
                 ) : (
                   <>
                     <i className="fas fa-cloud-upload-alt" aria-hidden="true"></i>
-                    <span>Salva Documento</span>
+                    <span>{t("documents.saveDocument", null, "Salva Documento")}</span>
                   </>
                 )}
               </button>
@@ -457,7 +488,7 @@ export default function ViewDocumenti() {
       )}
 
       {/* Category Filter Pills */}
-      <div className="doc-filter-pills" role="tablist" aria-label="Filtro categorie documenti">
+      <div className="doc-filter-pills" role="tablist" aria-label={t("documents.filterCategoriesAria", null, "Filtro categorie documenti")}>
         {CATEGORIES.map((cat) => {
           const isActive = selectedCategory === cat;
           return (
@@ -475,7 +506,7 @@ export default function ViewDocumenti() {
                 }`}
                 aria-hidden="true"
               ></i>
-              <span>{cat}</span>
+              <span>{getCategoryLabel(cat)}</span>
             </button>
           );
         })}
@@ -490,15 +521,15 @@ export default function ViewDocumenti() {
             className="doc-search-input"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Cerca per nome, note o autore..."
-            aria-label="Cerca documenti"
+            placeholder={t("documents.searchPlaceholder", null, "Cerca per nome, note o autore...")}
+            aria-label={t("documents.searchAria", null, "Cerca documenti")}
           />
           {searchQuery && (
             <button
               type="button"
               className="doc-search-clear"
               onClick={() => setSearchQuery("")}
-              aria-label="Cancella ricerca"
+              aria-label={t("documents.clearSearchAria", null, "Cancella ricerca")}
             >
               <i className="fas fa-times" aria-hidden="true"></i>
             </button>
@@ -510,21 +541,21 @@ export default function ViewDocumenti() {
             className="doc-sort-select"
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
-            aria-label="Ordina documenti"
+            aria-label={t("documents.sortAria", null, "Ordina documenti")}
           >
-            <option value="date-desc">Più recenti</option>
-            <option value="date-asc">Meno recenti</option>
-            <option value="name-asc">Nome (A - Z)</option>
-            <option value="size-desc">Dimensione</option>
+            <option value="date-desc">{t("documents.sortDateDesc", null, "Più recenti")}</option>
+            <option value="date-asc">{t("documents.sortDateAsc", null, "Meno recenti")}</option>
+            <option value="name-asc">{t("documents.sortNameAsc", null, "Nome (A - Z)")}</option>
+            <option value="size-desc">{t("documents.sortSizeDesc", null, "Dimensione")}</option>
           </select>
 
-          <div className="doc-view-toggle" role="group" aria-label="Visualizzazione">
+          <div className="doc-view-toggle" role="group" aria-label={t("documents.viewToggleAria", null, "Visualizzazione")}>
             <button
               type="button"
               className={`doc-view-btn ${viewMode === "grid" ? "active" : ""}`}
               onClick={() => setViewMode("grid")}
-              aria-label="Vista a griglia"
-              title="Vista a griglia"
+              aria-label={t("documents.gridViewAria", null, "Vista a griglia")}
+              title={t("documents.gridViewAria", null, "Vista a griglia")}
             >
               <i className="fas fa-th-large" aria-hidden="true"></i>
             </button>
@@ -532,8 +563,8 @@ export default function ViewDocumenti() {
               type="button"
               className={`doc-view-btn ${viewMode === "table" ? "active" : ""}`}
               onClick={() => setViewMode("table")}
-              aria-label="Vista a tabella"
-              title="Vista a tabella"
+              aria-label={t("documents.tableViewAria", null, "Vista a tabella")}
+              title={t("documents.tableViewAria", null, "Vista a tabella")}
             >
               <i className="fas fa-list" aria-hidden="true"></i>
             </button>
@@ -545,16 +576,16 @@ export default function ViewDocumenti() {
       {loading ? (
         <div className="agenda-loading" style={{ padding: "4rem 1rem", textAlign: "center" }}>
           <i className="fas fa-spinner fa-spin" style={{ fontSize: "2rem", color: "var(--color-primary)" }} aria-hidden="true"></i>
-          <p style={{ marginTop: "12px", color: "var(--text-secondary)" }}>Caricamento documenti...</p>
+          <p style={{ marginTop: "12px", color: "var(--text-secondary)" }}>{t("documents.loading", null, "Caricamento documenti...")}</p>
         </div>
       ) : filteredDocuments.length === 0 ? (
         <div className="doc-empty-state" data-testid="doc-empty-state">
           <i className="fas fa-folder-open doc-empty-icon" aria-hidden="true"></i>
-          <h3 className="doc-empty-title">Nessun documento trovato</h3>
+          <h3 className="doc-empty-title">{t("documents.emptyTitle", null, "Nessun documento trovato")}</h3>
           <p className="doc-empty-text">
             {searchQuery || selectedCategory !== "Tutti"
-              ? "Nessun documento corrisponde ai filtri selezionati. Prova a modificare la ricerca."
-              : "Non sono ancora presenti documenti in questa casa. Carica il contratto d'affitto, bollette o garanzie per condividerli."}
+              ? t("documents.emptyFilteredText", null, "Nessun documento corrisponde ai filtri selezionati. Prova a modificare la ricerca.")
+              : t("documents.emptyHouseText", null, "Non sono ancora presenti documenti in questa casa. Carica il contratto d'affitto, bollette o garanzie per condividerli.")}
           </p>
           {!showUploadCard && (
             <button
@@ -564,7 +595,7 @@ export default function ViewDocumenti() {
               style={{ marginTop: "8px" }}
             >
               <i className="fas fa-cloud-upload-alt" aria-hidden="true"></i>
-              <span>Carica il primo documento</span>
+              <span>{t("documents.uploadFirst", null, "Carica il primo documento")}</span>
             </button>
           )}
         </div>
@@ -586,7 +617,7 @@ export default function ViewDocumenti() {
                       <h3 className="doc-card-title">{docItem.nome}</h3>
                       <span className="doc-category-badge">
                         <i className={`fas ${getCategoryIcon(docItem.categoria)}`} aria-hidden="true"></i>
-                        {docItem.categoria}
+                        {getCategoryLabel(docItem.categoria)}
                       </span>
                     </div>
                   </div>
@@ -598,17 +629,17 @@ export default function ViewDocumenti() {
 
                 <div>
                   <div className="doc-metadata-strip">
-                    <span className="doc-metadata-item" title="Data di caricamento">
+                    <span className="doc-metadata-item" title={t("documents.uploadDateTitle", null, "Data di caricamento")}>
                       <i className="fas fa-calendar-alt" aria-hidden="true"></i>
-                      {formatDate(docItem.dataCaricamento)}
+                      {formatDate(docItem.dataCaricamento, dateLocale)}
                     </span>
-                    <span className="doc-metadata-item" title="Dimensione file">
+                    <span className="doc-metadata-item" title={t("documents.fileSizeTitle", null, "Dimensione file")}>
                       <i className="fas fa-hdd" aria-hidden="true"></i>
                       {docItem.dimensioneFormatted || formatFileSize(docItem.dimensione || docItem.dimensioneBytes)}
                     </span>
-                    <span className="doc-metadata-item" title="Caricato da">
+                    <span className="doc-metadata-item" title={t("documents.uploadedByTitle", null, "Caricato da")}>
                       <i className="fas fa-user" aria-hidden="true"></i>
-                      {docItem.caricatoDaNome || "Coinquilino"}
+                      {docItem.caricatoDaNome || t("documents.defaultUploader", null, "Coinquilino")}
                     </span>
                   </div>
 
@@ -620,8 +651,8 @@ export default function ViewDocumenti() {
                           target="_blank"
                           rel="noopener noreferrer"
                           className="doc-action-btn btn-view"
-                          aria-label={`Visualizza ${docItem.nome}`}
-                          title="Visualizza"
+                          aria-label={t("documents.viewItemAria", { name: docItem.nome }, `Visualizza ${docItem.nome}`)}
+                          title={t("documents.viewAction", null, "Visualizza")}
                         >
                           <i className="fas fa-eye" aria-hidden="true"></i>
                         </a>
@@ -629,8 +660,8 @@ export default function ViewDocumenti() {
                           href={downloadLink}
                           download={docItem.nome}
                           className="doc-action-btn"
-                          aria-label={`Scarica ${docItem.nome}`}
-                          title="Scarica"
+                          aria-label={t("documents.downloadItemAria", { name: docItem.nome }, `Scarica ${docItem.nome}`)}
+                          title={t("documents.download", null, "Scarica")}
                         >
                           <i className="fas fa-download" aria-hidden="true"></i>
                         </a>
@@ -640,8 +671,8 @@ export default function ViewDocumenti() {
                       type="button"
                       onClick={() => handleDelete(docItem)}
                       className="doc-action-btn btn-delete"
-                      aria-label={`Elimina ${docItem.nome}`}
-                      title="Elimina"
+                      aria-label={t("documents.deleteItemAria", { name: docItem.nome }, `Elimina ${docItem.nome}`)}
+                      title={t("common.delete", null, "Elimina")}
                     >
                       <i className="fas fa-trash-alt" aria-hidden="true"></i>
                     </button>
@@ -654,15 +685,15 @@ export default function ViewDocumenti() {
       ) : (
         /* Table View */
         <div className="doc-table-wrapper" data-testid="doc-table-wrapper">
-          <table className="doc-table" aria-label="Tabella documenti">
+          <table className="doc-table" aria-label={t("documents.tableAria", null, "Tabella documenti")}>
             <thead>
               <tr>
-                <th scope="col">Documento</th>
-                <th scope="col">Categoria</th>
-                <th scope="col">Dimensione</th>
-                <th scope="col">Data</th>
-                <th scope="col">Caricato da</th>
-                <th scope="col" style={{ textAlign: "right" }}>Azioni</th>
+                <th scope="col">{t("documents.colDocument", null, "Documento")}</th>
+                <th scope="col">{t("documents.colCategory", null, "Categoria")}</th>
+                <th scope="col">{t("documents.colSize", null, "Dimensione")}</th>
+                <th scope="col">{t("documents.colDate", null, "Data")}</th>
+                <th scope="col">{t("documents.colUploadedBy", null, "Caricato da")}</th>
+                <th scope="col" style={{ textAlign: "right" }}>{t("common.actions", null, "Azioni")}</th>
               </tr>
             </thead>
             <tbody>
@@ -688,12 +719,12 @@ export default function ViewDocumenti() {
                     <td>
                       <span className="doc-category-badge">
                         <i className={`fas ${getCategoryIcon(docItem.categoria)}`} aria-hidden="true"></i>
-                        {docItem.categoria}
+                        {getCategoryLabel(docItem.categoria)}
                       </span>
                     </td>
                     <td>{docItem.dimensioneFormatted || formatFileSize(docItem.dimensione || docItem.dimensioneBytes)}</td>
-                    <td>{formatDate(docItem.dataCaricamento)}</td>
-                    <td>{docItem.caricatoDaNome || "Coinquilino"}</td>
+                    <td>{formatDate(docItem.dataCaricamento, dateLocale)}</td>
+                    <td>{docItem.caricatoDaNome || t("documents.defaultUploader", null, "Coinquilino")}</td>
                     <td>
                       <div className="doc-table-actions">
                         {downloadLink && (
@@ -703,8 +734,8 @@ export default function ViewDocumenti() {
                               target="_blank"
                               rel="noopener noreferrer"
                               className="doc-action-btn btn-view"
-                              aria-label={`Visualizza ${docItem.nome}`}
-                              title="Visualizza"
+                              aria-label={t("documents.viewItemAria", { name: docItem.nome }, `Visualizza ${docItem.nome}`)}
+                              title={t("documents.viewAction", null, "Visualizza")}
                             >
                               <i className="fas fa-eye" aria-hidden="true"></i>
                             </a>
@@ -712,8 +743,8 @@ export default function ViewDocumenti() {
                               href={downloadLink}
                               download={docItem.nome}
                               className="doc-action-btn"
-                              aria-label={`Scarica ${docItem.nome}`}
-                              title="Scarica"
+                              aria-label={t("documents.downloadItemAria", { name: docItem.nome }, `Scarica ${docItem.nome}`)}
+                              title={t("documents.download", null, "Scarica")}
                             >
                               <i className="fas fa-download" aria-hidden="true"></i>
                             </a>
@@ -723,8 +754,8 @@ export default function ViewDocumenti() {
                           type="button"
                           onClick={() => handleDelete(docItem)}
                           className="doc-action-btn btn-delete"
-                          aria-label={`Elimina ${docItem.nome}`}
-                          title="Elimina"
+                          aria-label={t("documents.deleteItemAria", { name: docItem.nome }, `Elimina ${docItem.nome}`)}
+                          title={t("common.delete", null, "Elimina")}
                         >
                           <i className="fas fa-trash-alt" aria-hidden="true"></i>
                         </button>

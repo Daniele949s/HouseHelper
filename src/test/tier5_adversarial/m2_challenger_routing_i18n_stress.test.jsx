@@ -234,7 +234,7 @@ describe("M2 Empirical Challenger: Navigation Routing & Dynamic i18n Stress Suit
         "Bacheca", "Documenti & Contratti", "Contatti Utili", "Impostazioni"
       ];
       expectedMobileIt.forEach((label) => {
-        expect(screen.getByTestId("mobile-nav-container")).toHaveTextContent(label);
+        expect(document.querySelector(".mobile-menu-overlay")).toHaveTextContent(label);
       });
       expect(screen.getByText("Esci dall'account")).toBeInTheDocument();
 
@@ -274,7 +274,7 @@ describe("M2 Empirical Challenger: Navigation Routing & Dynamic i18n Stress Suit
         "Notice Board", "Documents & Leases", "Useful Contacts", "Settings"
       ];
       expectedMobileEn.forEach((label) => {
-        expect(screen.getByTestId("mobile-nav-container")).toHaveTextContent(label);
+        expect(document.querySelector(".mobile-menu-overlay")).toHaveTextContent(label);
       });
       expect(screen.getByText("Log Out")).toBeInTheDocument();
       expect(screen.getByRole("button", { name: "Close menu" })).toBeInTheDocument();
@@ -472,7 +472,7 @@ describe("M2 Empirical Challenger: Navigation Routing & Dynamic i18n Stress Suit
       });
       const burger1 = await screen.findByRole("button", { name: "Apri menu di navigazione" });
       fireEvent.click(burger1);
-      const activeItem1 = screen.getByTestId("mobile-nav").querySelector(".mobile-menu-item.active-item");
+      const activeItem1 = document.querySelector(".mobile-menu-overlay .mobile-menu-item.active-item");
       expect(activeItem1).not.toBeNull();
       expect(activeItem1.textContent).toContain("Impostazioni");
       expect(activeItem1.querySelector(".active-dot")).toBeInTheDocument();
@@ -486,7 +486,7 @@ describe("M2 Empirical Challenger: Navigation Routing & Dynamic i18n Stress Suit
       });
       const burger2 = await screen.findByRole("button", { name: "Apri menu di navigazione" });
       fireEvent.click(burger2);
-      const activeItem2 = screen.getByTestId("mobile-nav").querySelector(".mobile-menu-item.active-item");
+      const activeItem2 = document.querySelector(".mobile-menu-overlay .mobile-menu-item.active-item");
       expect(activeItem2).not.toBeNull();
       expect(activeItem2.textContent).toContain("Impostazioni");
       expect(activeItem2.querySelector(".active-dot")).toBeInTheDocument();

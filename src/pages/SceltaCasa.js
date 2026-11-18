@@ -12,10 +12,12 @@ import {
   clearInviteCodeRateLimit
 } from "../utils/security";
 import { showToast } from "../utils/feedback";
+import { useLanguage } from "../contexts/LanguageContext";
 
 export default function SceltaCasa() {
   const navigate = useNavigate();
   const { currentUser, userData, setUserData } = useAuth();
+  const { t } = useLanguage();
 
   const [nomeCasa, setNomeCasa] = useState("");
   const [codiceCasa, setCodiceCasa] = useState("");
@@ -28,7 +30,7 @@ export default function SceltaCasa() {
     // Anti-Injection & text sanitization
     const cleanedNome = sanitizeText(nomeCasa, 50);
     if (!cleanedNome) {
-      const err = "Inserisci un nome valido per la casa (massimo 50 caratteri).";
+      const err = t("houseChoice.invalidHouseName", {}, "Inserisci un nome valido per la casa (massimo 50 caratteri).");
       setError(err);
       return;
     }
@@ -54,11 +56,19 @@ export default function SceltaCasa() {
       await updateDoc(userDocRef, { casaId: casaRef.id });
 
       setUserData({ ...userData, casaId: casaRef.id });
-      showToast(`Casa "${cleanedNome}" creata con successo! Codice invito: ${codice}`, "success", 5000);
+      showToast(
+        t(
+          "houseChoice.houseCreatedToast",
+          { name: cleanedNome, code: codice },
+          `Casa "${cleanedNome}" creata con successo! Codice invito: ${codice}`
+        ),
+        "success",
+        5000
+      );
       navigate("/home");
     } catch (e) {
       console.error(e);
-      const err = "Errore nella creazione della casa. Riprova.";
+      const err = t("houseChoice.createHouseError", {}, "Errore nella creazione della casa. Riprova.");
       setError(err);
       showToast(err, "error");
     } finally {
@@ -79,7 +89,7 @@ export default function SceltaCasa() {
     // Alphanumeric sanitization
     const cleanedCodice = sanitizeAlphanumeric(codiceCasa, 10);
     if (!cleanedCodice) {
-      const err = "Inserisci un codice invito valido.";
+      const err = t("houseChoice.invalidInviteCodeInput", {}, "Inserisci un codice invito valido.");
       setError(err);
       return;
     }
@@ -93,7 +103,7 @@ export default function SceltaCasa() {
 
       if (querySnapshot.empty) {
         recordFailedInviteAttempt();
-        const err = "Codice casa non valido o non trovato. Verifica di averlo digitato correttamente.";
+        const err = t("houseChoice.houseNotFoundError", {}, "Codice casa non valido o non trovato. Verifica di averlo digitato correttamente.");
         setError(err);
         setLoading(false);
         return;
@@ -108,11 +118,15 @@ export default function SceltaCasa() {
       await updateDoc(userDocRef, { casaId: casaDoc.id });
 
       setUserData({ ...userData, casaId: casaDoc.id });
-      showToast(`Benvenuto in ${casaDoc.data().nome}!`, "success", 3500);
+      showToast(
+        t("houseChoice.welcomeToHouseToast", { name: casaDoc.data().nome }, `Benvenuto in ${casaDoc.data().nome}!`),
+        "success",
+        3500
+      );
       navigate("/home");
     } catch (e) {
       console.error(e);
-      const err = "Errore durante l'accesso alla casa.";
+      const err = t("houseChoice.joinHouseError", {}, "Errore durante l'accesso alla casa.");
       setError(err);
       showToast(err, "error");
     } finally {
@@ -133,8 +147,8 @@ export default function SceltaCasa() {
       </div>
 
       <div className="auth-header">
-        <h1>Configurazione Casa</h1>
-        <p className="subtitle">Non fai ancora parte di un gruppo. Crea una casa o unisciti ai tuoi coinquilini!</p>
+        <h1>{t("houseChoice.title", {}, "Configurazione Casa")}</h1>
+        <p className="subtitle">{t("houseChoice.subtitle", {}, "Non fai ancora parte di un gruppo. Crea una casa o unisciti ai tuoi coinquilini!")}</p>
       </div>
 
       {error && (
@@ -150,20 +164,20 @@ export default function SceltaCasa() {
         <div className="scelta-card scelta-crea" style={{ borderBottom: "1px solid var(--border-color)", paddingBottom: "2rem", textAlign: "left" }}>
           <h3 style={{ display: "flex", alignItems: "center", gap: "8px", margin: "0 0 6px 0" }}>
             <i className="fas fa-plus-circle" style={{ color: "var(--color-primary)" }} aria-hidden="true"></i>
-            <span>Crea una nuova Casa</span>
+            <span>{t("houseChoice.createTitle", {}, "Crea una nuova Casa")}</span>
           </h3>
           <p className="scelta-desc" style={{ marginBottom: "14px", fontSize: "0.92rem", color: "var(--text-secondary)" }}>
-            Dai un nome alla casa e riceverai un codice invito da condividere con i coinquilini.
+            {t("houseChoice.createDesc", {}, "Dai un nome alla casa e riceverai un codice invito da condividere con i coinquilini.")}
           </p>
           <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
             <div className="input-with-icon" style={{ flex: 1, minWidth: "220px" }}>
               <input
                 type="text"
-                placeholder="Nome casa (es. Villa Arzilla, Appartamento 4B)"
+                placeholder={t("houseChoice.houseNamePlaceholder", {}, "Nome casa (es. Villa Arzilla, Appartamento 4B)")}
                 value={nomeCasa}
                 maxLength={50}
                 onChange={(e) => setNomeCasa(e.target.value)}
-                aria-label="Nome della casa da creare"
+                aria-label={t("houseChoice.houseNameAria", {}, "Nome della casa da creare")}
                 style={{
                   width: "100%",
                   padding: "14px 18px",
@@ -183,9 +197,9 @@ export default function SceltaCasa() {
               style={{ width: "auto", padding: "14px 24px" }}
             >
               {loading ? (
-                <span><i className="fas fa-spinner fa-spin" aria-hidden="true"></i> Creazione...</span>
+                <span><i className="fas fa-spinner fa-spin" aria-hidden="true"></i> {t("houseChoice.creating", {}, "Creazione...")}</span>
               ) : (
-                <span><i className="fas fa-plus" aria-hidden="true"></i> Crea Casa</span>
+                <span><i className="fas fa-plus" aria-hidden="true"></i> {t("houseChoice.createBtn", {}, "Crea Casa")}</span>
               )}
             </button>
           </div>
@@ -195,20 +209,20 @@ export default function SceltaCasa() {
         <div className="scelta-card scelta-unisciti" style={{ textAlign: "left" }}>
           <h3 style={{ display: "flex", alignItems: "center", gap: "8px", margin: "0 0 6px 0" }}>
             <i className="fas fa-key" style={{ color: "var(--color-accent)" }} aria-hidden="true"></i>
-            <span>Unisciti con codice</span>
+            <span>{t("houseChoice.joinTitle", {}, "Unisciti con codice")}</span>
           </h3>
           <p className="scelta-desc" style={{ marginBottom: "14px", fontSize: "0.92rem", color: "var(--text-secondary)" }}>
-            Hai ricevuto un codice dal tuo coinquilino? Inseriscilo qui per accedere subito.
+            {t("houseChoice.joinDesc", {}, "Hai ricevuto un codice dal tuo coinquilino? Inseriscilo qui per accedere subito.")}
           </p>
           <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
             <div className="input-with-icon" style={{ flex: 1, minWidth: "220px" }}>
               <input
                 type="text"
-                placeholder="Codice (es. X7K9P2)"
+                placeholder={t("houseChoice.inviteCodePlaceholder", {}, "Codice (es. X7K9P2)")}
                 value={codiceCasa}
                 maxLength={10}
                 onChange={(e) => setCodiceCasa(e.target.value.toUpperCase())}
-                aria-label="Codice invito per accedere alla casa"
+                aria-label={t("houseChoice.inviteCodeAria", {}, "Codice invito per accedere alla casa")}
                 style={{
                   width: "100%",
                   padding: "14px 18px",
@@ -231,9 +245,9 @@ export default function SceltaCasa() {
               style={{ width: "auto", padding: "14px 24px" }}
             >
               {loading ? (
-                <span><i className="fas fa-spinner fa-spin" aria-hidden="true"></i> Accesso...</span>
+                <span><i className="fas fa-spinner fa-spin" aria-hidden="true"></i> {t("houseChoice.joining", {}, "Accesso...")}</span>
               ) : (
-                <span><i className="fas fa-door-open" aria-hidden="true"></i> Unisciti</span>
+                <span><i className="fas fa-door-open" aria-hidden="true"></i> {t("houseChoice.joinBtn", {}, "Unisciti")}</span>
               )}
             </button>
           </div>
@@ -244,7 +258,7 @@ export default function SceltaCasa() {
       <div style={{ marginTop: "36px", textAlign: "center" }}>
         <button type="button" className="btn-text" onClick={handleLogout}>
           <i className="fas fa-sign-out-alt" aria-hidden="true"></i>
-          <span>Esci dall'account</span>
+          <span>{t("common.logout", {}, "Esci dall'account")}</span>
         </button>
       </div>
     </div>

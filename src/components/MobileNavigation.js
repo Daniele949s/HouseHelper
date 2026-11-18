@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { useLanguage } from "../contexts/LanguageContext";
@@ -91,6 +92,75 @@ export default function MobileNavigation() {
         { label: t("nav.register", {}, "Registrati"), icon: "fa-user-plus", path: "/registrazione" },
       ];
 
+  const drawerOverlay = (
+    <div
+      className={`mobile-menu-overlay ${isOpen ? "menu-opened" : ""}`}
+      aria-hidden={!isOpen}
+      onClick={handleOverlayClick}
+    >
+      <div className="mobile-menu-inner">
+        <div className="mobile-menu-header">
+          <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+            <span className="mobile-menu-badge">
+              <i className="fas fa-home"></i> {t("nav.menuTitle", {}, "HouseHelper Menu")}
+            </span>
+            {userData?.username && (
+              <span className="mobile-user-greeting">
+                {t("nav.greeting", { name: userData.username }, `Ciao, ${userData.username}`)}
+              </span>
+            )}
+          </div>
+
+          <button
+            type="button"
+            className="mobile-close-btn"
+            onClick={() => setIsOpen(false)}
+            aria-label={t("nav.ariaCloseMenu", {}, "Chiudi menu")}
+          >
+            <i className="fas fa-times"></i>
+          </button>
+        </div>
+
+        <ul className="mobile-menu-list">
+          {menuItems.map((item, idx) => {
+            const isActive =
+              item.path === "/impostazioni"
+                ? location.pathname === "/impostazioni" || location.pathname === "/settings"
+                : location.pathname === item.path;
+
+            return (
+              <li
+                key={item.path}
+                className={`mobile-menu-item ${isActive ? "active-item" : ""}`}
+                style={{ "--item-index": idx }}
+              >
+                <button
+                  type="button"
+                  onClick={() => handleNav(item.path)}
+                  className="mobile-menu-link"
+                >
+                  <span className="menu-icon-wrapper">
+                    <i className={`fas ${item.icon}`}></i>
+                  </span>
+                  <span className="menu-label-text">{item.label}</span>
+                  {isActive && <span className="active-dot" />}
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+
+        {currentUser && (
+          <div className="mobile-menu-footer">
+            <button type="button" onClick={handleLogout} className="mobile-logout-btn">
+              <i className="fas fa-sign-out-alt"></i> {t("common.logout", {}, "Esci dall'account")}
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
   return (
     <div className="mobile-nav-root">
       {/* Burger button in the top bar */}
@@ -109,73 +179,8 @@ export default function MobileNavigation() {
         </div>
       </button>
 
-      {/* Fullscreen Mobile Drawer: 100% Solid Opaque (No transparency) */}
-      <div
-        className={`mobile-menu-overlay ${isOpen ? "menu-opened" : ""}`}
-        aria-hidden={!isOpen}
-        onClick={handleOverlayClick}
-      >
-        <div className="mobile-menu-inner">
-          <div className="mobile-menu-header">
-            <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
-              <span className="mobile-menu-badge">
-                <i className="fas fa-home"></i> {t("nav.menuTitle", {}, "HouseHelper Menu")}
-              </span>
-              {userData?.username && (
-                <span className="mobile-user-greeting">
-                  {t("nav.greeting", { name: userData.username }, `Ciao, ${userData.username}`)}
-                </span>
-              )}
-            </div>
-
-            <button
-              type="button"
-              className="mobile-close-btn"
-              onClick={() => setIsOpen(false)}
-              aria-label={t("nav.ariaCloseMenu", {}, "Chiudi menu")}
-            >
-              <i className="fas fa-times"></i>
-            </button>
-          </div>
-
-          <ul className="mobile-menu-list">
-            {menuItems.map((item, idx) => {
-              const isActive =
-                item.path === "/impostazioni"
-                  ? location.pathname === "/impostazioni" || location.pathname === "/settings"
-                  : location.pathname === item.path;
-
-              return (
-                <li
-                  key={item.path}
-                  className={`mobile-menu-item ${isActive ? "active-item" : ""}`}
-                  style={{ "--item-index": idx }}
-                >
-                  <button
-                    type="button"
-                    onClick={() => handleNav(item.path)}
-                    className="mobile-menu-link"
-                  >
-                    <span className="menu-icon-wrapper">
-                      <i className={`fas ${item.icon}`}></i>
-                    </span>
-                    <span className="menu-label-text">{item.label}</span>
-                    {isActive && <span className="active-dot" />}
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
-
-          {currentUser && (
-            <div className="mobile-menu-footer">
-              <button type="button" onClick={handleLogout} className="mobile-logout-btn">
-                <i className="fas fa-sign-out-alt"></i> {t("common.logout", {}, "Esci dall'account")}
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
+      {/* Fullscreen Mobile Drawer: Portaled to document.body to escape sticky/backdrop-filter containing blocks */}
+      {typeof document !== "undefined" ? createPortal(drawerOverlay, document.body) : drawerOverlay}
     </div>
   );
 }

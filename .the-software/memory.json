@@ -1,0 +1,44 @@
+{
+  "version": 1,
+  "decisions": [
+    {
+      "id": "baseline",
+      "title": "Preserve the architectural baseline",
+      "status": "accepted",
+      "context": "Initial architecture of househelper",
+      "decision": "Review dependency and module changes against the recorded baseline.",
+      "rationale": "Keep changes explicit and reviewable.",
+      "tradeoffs": "Intentional evolution may require updated contracts.",
+      "modules": [
+        "public",
+        "scripts",
+        "src",
+        "src/__mocks__",
+        "src/components",
+        "src/contexts",
+        "src/i18n",
+        "src/pages/Autenticazione",
+        "src/pages/Bacheca",
+        "src/pages/Contatti",
+        "src/pages/Debiti",
+        "src/pages/Documenti",
+        "src/pages/Impostazioni",
+        "src/pages",
+        "src/pages/Spesa",
+        "src/pages/TurniPulizia",
+        "src/services",
+        "src/test",
+        "src/test/tier1_features",
+        "src/test/tier2_boundaries",
+        "src/test/tier3_interactions",
+        "src/test/tier4_scenarios",
+        "src/test/tier5_adversarial",
+        "src/utils"
+      ],
+      "createdAt": "2026-11-11T15:37:11.179Z"
+    }
+  ],
+  "constraints": [],
+  "incidents": [],
+  "history": []
+}

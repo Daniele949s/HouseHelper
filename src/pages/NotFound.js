@@ -1,10 +1,12 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
+import { useLanguage } from "../contexts/LanguageContext";
 
 export default function NotFound() {
   const navigate = useNavigate();
   const { currentUser, userData } = useAuth();
+  const { t } = useLanguage();
 
   const handleReturn = () => {
     if (!currentUser) {
@@ -23,10 +25,10 @@ export default function NotFound() {
       </div>
       <h1 style={{ fontSize: "2.4rem", marginBottom: "8px" }}>404</h1>
       <h2 style={{ fontSize: "1.3rem", color: "var(--text-main)", marginBottom: "12px" }}>
-        Pagina Non Trovata
+        {t("errors.notFoundTitle", {}, "Pagina Non Trovata")}
       </h2>
       <p style={{ color: "var(--text-secondary)", fontSize: "0.95rem", lineHeight: 1.6, marginBottom: "28px" }}>
-        L'indirizzo URL a cui stai tentando di accedere non esiste, è stato rimosso oppure non hai i permessi per visualizzarlo.
+        {t("errors.notFoundLongDesc", {}, "L'indirizzo URL a cui stai tentando di accedere non esiste, è stato rimosso oppure non hai i permessi per visualizzarlo.")}
       </p>
 
       <button
@@ -35,7 +37,7 @@ export default function NotFound() {
         style={{ width: "auto", padding: "12px 28px", margin: "0 auto" }}
       >
         <i className="fas fa-home" style={{ marginRight: "8px" }}></i>
-        Torna alla dashboard
+        {t("errors.backToDashboard", {}, "Torna alla dashboard")}
       </button>
     </div>
   );

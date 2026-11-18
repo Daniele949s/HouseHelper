@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { useAuth } from "../../contexts/AuthContext";
+import { useLanguage } from "../../contexts/LanguageContext";
 import { db } from "../../firebase";
 import {
   collection,
@@ -39,8 +40,20 @@ export const CATEGORY_ICONS = {
   Altro: "fa-address-card"
 };
 
+const CATEGORY_KEYS = {
+  Tutti: "contacts.catAll",
+  Proprietario: "contacts.catLandlord",
+  Idraulico: "contacts.catPlumber",
+  Elettricista: "contacts.catElectrician",
+  Amministratore: "contacts.catManager",
+  Emergenza: "contacts.catEmergency",
+  Altro: "contacts.catOther"
+};
+
 export default function ViewContatti() {
   const { currentUser, userData } = useAuth();
+  const { t } = useLanguage();
+  const getCategoryLabel = (cat) => (CATEGORY_KEYS[cat] ? t(CATEGORY_KEYS[cat], null, cat) : cat);
   const [contatti, setContatti] = useState(() => {
     if (userData?.casaId) {
       return getOfflineData(userData.casaId, "contatti") || [];
@@ -79,11 +92,11 @@ export default function ViewContatti() {
       saveOfflineData(userData.casaId, "contatti", list);
     } catch (err) {
       console.error("Errore nel caricamento contatti:", err);
-      showToast("Impossibile caricare i contatti dal server. Visualizzazione offline.", "warning");
+      showToast(t("contacts.offlineLoadWarning", null, "Impossibile caricare i contatti dal server. Visualizzazione offline."), "warning");
     } finally {
       setLoading(false);
     }
-  }, [userData?.casaId]);
+  }, [userData?.casaId, t]);
 
   useEffect(() => {
     fetchContatti();
@@ -127,19 +140,19 @@ export default function ViewContatti() {
 
     const cleanedNome = sanitizeText(nome, 100);
     if (!cleanedNome) {
-      setFormError("Il nome o intestazione del contatto è obbligatorio.");
+      setFormError(t("contacts.errorNameRequired", null, "Il nome o intestazione del contatto è obbligatorio."));
       return;
     }
 
     const cleanedTel = sanitizePhone(telefono, 30);
     const cleanedEmail = email.trim();
     if (cleanedEmail && !isValidEmail(cleanedEmail)) {
-      setFormError("L'indirizzo email inserito non è valido.");
+      setFormError(t("contacts.errorInvalidEmail", null, "L'indirizzo email inserito non è valido."));
       return;
     }
 
     if (!cleanedTel && !cleanedEmail) {
-      setFormError("Inserisci almeno un recapito (telefono o email).");
+      setFormError(t("contacts.errorContactRequired", null, "Inserisci almeno un recapito (telefono o email)."));
       return;
     }
 
@@ -160,14 +173,14 @@ export default function ViewContatti() {
       };
 
       await addDoc(collection(db, "contatti"), newContact);
-      showToast("Contatto aggiunto con successo", "success");
+      showToast(t("contacts.addSuccess", null, "Contatto aggiunto con successo"), "success");
       setShowAddModal(false);
       resetForm();
       await fetchContatti();
     } catch (err) {
       console.error("Errore salvataggio contatto:", err);
-      setFormError("Si è verificato un errore durante il salvataggio.");
-      showToast("Errore durante il salvataggio del contatto", "error");
+      setFormError(t("contacts.saveFormError", null, "Si è verificato un errore durante il salvataggio."));
+      showToast(t("contacts.saveToastError", null, "Errore durante il salvataggio del contatto"), "error");
     } finally {
       setIsSubmitting(false);
     }
@@ -175,18 +188,18 @@ export default function ViewContatti() {
 
   const handleDeleteContact = (contact) => {
     showConfirm({
-      title: "Elimina Contatto",
-      message: `Sei sicuro di voler eliminare il contatto "${contact.nome}"?`,
-      confirmText: "Elimina",
+      title: t("contacts.deleteConfirmTitle", null, "Elimina Contatto"),
+      message: t("contacts.deleteConfirmMessage", { name: contact.nome }, 'Sei sicuro di voler eliminare il contatto "{name}"?'),
+      confirmText: t("common.delete", null, "Elimina"),
       confirmVariant: "danger",
       onConfirm: async () => {
         try {
           await deleteDoc(doc(db, "contatti", contact.id));
-          showToast("Contatto eliminato", "info");
+          showToast(t("contacts.deleteSuccess", null, "Contatto eliminato"), "info");
           await fetchContatti();
         } catch (err) {
           console.error("Errore cancellazione contatto:", err);
-          showToast("Impossibile eliminare il contatto", "error");
+          showToast(t("contacts.deleteError", null, "Impossibile eliminare il contatto"), "error");
         }
       }
     });
@@ -218,7 +231,7 @@ export default function ViewContatti() {
         <div className="contact-card-header">
           <div className="contact-title-group">
             <span className={`contact-category-badge ${isPriority ? "priority-badge-active" : ""}`}>
-              <i className={`fas ${catIcon}`} aria-hidden="true"></i> {contact.categoria}
+              <i className={`fas ${catIcon}`} aria-hidden="true"></i> {getCategoryLabel(contact.categoria)}
             </span>
             <h2 className="contact-name">{contact.nome}</h2>
           </div>
@@ -226,8 +239,8 @@ export default function ViewContatti() {
             type="button"
             className="contact-delete-btn"
             onClick={() => handleDeleteContact(contact)}
-            aria-label={`Elimina ${contact.nome}`}
-            title="Elimina contatto"
+            aria-label={t("contacts.deleteAriaLabel", { name: contact.nome }, "Elimina {name}")}
+            title={t("contacts.deleteTitle", null, "Elimina contatto")}
           >
             <i className="fas fa-trash-alt" aria-hidden="true"></i>
           </button>
@@ -242,9 +255,9 @@ export default function ViewContatti() {
                 <a
                   href={telUrl}
                   className="btn btn-sm btn-action-call"
-                  aria-label={`Chiama ${contact.nome}`}
+                  aria-label={t("contacts.callAriaLabel", { name: contact.nome }, "Chiama {name}")}
                 >
-                  <i className="fas fa-phone" aria-hidden="true"></i> Chiama
+                  <i className="fas fa-phone" aria-hidden="true"></i> {t("contacts.callBtn", null, "Chiama")}
                 </a>
               )}
             </div>
@@ -258,9 +271,9 @@ export default function ViewContatti() {
                 <a
                   href={mailtoUrl}
                   className="btn btn-sm btn-action-email"
-                  aria-label={`Invia email a ${contact.nome}`}
+                  aria-label={t("contacts.emailAriaLabel", { name: contact.nome }, "Invia email a {name}")}
                 >
-                  <i className="fas fa-paper-plane" aria-hidden="true"></i> Scrivi email
+                  <i className="fas fa-paper-plane" aria-hidden="true"></i> {t("contacts.emailBtn", null, "Scrivi email")}
                 </a>
               )}
             </div>
@@ -283,10 +296,10 @@ export default function ViewContatti() {
       <div className="section-header">
         <div>
           <h1 className="dashboard-title">
-            Contatti Utili della Casa
+            {t("contacts.pageTitle", null, "Contatti Utili della Casa")}
           </h1>
           <p className="dashboard-subtitle">
-            Numeri di emergenza, proprietario, tecnici e servizi utili per la casa
+            {t("contacts.pageSubtitle", null, "Numeri di emergenza, proprietario, tecnici e servizi utili per la casa")}
           </p>
         </div>
         <div>
@@ -294,9 +307,9 @@ export default function ViewContatti() {
             type="button"
             className="btn btn-primary"
             onClick={handleOpenModal}
-            aria-label="Aggiungi nuovo contatto"
+            aria-label={t("contacts.addAriaLabel", null, "Aggiungi nuovo contatto")}
           >
-            <i className="fas fa-plus" aria-hidden="true"></i> Nuovo Contatto
+            <i className="fas fa-plus" aria-hidden="true"></i> {t("contacts.newContactBtn", null, "Nuovo Contatto")}
           </button>
         </div>
       </div>
@@ -308,17 +321,17 @@ export default function ViewContatti() {
           <input
             type="text"
             className="form-control search-input"
-            placeholder="Cerca per nome, numero o email..."
+            placeholder={t("contacts.searchPlaceholder", null, "Cerca per nome, numero o email...")}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            aria-label="Cerca contatti"
+            aria-label={t("contacts.searchAriaLabel", null, "Cerca contatti")}
           />
           {searchTerm && (
             <button
               type="button"
               className="clear-search-btn"
               onClick={() => setSearchTerm("")}
-              aria-label="Cancella ricerca"
+              aria-label={t("contacts.clearSearchAriaLabel", null, "Cancella ricerca")}
             >
               <i className="fas fa-times" aria-hidden="true"></i>
             </button>
@@ -341,7 +354,7 @@ export default function ViewContatti() {
                   style={{ marginRight: "6px" }}
                 ></i>
               )}
-              {cat}
+              {getCategoryLabel(cat)}
             </button>
           ))}
         </div>
@@ -351,16 +364,16 @@ export default function ViewContatti() {
       {loading && contatti.length === 0 ? (
         <div className="card text-center py-5">
           <i className="fas fa-spinner fa-spin fa-2x text-muted mb-3" aria-hidden="true"></i>
-          <p className="text-muted">Caricamento contatti in corso...</p>
+          <p className="text-muted">{t("contacts.loadingContacts", null, "Caricamento contatti in corso...")}</p>
         </div>
       ) : filteredContatti.length === 0 ? (
         <div className="card text-center py-5 empty-contacts-card">
           <i className="fas fa-address-card fa-3x text-muted mb-3" aria-hidden="true"></i>
-          <h3>Nessun contatto trovato</h3>
+          <h3>{t("contacts.emptyTitle", null, "Nessun contatto trovato")}</h3>
           <p className="text-muted">
             {searchTerm || selectedCategory !== "Tutti"
-              ? "Nessun contatto corrisponde ai filtri selezionati."
-              : "La rubrica della casa è vuota. Aggiungi il proprietario, l'idraulico o i numeri di emergenza!"}
+              ? t("contacts.emptyFiltered", null, "Nessun contatto corrisponde ai filtri selezionati.")
+              : t("contacts.emptyDirectory", null, "La rubrica della casa è vuota. Aggiungi il proprietario, l'idraulico o i numeri di emergenza!")}
           </p>
           {!searchTerm && selectedCategory === "Tutti" && (
             <button
@@ -368,7 +381,7 @@ export default function ViewContatti() {
               className="btn btn-outline-primary mt-3"
               onClick={handleOpenModal}
             >
-              <i className="fas fa-plus" aria-hidden="true"></i> Aggiungi il primo contatto
+              <i className="fas fa-plus" aria-hidden="true"></i> {t("contacts.addFirstBtn", null, "Aggiungi il primo contatto")}
             </button>
           )}
         </div>
@@ -379,9 +392,9 @@ export default function ViewContatti() {
             <div className="emergency-shelf-header">
               <div className="emergency-shelf-title">
                 <i className="fas fa-bolt emergency-shelf-icon" aria-hidden="true"></i>
-                <span>Numeri Rapidi & Emergenze</span>
+                <span>{t("contacts.priorityShelfTitle", null, "Numeri Rapidi & Emergenze")}</span>
               </div>
-              <span className="emergency-shelf-subtitle">Accesso prioritario con chiamata diretta</span>
+              <span className="emergency-shelf-subtitle">{t("contacts.priorityShelfSubtitle", null, "Accesso prioritario con chiamata diretta")}</span>
             </div>
             <div className="emergency-shelf-grid">
               {filteredContatti.filter(isPriorityContact).map((c) => renderContactCard(c, true))}
@@ -391,7 +404,7 @@ export default function ViewContatti() {
           {/* Routine Directory */}
           {filteredContatti.some((c) => !isPriorityContact(c)) && (
             <div className="routine-contacts-section">
-              <h3 className="routine-contacts-title">Rubrica della Casa</h3>
+              <h3 className="routine-contacts-title">{t("contacts.routineTitle", null, "Rubrica della Casa")}</h3>
               <div className="contacts-grid">
                 {filteredContatti.filter((c) => !isPriorityContact(c)).map((c) => renderContactCard(c, false))}
               </div>
@@ -415,14 +428,14 @@ export default function ViewContatti() {
           <div className="modal-card" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2 className="modal-title">
-                <i className="fas fa-user-plus" aria-hidden="true"></i> Nuovo Contatto
+                <i className="fas fa-user-plus" aria-hidden="true"></i> {t("contacts.newContactBtn", null, "Nuovo Contatto")}
               </h2>
               <button
                 type="button"
                 className="modal-close-btn"
                 onClick={handleCloseModal}
                 disabled={isSubmitting}
-                aria-label="Chiudi finestra"
+                aria-label={t("contacts.closeModalAriaLabel", null, "Chiudi finestra")}
               >
                 <i className="fas fa-times" aria-hidden="true"></i>
               </button>
@@ -438,13 +451,13 @@ export default function ViewContatti() {
 
                 <div className="form-group mb-3">
                   <label htmlFor="contact-nome" className="form-label">
-                    Nome o Intestazione *
+                    {t("contacts.formNameLabel", null, "Nome o Intestazione *")}
                   </label>
                   <input
                     id="contact-nome"
                     type="text"
                     className="form-control"
-                    placeholder="Es. Mario Rossi (Idraulico) o Dott. Bianchi"
+                    placeholder={t("contacts.formNamePlaceholder", null, "Es. Mario Rossi (Idraulico) o Dott. Bianchi")}
                     value={nome}
                     onChange={(e) => setNome(e.target.value)}
                     maxLength={100}
@@ -455,7 +468,7 @@ export default function ViewContatti() {
 
                 <div className="form-group mb-3">
                   <label htmlFor="contact-categoria" className="form-label">
-                    Categoria *
+                    {t("contacts.formCategoryLabel", null, "Categoria *")}
                   </label>
                   <select
                     id="contact-categoria"
@@ -466,7 +479,7 @@ export default function ViewContatti() {
                   >
                     {CATEGORIES.slice(1).map((cat) => (
                       <option key={cat} value={cat}>
-                        {cat}
+                        {getCategoryLabel(cat)}
                       </option>
                     ))}
                   </select>
@@ -474,13 +487,13 @@ export default function ViewContatti() {
 
                 <div className="form-group mb-3">
                   <label htmlFor="contact-telefono" className="form-label">
-                    Numero di Telefono
+                    {t("contacts.formPhoneLabel", null, "Numero di Telefono")}
                   </label>
                   <input
                     id="contact-telefono"
                     type="tel"
                     className="form-control"
-                    placeholder="Es. +39 340 1234567"
+                    placeholder={t("contacts.formPhonePlaceholder", null, "Es. +39 340 1234567")}
                     value={telefono}
                     onChange={(e) => setTelefono(e.target.value)}
                     maxLength={30}
@@ -490,13 +503,13 @@ export default function ViewContatti() {
 
                 <div className="form-group mb-3">
                   <label htmlFor="contact-email" className="form-label">
-                    Indirizzo Email
+                    {t("contacts.formEmailLabel", null, "Indirizzo Email")}
                   </label>
                   <input
                     id="contact-email"
                     type="email"
                     className="form-control"
-                    placeholder="Es. info@studioamministrazione.it"
+                    placeholder={t("contacts.formEmailPlaceholder", null, "Es. info@studioamministrazione.it")}
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     maxLength={100}
@@ -506,13 +519,13 @@ export default function ViewContatti() {
 
                 <div className="form-group mb-3">
                   <label htmlFor="contact-note" className="form-label">
-                    Note Aggiuntive
+                    {t("contacts.formNotesLabel", null, "Note Aggiuntive")}
                   </label>
                   <textarea
                     id="contact-note"
                     className="form-control"
                     rows="3"
-                    placeholder="Es. Reperibile dal lun al ven 8-18. Codice cliente condomini: 1234"
+                    placeholder={t("contacts.formNotesPlaceholder", null, "Es. Reperibile dal lun al ven 8-18. Codice cliente condomini: 1234")}
                     value={note}
                     onChange={(e) => setNote(e.target.value)}
                     maxLength={250}
@@ -528,7 +541,7 @@ export default function ViewContatti() {
                   onClick={handleCloseModal}
                   disabled={isSubmitting}
                 >
-                  Annulla
+                  {t("common.cancel", null, "Annulla")}
                 </button>
                 <button
                   type="submit"
@@ -537,11 +550,11 @@ export default function ViewContatti() {
                 >
                   {isSubmitting ? (
                     <>
-                      <i className="fas fa-spinner fa-spin" aria-hidden="true"></i> Salvataggio...
+                      <i className="fas fa-spinner fa-spin" aria-hidden="true"></i> {t("contacts.savingBtn", null, "Salvataggio...")}
                     </>
                   ) : (
                     <>
-                      <i className="fas fa-save" aria-hidden="true"></i> Salva Contatto
+                      <i className="fas fa-save" aria-hidden="true"></i> {t("contacts.saveContactBtn", null, "Salva Contatto")}
                     </>
                   )}
                 </button>

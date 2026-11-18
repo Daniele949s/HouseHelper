@@ -11,6 +11,7 @@ import {
   addDoc
 } from "firebase/firestore";
 import { useAuth } from "../../contexts/AuthContext";
+import { useLanguage } from "../../contexts/LanguageContext";
 import { safeFloat } from "../../utils/security";
 import { showToast, showConfirm } from "../../utils/feedback";
 import { simplifyDebts, calculateNetBalances } from "../../utils/debtSimplification";
@@ -19,11 +20,12 @@ import { exportExpensesToCsv, printMonthlyReport } from "../../utils/reportExpor
 export default function ViewDebiti() {
   const navigate = useNavigate();
   const { userData, currentUser } = useAuth();
+  const { t, language } = useLanguage();
 
   const [debiti, setDebiti] = useState([]);
   const [utentiMap, setUtentiMap] = useState({});
   const [roommates, setRoommates] = useState([]);
-  const [casaNome, setCasaNome] = useState("Casa");
+  const [casaNome, setCasaNome] = useState(() => t("expenses.defaultHouseName", null, "Casa"));
   const [saldo, setSaldo] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -59,14 +61,14 @@ export default function ViewDebiti() {
       const list = [];
       snapUtenti.forEach((d) => {
         const udata = d.data();
-        map[d.id] = udata.username || "Utente Sconosciuto";
-        list.push({ uid: d.id, id: d.id, username: udata.username || "Utente Sconosciuto" });
+        map[d.id] = udata.username || t("expenses.unknownUser", null, "Utente Sconosciuto");
+        list.push({ uid: d.id, id: d.id, username: udata.username || t("expenses.unknownUser", null, "Utente Sconosciuto") });
       });
       setUtentiMap(map);
       setRoommates(list);
 
       if (snapCasa && !snapCasa.empty) {
-        setCasaNome(snapCasa.docs[0].data().nome || "Casa");
+        setCasaNome(snapCasa.docs[0].data().nome || t("expenses.defaultHouseName", null, "Casa"));
       }
 
       const data = snapDebiti.docs.map((docSnap) => ({
@@ -90,11 +92,11 @@ export default function ViewDebiti() {
       setDebiti(data);
     } catch (err) {
       console.error(err);
-      setError("Errore nel caricamento delle spese.");
+      setError(t("expenses.loadError", null, "Errore nel caricamento delle spese."));
     } finally {
       setLoading(false);
     }
-  }, [userData?.casaId, currentUser?.uid]);
+  }, [userData?.casaId, currentUser?.uid, t]);
 
   useEffect(() => {
     fetchDati();
@@ -116,19 +118,19 @@ export default function ViewDebiti() {
     const debitoTarget = debiti.find((d) => d.id === id);
     if (!debitoTarget || debitoTarget.casaId !== userData?.casaId) {
       showToast(
-        "Operazione non autorizzata: debito non appartenente alla tua abitazione.",
+        t("expenses.unauthorizedOp", null, "Operazione non autorizzata: debito non appartenente alla tua abitazione."),
         "error"
       );
       return;
     }
 
     const confirmed = await showConfirm({
-      title: isMyDebt ? "Salda Debito" : "Elimina Spesa",
+      title: isMyDebt ? t("expenses.settle", null, "Salda Debito") : t("expenses.deleteExpenseTitle", null, "Elimina Spesa"),
       message: isMyDebt
-        ? "Confermi di aver saldato questo importo?"
-        : "Sei sicuro di voler eliminare questa spesa?",
-      confirmText: isMyDebt ? "Salda" : "Elimina",
-      cancelText: "Annulla",
+        ? t("expenses.settleConfirmMsg", null, "Confermi di aver saldato questo importo?")
+        : t("expenses.deleteConfirmMsg", null, "Sei sicuro di voler eliminare questa spesa?"),
+      confirmText: isMyDebt ? t("expenses.settleBtn", null, "Salda") : t("common.delete", null, "Elimina"),
+      cancelText: t("common.cancel", null, "Annulla"),
       isDanger: !isMyDebt
     });
 
@@ -136,11 +138,16 @@ export default function ViewDebiti() {
 
     try {
       await deleteDoc(doc(db, "debiti", id));
-      showToast(isMyDebt ? "Debito saldato con successo!" : "Spesa eliminata.", "success");
+      showToast(
+        isMyDebt
+          ? t("expenses.settleSuccess", null, "Debito saldato con successo!")
+          : t("expenses.deleteSuccess", null, "Spesa eliminata."),
+        "success"
+      );
       fetchDati();
     } catch (err) {
       console.error("Errore eliminazione:", err);
-      showToast("Errore nell'eliminazione.", "error");
+      showToast(t("expenses.deleteError", null, "Errore nell'eliminazione."), "error");
     }
   };
 
@@ -157,10 +164,14 @@ export default function ViewDebiti() {
   // Handle settling a simplified transaction
   const handleSettleSimplified = async (trans) => {
     const confirmed = await showConfirm({
-      title: "Registra Pareggio Quota",
-      message: `Confermi che ${trans.fromName} ha versato ${trans.amount} € a ${trans.toName}? Verrà registrata una transazione di compensazione.`,
-      confirmText: "Registra Pareggio",
-      cancelText: "Annulla"
+      title: t("expenses.settleSimplifiedTitle", null, "Registra Pareggio Quota"),
+      message: t(
+        "expenses.settleSimplifiedMsg",
+        { from: trans.fromName, amount: trans.amount, to: trans.toName },
+        `Confermi che ${trans.fromName} ha versato ${trans.amount} € a ${trans.toName}? Verrà registrata una transazione di compensazione.`
+      ),
+      confirmText: t("expenses.settleSimplifiedConfirm", null, "Registra Pareggio"),
+      cancelText: t("common.cancel", null, "Annulla")
     });
 
     if (!confirmed) return;
@@ -168,17 +179,21 @@ export default function ViewDebiti() {
     try {
       await addDoc(collection(db, "debiti"), {
         importo: trans.amount,
-        descrizione: `Pareggio quota semplificata a favore di ${trans.toName}`,
+        descrizione: t(
+          "expenses.settleSimplifiedDesc",
+          { to: trans.toName },
+          `Pareggio quota semplificata a favore di ${trans.toName}`
+        ),
         debitoreId: trans.to,
         creditoreId: trans.from,
         casaId: userData.casaId,
         createdAt: new Date()
       });
-      showToast("Pareggio registrato con successo!", "success");
+      showToast(t("expenses.settleSimplifiedSuccess", null, "Pareggio registrato con successo!"), "success");
       fetchDati();
     } catch (err) {
       console.error("Errore pareggio debito:", err);
-      showToast("Errore durante il salvataggio del pareggio.", "error");
+      showToast(t("expenses.settleSimplifiedError", null, "Errore durante il salvataggio del pareggio."), "error");
     }
   };
 
@@ -194,7 +209,7 @@ export default function ViewDebiti() {
   }, [debiti, exportMonth, exportAll]);
 
   const handleExportCsv = () => {
-    const periodLabel = exportAll ? "Tutte le Spese" : exportMonth;
+    const periodLabel = exportAll ? t("expenses.allExpensesPeriod", null, "Tutte le Spese") : exportMonth;
     exportExpensesToCsv(
       expensesToExport,
       simplifiedTransactions,
@@ -202,12 +217,12 @@ export default function ViewDebiti() {
       casaNome,
       periodLabel
     );
-    showToast("Resoconto CSV scaricato!", "success");
+    showToast(t("expenses.csvDownloaded", null, "Resoconto CSV scaricato!"), "success");
     setShowExportModal(false);
   };
 
   const handlePrintPdf = () => {
-    const periodLabel = exportAll ? "Tutte le Spese" : exportMonth;
+    const periodLabel = exportAll ? t("expenses.allExpensesPeriod", null, "Tutte le Spese") : exportMonth;
     printMonthlyReport(
       expensesToExport,
       simplifiedTransactions,
@@ -235,7 +250,7 @@ export default function ViewDebiti() {
     return (
       <div className="card" style={{ maxWidth: "800px" }}>
         <p><i className="fas fa-spinner fa-spin fa-2x" aria-hidden="true"></i></p>
-        <p style={{ marginTop: "10px" }}>Caricamento spese e debiti...</p>
+        <p style={{ marginTop: "10px" }}>{t("expenses.loading", null, "Caricamento spese e debiti...")}</p>
       </div>
     );
   }
@@ -246,10 +261,10 @@ export default function ViewDebiti() {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2rem", flexWrap: "wrap", gap: "12px" }}>
         <div>
           <h1 style={{ margin: 0, textAlign: "left" }}>
-            Spese & Debiti
+            {t("expenses.viewTitle", null, "Spese & Debiti")}
           </h1>
           <p style={{ margin: "4px 0 0 0", color: "var(--text-secondary)", textAlign: "left", fontSize: "0.92rem" }}>
-            Tieni traccia delle spese condivise e dei saldi
+            {t("expenses.viewSubtitle", null, "Tieni traccia delle spese condivise e dei saldi")}
           </p>
         </div>
         <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
@@ -258,9 +273,9 @@ export default function ViewDebiti() {
             className="btn-secondary"
             onClick={() => setShowExportModal(true)}
             style={{ width: "auto", padding: "12px 18px" }}
-            aria-label="Esporta resoconto spese"
+            aria-label={t("expenses.exportAria", null, "Esporta resoconto spese")}
           >
-            <i className="fas fa-file-export" aria-hidden="true"></i> Esporta Resoconto
+            <i className="fas fa-file-export" aria-hidden="true"></i> {t("expenses.exportReport", null, "Esporta Resoconto")}
           </button>
           <button
             type="button"
@@ -268,7 +283,7 @@ export default function ViewDebiti() {
             onClick={() => navigate("/debiti/aggiungi")}
             style={{ width: "auto", padding: "12px 24px" }}
           >
-            <i className="fas fa-plus" aria-hidden="true"></i> Nuova Spesa
+            <i className="fas fa-plus" aria-hidden="true"></i> {t("expenses.newExpenseTitle", null, "Nuova Spesa")}
           </button>
         </div>
       </div>
@@ -298,17 +313,17 @@ export default function ViewDebiti() {
         }}
       >
         <p style={{ fontWeight: "600", color: "var(--text-secondary)", fontSize: "0.85rem", letterSpacing: "0.02em", margin: "0 0 6px 0" }}>
-          Il tuo bilancio
+          {t("expenses.yourBalanceLabel", null, "Il tuo bilancio")}
         </p>
         <h2 style={{ fontSize: "3.2rem", margin: "6px 0", color: saldo > 0 ? "var(--color-success)" : saldo < 0 ? "var(--color-danger)" : "var(--text-main)", fontWeight: "800", letterSpacing: "-0.02em" }}>
           {saldo > 0 ? "+" : ""}{safeFloat(saldo).toFixed(2)} €
         </h2>
         <p style={{ fontSize: "0.95rem", color: "var(--text-muted)", margin: "6px 0 0 0" }}>
           {saldo > 0
-            ? "Gli altri coinquilini ti devono dei soldi"
+            ? t("expenses.balancePositive", null, "Gli altri coinquilini ti devono dei soldi")
             : saldo < 0
-            ? "Hai debiti pendenti da restituire"
-            : "Nessun debito in sospeso. Perfetta parità!"}
+            ? t("expenses.balanceNegative", null, "Hai debiti pendenti da restituire")
+            : t("expenses.balanceZero", null, "Nessun debito in sospeso. Perfetta parità!")}
         </p>
       </div>
 
@@ -319,8 +334,8 @@ export default function ViewDebiti() {
             <i className="fas fa-arrow-down" aria-hidden="true"></i>
           </div>
           <div>
-            <span style={{ fontSize: "0.8rem", color: "var(--text-muted)", display: "block" }}>Da ricevere</span>
-            <strong style={{ fontSize: "1.2rem", color: "var(--color-success)" }}>Crediti: {totaleCrediti.toFixed(2)} €</strong>
+            <span style={{ fontSize: "0.8rem", color: "var(--text-muted)", display: "block" }}>{t("expenses.toReceive", null, "Da ricevere")}</span>
+            <strong style={{ fontSize: "1.2rem", color: "var(--color-success)" }}>{t("expenses.creditsLabel", { amount: totaleCrediti.toFixed(2) }, `Crediti: ${totaleCrediti.toFixed(2)} €`)}</strong>
           </div>
         </div>
 
@@ -329,8 +344,8 @@ export default function ViewDebiti() {
             <i className="fas fa-arrow-up" aria-hidden="true"></i>
           </div>
           <div>
-            <span style={{ fontSize: "0.8rem", color: "var(--text-muted)", display: "block" }}>Da restituire</span>
-            <strong style={{ fontSize: "1.2rem", color: "var(--color-danger)" }}>Debiti: {totaleDebiti.toFixed(2)} €</strong>
+            <span style={{ fontSize: "0.8rem", color: "var(--text-muted)", display: "block" }}>{t("expenses.toReturn", null, "Da restituire")}</span>
+            <strong style={{ fontSize: "1.2rem", color: "var(--color-danger)" }}>{t("expenses.debtsLabel", { amount: totaleDebiti.toFixed(2) }, `Debiti: ${totaleDebiti.toFixed(2)} €`)}</strong>
           </div>
         </div>
       </div>
@@ -359,12 +374,18 @@ export default function ViewDebiti() {
             <i className="fas fa-magic text-primary" style={{ fontSize: "1.2rem" }} aria-hidden="true"></i>
             <div>
               <h3 style={{ margin: 0, fontSize: "1.05rem", color: "var(--text-main)" }}>
-                Piano di Pareggio Semplificato
+                {t("expenses.simplificationTitle", null, "Piano di Pareggio Semplificato")}
               </h3>
               <p style={{ margin: "2px 0 0 0", fontSize: "0.82rem", color: "var(--text-muted)" }}>
                 {simplifiedTransactions.length === 0
-                  ? "Tutti i conti sono in pari"
-                  : `Minimizza a ${simplifiedTransactions.length} ${simplifiedTransactions.length === 1 ? "transazione" : "transazioni"} tutti i debiti incrociati`}
+                  ? t("expenses.allEven", null, "Tutti i conti sono in pari")
+                  : simplifiedTransactions.length === 1
+                  ? t("expenses.minimizeOne", { count: 1 }, "Minimizza a 1 transazione tutti i debiti incrociati")
+                  : t(
+                      "expenses.minimizeMany",
+                      { count: simplifiedTransactions.length },
+                      `Minimizza a ${simplifiedTransactions.length} transazioni tutti i debiti incrociati`
+                    )}
               </p>
             </div>
           </div>
@@ -372,7 +393,7 @@ export default function ViewDebiti() {
             type="button"
             className="btn-text"
             style={{ fontSize: "0.85rem", padding: "8px", minHeight: "44px", minWidth: "44px", display: "inline-flex", alignItems: "center", justifyContent: "center" }}
-            aria-label={showSimplification ? "Nascondi piano" : "Mostra piano"}
+            aria-label={showSimplification ? t("expenses.hidePlanAria", null, "Nascondi piano") : t("expenses.showPlanAria", null, "Mostra piano")}
           >
             <i className={`fas ${showSimplification ? "fa-chevron-up" : "fa-chevron-down"}`} aria-hidden="true"></i>
           </button>
@@ -383,7 +404,7 @@ export default function ViewDebiti() {
             {simplifiedTransactions.length === 0 ? (
               <p style={{ color: "var(--text-muted)", fontSize: "0.9rem", margin: "8px 0" }}>
                 <i className="fas fa-check-circle text-success" style={{ marginRight: "6px" }} aria-hidden="true"></i>
-                Tutti i conti sono in pari!
+                {t("expenses.noDebts", null, "Tutti i conti sono in pari!")}
               </p>
             ) : (
               <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
@@ -416,9 +437,9 @@ export default function ViewDebiti() {
                       }}
                     >
                       <div style={{ fontSize: "0.92rem", color: "var(--text-main)" }}>
-                        <strong>{st.fromName}</strong> deve versare a <strong>{st.toName}</strong>:{" "}
+                        <strong>{st.fromName}</strong> {t("expenses.mustPayTo", null, "deve versare a")} <strong>{st.toName}</strong>:{" "}
                         <span style={{ fontWeight: "800", color: isPayer ? "var(--color-danger)" : isReceiver ? "var(--color-success)" : "var(--color-primary)" }}>
-                          Quota: {st.amount} €
+                          {t("expenses.quotaAmount", { amount: st.amount }, `Quota: ${st.amount} €`)}
                         </span>
                       </div>
 
@@ -438,9 +459,9 @@ export default function ViewDebiti() {
                             gap: "6px",
                             background: isPayer ? "var(--color-danger)" : "var(--color-success)"
                           }}
-                          title="Registra saldo transazione"
+                          title={t("expenses.recordBalanceTitle", null, "Registra saldo transazione")}
                         >
-                          <i className="fas fa-check" aria-hidden="true"></i> Pareggia
+                          <i className="fas fa-check" aria-hidden="true"></i> {t("expenses.settleAction", null, "Pareggia")}
                         </button>
                       )}
                     </div>
@@ -452,7 +473,7 @@ export default function ViewDebiti() {
             {/* Roommate Net Balances */}
             <div style={{ marginTop: "14px", textAlign: "left" }}>
               <span style={{ fontSize: "0.82rem", color: "var(--text-muted)", fontWeight: "600", display: "block", marginBottom: "6px" }}>
-                Riepilogo saldi coinquilini
+                {t("expenses.roommatesSummaryTitle", null, "Riepilogo saldi coinquilini")}
               </span>
               <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
                 {Object.entries(netBalances).map(([uid, b]) => {
@@ -485,7 +506,7 @@ export default function ViewDebiti() {
 
       {/* SECTION: HISTORICAL EXPENSES LIST */}
       <h3 style={{ textAlign: "left", fontSize: "1.1rem", marginBottom: "12px", color: "var(--text-main)" }}>
-        Tutte le spese registrate ({debiti.length})
+        {t("expenses.allRegisteredExpenses", { count: debiti.length }, `Tutte le spese registrate (${debiti.length})`)}
       </h3>
 
       <div className="sidemenu-list-container">
@@ -493,7 +514,7 @@ export default function ViewDebiti() {
           <div style={{ padding: "3rem 1rem", textAlign: "center", background: "var(--bg-input)", borderRadius: "var(--radius-md)" }}>
             <i className="fas fa-money-bill-wave" style={{ fontSize: "3rem", opacity: 0.7 }} aria-hidden="true"></i>
             <p className="subtitle" style={{ marginTop: "12px", marginBottom: 0 }}>
-              Nessuna spesa registrata in casa. Tutto in ordine!
+              {t("expenses.noExpensesEmpty", null, "Nessuna spesa registrata in casa. Tutto in ordine!")}
             </p>
           </div>
         ) : (
@@ -503,15 +524,15 @@ export default function ViewDebiti() {
 
             let badgeColor = "var(--text-muted)";
             let badgeBg = "rgba(100, 116, 139, 0.15)";
-            let badgeText = "Spesa di Casa";
+            let badgeText = t("expenses.badgeHouseExpense", null, "Spesa di Casa");
             if (sonoDebitore) {
               badgeColor = "var(--color-danger)";
               badgeBg = "rgba(239, 68, 68, 0.15)";
-              badgeText = "Devi restituire";
+              badgeText = t("expenses.badgeYouOwe", null, "Devi restituire");
             } else if (sonoCreditore) {
               badgeColor = "var(--color-success)";
               badgeBg = "rgba(16, 185, 129, 0.15)";
-              badgeText = "Devi ricevere";
+              badgeText = t("expenses.badgeYouAreOwed", null, "Devi ricevere");
             }
 
             const importoSicuro = safeFloat(debito.importo).toFixed(2);
@@ -542,7 +563,7 @@ export default function ViewDebiti() {
                             debito.createdAt.toDate
                               ? debito.createdAt.toDate()
                               : debito.createdAt
-                          ).toLocaleDateString()
+                          ).toLocaleDateString(language === "en" ? "en-US" : "it-IT")
                         : ""}
                     </span>
                   </div>
@@ -552,9 +573,9 @@ export default function ViewDebiti() {
                   </h3>
 
                   <div style={{ fontSize: "0.9rem", color: "var(--text-secondary)", marginTop: "4px" }}>
-                    <span>Da: <strong style={{ color: "var(--text-main)" }}>{utentiMap[debito.debitoreId] || "Sconosciuto"}</strong></span>
+                    <span>{t("expenses.fromLabel", null, "Da:")} <strong style={{ color: "var(--text-main)" }}>{utentiMap[debito.debitoreId] || t("expenses.unknownShort", null, "Sconosciuto")}</strong></span>
                     <span style={{ margin: "0 8px" }}><i className="fas fa-arrow-right" aria-hidden="true"></i></span>
-                    <span>A: <strong style={{ color: "var(--text-main)" }}>{utentiMap[debito.creditoreId] || "Sconosciuto"}</strong></span>
+                    <span>{t("expenses.toLabel", null, "A:")} <strong style={{ color: "var(--text-main)" }}>{utentiMap[debito.creditoreId] || t("expenses.unknownShort", null, "Sconosciuto")}</strong></span>
                   </div>
                 </div>
 
@@ -580,7 +601,7 @@ export default function ViewDebiti() {
                         gap: "6px"
                       }}
                     >
-                      <i className="fas fa-check" aria-hidden="true"></i> Segna come saldato
+                      <i className="fas fa-check" aria-hidden="true"></i> {t("expenses.markAsSettled", null, "Segna come saldato")}
                     </button>
                   ) : (
                     <button
@@ -588,10 +609,10 @@ export default function ViewDebiti() {
                       onClick={() => saldaDebito(debito.id, false)}
                       className="btn-danger-outline"
                       style={{ padding: "8px 14px", minHeight: "44px", minWidth: "44px", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: "0.82rem", width: "auto" }}
-                      title="Elimina"
-                      aria-label="Elimina spesa"
+                      title={t("common.delete", null, "Elimina")}
+                      aria-label={t("expenses.deleteExpenseAria", null, "Elimina spesa")}
                     >
-                      <i className="fas fa-trash" aria-hidden="true"></i> Elimina
+                      <i className="fas fa-trash" aria-hidden="true"></i> {t("common.delete", null, "Elimina")}
                     </button>
                   )}
                 </div>
@@ -616,13 +637,13 @@ export default function ViewDebiti() {
           >
             <div className="modal-header">
               <h2 className="modal-title">
-                <i className="fas fa-file-export" aria-hidden="true"></i> Esporta resoconto spese
+                <i className="fas fa-file-export" aria-hidden="true"></i> {t("expenses.exportModalTitle", null, "Esporta resoconto spese")}
               </h2>
               <button
                 type="button"
                 className="modal-close-btn"
                 onClick={() => setShowExportModal(false)}
-                aria-label="Chiudi"
+                aria-label={t("common.close", null, "Chiudi")}
               >
                 <i className="fas fa-times" aria-hidden="true"></i>
               </button>
@@ -630,7 +651,7 @@ export default function ViewDebiti() {
 
             <div className="modal-body" style={{ textAlign: "left" }}>
               <p style={{ fontSize: "0.92rem", color: "var(--text-secondary)", marginBottom: "16px" }}>
-                Scarica o stampa le spese, i saldi e il piano di pareggio della casa.
+                {t("expenses.exportModalDesc", null, "Scarica o stampa le spese, i saldi e il piano di pareggio della casa.")}
               </p>
 
               <div className="form-group mb-3">
@@ -641,14 +662,14 @@ export default function ViewDebiti() {
                     onChange={(e) => setExportAll(e.target.checked)}
                     style={{ width: "18px", height: "18px", accentColor: "var(--color-primary)" }}
                   />
-                  <span>Includi tutte le spese (senza limite di data)</span>
+                  <span>{t("expenses.includeAllExpenses", null, "Includi tutte le spese (senza limite di data)")}</span>
                 </label>
               </div>
 
               {!exportAll && (
                 <div className="form-group mb-3">
                   <label htmlFor="export-month-input" className="form-label">
-                    Scegli mese e anno
+                    {t("expenses.chooseMonthYear", null, "Scegli mese e anno")}
                   </label>
                   <input
                     id="export-month-input"
@@ -662,7 +683,7 @@ export default function ViewDebiti() {
 
               <div style={{ background: "var(--bg-input)", padding: "12px", borderRadius: "var(--radius-sm)", border: "1px solid var(--border-color)", fontSize: "0.88rem", color: "var(--text-secondary)" }}>
                 <i className="fas fa-info-circle text-primary" style={{ marginRight: "6px" }} aria-hidden="true"></i>
-                Spese incluse nel resoconto: <strong>{expensesToExport.length}</strong>
+                {t("expenses.expensesIncludedCount", null, "Spese incluse nel resoconto:")} <strong>{expensesToExport.length}</strong>
               </div>
             </div>
 
@@ -673,7 +694,7 @@ export default function ViewDebiti() {
                 onClick={() => setShowExportModal(false)}
                 style={{ minHeight: "44px", padding: "10px 18px" }}
               >
-                Chiudi
+                {t("common.close", null, "Chiudi")}
               </button>
               <div style={{ display: "flex", gap: "8px" }}>
                 <button
@@ -682,7 +703,7 @@ export default function ViewDebiti() {
                   onClick={handleExportCsv}
                   style={{ minHeight: "44px", padding: "10px 18px", display: "inline-flex", alignItems: "center", gap: "6px" }}
                 >
-                  <i className="fas fa-file-csv" aria-hidden="true"></i> Scarica CSV
+                  <i className="fas fa-file-csv" aria-hidden="true"></i> {t("expenses.downloadCsv", null, "Scarica CSV")}
                 </button>
                 <button
                   type="button"
@@ -690,7 +711,7 @@ export default function ViewDebiti() {
                   onClick={handlePrintPdf}
                   style={{ minHeight: "44px", padding: "10px 18px", display: "inline-flex", alignItems: "center", gap: "6px" }}
                 >
-                  <i className="fas fa-print" aria-hidden="true"></i> Stampa / PDF
+                  <i className="fas fa-print" aria-hidden="true"></i> {t("expenses.printPdf", null, "Stampa / PDF")}
                 </button>
               </div>
             </div>
@@ -699,7 +720,7 @@ export default function ViewDebiti() {
       )}
 
       <button type="button" className="btn-text" onClick={() => navigate("/home")} style={{ marginTop: "30px" }}>
-        <i className="fas fa-arrow-left" style={{ marginRight: "6px" }} aria-hidden="true"></i> Torna alla Dashboard
+        <i className="fas fa-arrow-left" style={{ marginRight: "6px" }} aria-hidden="true"></i> {t("expenses.backToDashboard", null, "Torna alla Dashboard")}
       </button>
     </div>
   );

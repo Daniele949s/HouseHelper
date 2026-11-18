@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { safeFloat } from "../utils/security";
+import { useLanguage } from "../contexts/LanguageContext";
 import "./HouseAnalytics.css";
 
 export default function HouseAnalytics({
@@ -9,6 +10,7 @@ export default function HouseAnalytics({
   utentiMap = {},
   currentUserId
 }) {
+  const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState("debiti"); // 'debiti' | 'turni' | 'spesa'
 
   // ==========================================
@@ -19,7 +21,7 @@ export default function HouseAnalytics({
   // Raggruppamento per creditore (chi ha speso/anticipato)
   const spesePerUtente = {};
   debiti.forEach(d => {
-    const nome = utentiMap[d.creditoreId] || "Altro";
+    const nome = utentiMap[d.creditoreId] || t("analytics.otherUser", {}, "Altro");
     spesePerUtente[nome] = (spesePerUtente[nome] || 0) + Math.max(0, safeFloat(d.importo));
   });
 
@@ -71,10 +73,10 @@ export default function HouseAnalytics({
       <div className="analytics-header">
         <div className="analytics-title-group">
           <div className="analytics-badge">
-            <i className="fas fa-chart-pie"></i> Statistiche Casa
+            <i className="fas fa-chart-pie"></i> {t("analytics.badge", {}, "Statistiche Casa")}
           </div>
-          <h2>Analisi & Rendiconto</h2>
-          <p className="analytics-subtitle">Metriche in tempo reale sulla convivenza</p>
+          <h2>{t("analytics.title", {}, "Analisi & Rendiconto")}</h2>
+          <p className="analytics-subtitle">{t("analytics.subtitle", {}, "Metriche in tempo reale sulla convivenza")}</p>
         </div>
 
         {/* Tab Selector ispirato a graphs.html e graphs2.html */}
@@ -84,21 +86,21 @@ export default function HouseAnalytics({
             className={`analytics-tab-btn ${activeTab === "debiti" ? "active" : ""}`}
             onClick={() => setActiveTab("debiti")}
           >
-            <i className="fas fa-coins"></i> Spese
+            <i className="fas fa-coins"></i> {t("analytics.tabExpenses", {}, "Spese")}
           </button>
           <button
             type="button"
             className={`analytics-tab-btn ${activeTab === "turni" ? "active" : ""}`}
             onClick={() => setActiveTab("turni")}
           >
-            <i className="fas fa-broom"></i> Turni
+            <i className="fas fa-broom"></i> {t("analytics.tabChores", {}, "Turni")}
           </button>
           <button
             type="button"
             className={`analytics-tab-btn ${activeTab === "spesa" ? "active" : ""}`}
             onClick={() => setActiveTab("spesa")}
           >
-            <i className="fas fa-shopping-basket"></i> Lista spesa
+            <i className="fas fa-shopping-basket"></i> {t("analytics.tabGroceries", {}, "Lista spesa")}
           </button>
         </div>
       </div>
@@ -155,7 +157,7 @@ export default function HouseAnalytics({
                 {/* Center text */}
                 <g className="donut-center-text">
                   <text x="100" y="94" textAnchor="middle" className="donut-center-label">
-                    Totale Spese
+                    {t("analytics.totalExpenses", {}, "Totale Spese")}
                   </text>
                   <text x="100" y="118" textAnchor="middle" className="donut-center-val">
                     {totalVolumeSpese.toFixed(0)}€
@@ -165,9 +167,9 @@ export default function HouseAnalytics({
             </div>
 
             <div className="donut-legend-list">
-              <h4 className="legend-title">Quote anticipate per coinquilino</h4>
+              <h4 className="legend-title">{t("analytics.expensesPerRoommate", {}, "Quote anticipate per coinquilino")}</h4>
               {pieData.length === 0 ? (
-                <p className="empty-notice">Nessuna spesa registrata.</p>
+                <p className="empty-notice">{t("analytics.noExpenses", {}, "Nessuna spesa registrata.")}</p>
               ) : (
                 pieData.map(slice => (
                   <div key={slice.nome} className="legend-item">
@@ -192,22 +194,22 @@ export default function HouseAnalytics({
             <div className="stats-kpi-row">
               <div className="kpi-box">
                 <span className="kpi-num">{totalTurni}</span>
-                <span className="kpi-label">Turni Totali</span>
+                <span className="kpi-label">{t("analytics.totalChores", {}, "Turni Totali")}</span>
               </div>
               <div className="kpi-box box-success">
                 <span className="kpi-num">{turniCompletati}</span>
-                <span className="kpi-label">Completati</span>
+                <span className="kpi-label">{t("analytics.completedChores", {}, "Completati")}</span>
               </div>
               <div className="kpi-box box-warning">
                 <span className="kpi-num">{turniFuturi}</span>
-                <span className="kpi-label">Programmati</span>
+                <span className="kpi-label">{t("analytics.scheduledChores", {}, "Programmati")}</span>
               </div>
             </div>
 
             <div className="bar-chart-container">
-              <h4 className="legend-title">Distribuzione turni tra coinquilini</h4>
+              <h4 className="legend-title">{t("analytics.choresDistribution", {}, "Distribuzione turni tra coinquilini")}</h4>
               {Object.keys(turniPerPersona).length === 0 ? (
-                <p className="empty-notice">Nessun turno assegnato finora.</p>
+                <p className="empty-notice">{t("analytics.noChores", {}, "Nessun turno assegnato finora.")}</p>
               ) : (
                 <div className="bar-rows">
                   {Object.entries(turniPerPersona).map(([persona, count], idx) => {
@@ -216,7 +218,12 @@ export default function HouseAnalytics({
                       <div key={persona} className="bar-row">
                         <div className="bar-info">
                           <span className="bar-name">{persona}</span>
-                          <span className="bar-count">{count} {count === 1 ? "turno" : "turni"}</span>
+                          <span className="bar-count">
+                            {count}{" "}
+                            {count === 1
+                              ? t("analytics.choreSingular", {}, "turno")
+                              : t("analytics.chorePlural", {}, "turni")}
+                          </span>
                         </div>
                         <div className="bar-track">
                           <div
@@ -242,8 +249,14 @@ export default function HouseAnalytics({
             <div className="spesa-progress-card">
               <div className="spesa-progress-header">
                 <div>
-                  <h4>Avanzamento della spesa</h4>
-                  <p>{spesaPresi} su {totalSpesaItems} articoli acquistati</p>
+                  <h4>{t("analytics.groceryProgressTitle", {}, "Avanzamento della spesa")}</h4>
+                  <p>
+                    {t(
+                      "analytics.groceryProgressCount",
+                      { bought: spesaPresi, total: totalSpesaItems },
+                      `${spesaPresi} su ${totalSpesaItems} articoli acquistati`
+                    )}
+                  </p>
                 </div>
                 <div className="spesa-percent-badge">{percentPresi}%</div>
               </div>
@@ -259,26 +272,26 @@ export default function HouseAnalytics({
               <div className="step-checkpoints">
                 <div className={`step-checkpoint ${percentPresi > 0 ? "reached" : ""}`}>
                   <i className="fas fa-list"></i>
-                  <span>Lista creata</span>
+                  <span>{t("analytics.stepListCreated", {}, "Lista creata")}</span>
                 </div>
                 <div className={`step-checkpoint ${percentPresi >= 50 ? "reached" : ""}`}>
                   <i className="fas fa-shopping-cart"></i>
-                  <span>Metà spesa</span>
+                  <span>{t("analytics.stepHalfway", {}, "Metà spesa")}</span>
                 </div>
                 <div className={`step-checkpoint ${percentPresi === 100 && totalSpesaItems > 0 ? "reached" : ""}`}>
                   <i className="fas fa-check-double"></i>
-                  <span>Completata</span>
+                  <span>{t("analytics.stepCompleted", {}, "Completata")}</span>
                 </div>
               </div>
 
               <div className="spesa-summary-grid">
                 <div className="summary-pill da-comprare">
                   <span className="pill-val">{spesaDaComprare}</span>
-                  <span className="pill-txt">Da comprare</span>
+                  <span className="pill-txt">{t("analytics.toBuy", {}, "Da comprare")}</span>
                 </div>
                 <div className="summary-pill presi">
                   <span className="pill-val">{spesaPresi}</span>
-                  <span className="pill-txt">Nel carrello / Presi</span>
+                  <span className="pill-txt">{t("analytics.inCartBought", {}, "Nel carrello / Presi")}</span>
                 </div>
               </div>
             </div>

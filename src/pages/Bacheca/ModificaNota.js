@@ -3,20 +3,22 @@ import { useNavigate, useParams } from "react-router-dom";
 import { db } from "../../firebase";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { useAuth } from "../../contexts/AuthContext";
+import { useLanguage } from "../../contexts/LanguageContext";
 import { showToast } from "../../utils/feedback";
 import { sanitizeText, validateDate } from "../../utils/security";
 
 const PRIORITY_OPTIONS = [
-  { id: "info", label: "Info", icon: "fas fa-info-circle" },
-  { id: "importante", label: "Importante", icon: "fas fa-star" },
-  { id: "urgente", label: "Urgente", icon: "fas fa-exclamation-triangle" },
-  { id: "promemoria", label: "Promemoria", icon: "fas fa-bell" }
+  { id: "info", labelKey: "board.priorityInfo", fallback: "Info", icon: "fas fa-info-circle" },
+  { id: "importante", labelKey: "board.priorityImportant", fallback: "Importante", icon: "fas fa-star" },
+  { id: "urgente", labelKey: "board.priorityUrgent", fallback: "Urgente", icon: "fas fa-exclamation-triangle" },
+  { id: "promemoria", labelKey: "board.priorityReminder", fallback: "Promemoria", icon: "fas fa-bell" }
 ];
 
 export default function ModificaNota() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { currentUser, userData } = useAuth();
+  const { t } = useLanguage();
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -32,7 +34,7 @@ export default function ModificaNota() {
         const docSnap = await getDoc(docRef);
 
         if (!docSnap.exists()) {
-          showToast("Avviso non trovato o rimosso.", "error");
+          showToast(t("board.notFound", null, "Avviso non trovato o rimosso."), "error");
           navigate("/bacheca");
           return;
         }
@@ -41,14 +43,14 @@ export default function ModificaNota() {
 
         // Multi-tenant Security Check: Prevent accessing note belonging to another house
         if (data.casaId !== userData.casaId) {
-          showToast("Accesso non consentito: questo avviso appartiene a un'altra abitazione.", "error");
+          showToast(t("board.unauthorizedHouse", null, "Accesso non consentito: questo avviso appartiene a un'altra abitazione."), "error");
           navigate("/bacheca");
           return;
         }
 
         // Authorization Check: Only author can edit
         if (data.autoreId !== currentUser.uid) {
-          showToast("Non sei l'autore di questo avviso!", "warning");
+          showToast(t("board.notAuthor", null, "Non sei l'autore di questo avviso!"), "warning");
           navigate("/bacheca");
           return;
         }
@@ -61,14 +63,14 @@ export default function ModificaNota() {
         });
       } catch (err) {
         console.error("Errore fetch avviso:", err);
-        setError("Impossibile caricare l'avviso.");
+        setError(t("board.loadError", null, "Impossibile caricare l'avviso."));
       } finally {
         setLoading(false);
       }
     };
 
     fetchNota();
-  }, [id, currentUser, userData, navigate]);
+  }, [id, currentUser, userData, navigate, t]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -79,12 +81,12 @@ export default function ModificaNota() {
     const cleanedContenuto = sanitizeText(nota.contenuto, 1500);
 
     if (!cleanedTitolo) {
-      setError("Il titolo dell'avviso è obbligatorio.");
+      setError(t("board.errorTitleRequired", null, "Il titolo dell'avviso è obbligatorio."));
       return;
     }
 
     if (!cleanedContenuto) {
-      setError("Il messaggio dell'avviso non può essere vuoto.");
+      setError(t("board.errorContentEmpty", null, "Il messaggio dell'avviso non può essere vuoto."));
       return;
     }
 
@@ -92,7 +94,7 @@ export default function ModificaNota() {
     if (nota.data) {
       const dateRes = validateDate(nota.data);
       if (!dateRes.isValid) {
-        setError(dateRes.error || "Data di scadenza non valida.");
+        setError(dateRes.error || t("board.errorInvalidExpiryDate", null, "Data di scadenza non valida."));
         return;
       }
       validDate = dateRes.date;
@@ -108,11 +110,11 @@ export default function ModificaNota() {
         casaId: userData.casaId, // Household integrity
         autoreId: currentUser.uid // Preserve author
       });
-      showToast("Avviso modificato con successo!", "success");
+      showToast(t("board.updateSuccess", null, "Avviso modificato con successo!"), "success");
       navigate("/bacheca");
     } catch (err) {
       console.error("Errore aggiornamento nota:", err);
-      setError("Errore durante l'aggiornamento dell'avviso.");
+      setError(t("board.updateError", null, "Errore durante l'aggiornamento dell'avviso."));
     } finally {
       setSaving(false);
     }
@@ -122,15 +124,15 @@ export default function ModificaNota() {
     return (
       <div className="card" style={{ maxWidth: "600px" }}>
         <p><i className="fas fa-spinner fa-spin fa-2x"></i></p>
-        <p style={{ marginTop: "10px" }}>Verifica autorizzazioni e caricamento avviso...</p>
+        <p style={{ marginTop: "10px" }}>{t("board.loadingNotice", null, "Verifica autorizzazioni e caricamento avviso...")}</p>
       </div>
     );
   }
 
   return (
     <div className="card" style={{ maxWidth: "620px" }}>
-      <h1 style={{ marginBottom: "6px" }}>Modifica Avviso</h1>
-      <p className="subtitle" style={{ marginBottom: "24px" }}>Aggiorna il messaggio per i tuoi coinquilini</p>
+      <h1 style={{ marginBottom: "6px" }}>{t("board.editNoticeTitle", null, "Modifica Avviso")}</h1>
+      <p className="subtitle" style={{ marginBottom: "24px" }}>{t("board.editNoticeSubtitle", null, "Aggiorna il messaggio per i tuoi coinquilini")}</p>
 
       {error && (
         <div className="error-alert" style={{ marginBottom: "20px" }}>
@@ -141,7 +143,7 @@ export default function ModificaNota() {
 
       <form onSubmit={handleSubmit} className="auth-form" style={{ textAlign: "left" }}>
         <div className="input-group">
-          <label>Priorità avviso</label>
+          <label>{t("board.priorityLabel", null, "Priorità avviso")}</label>
           <div className="pill-selector-group">
             {PRIORITY_OPTIONS.map((opt) => (
               <button
@@ -150,7 +152,7 @@ export default function ModificaNota() {
                 className={`pill-selector-btn ${nota.priorita === opt.id ? "active" : ""}`}
                 onClick={() => setNota({ ...nota, priorita: opt.id })}
               >
-                <i className={opt.icon}></i> {opt.label}
+                <i className={opt.icon}></i> {t(opt.labelKey, null, opt.fallback)}
               </button>
             ))}
           </div>
@@ -158,7 +160,7 @@ export default function ModificaNota() {
 
         <div className="input-group">
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <label>Titolo (massimo 80 caratteri)</label>
+            <label>{t("board.titleLabel", null, "Titolo (massimo 80 caratteri)")}</label>
             <span className="char-counter">{nota.titolo.length} / 80</span>
           </div>
           <input
@@ -172,7 +174,7 @@ export default function ModificaNota() {
 
         <div className="input-group">
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <label>Messaggio (massimo 1500 caratteri)</label>
+            <label>{t("board.messageLabel", null, "Messaggio (massimo 1500 caratteri)")}</label>
             <span className="char-counter">{nota.contenuto.length} / 1500</span>
           </div>
           <textarea
@@ -185,7 +187,7 @@ export default function ModificaNota() {
         </div>
 
         <div className="input-group">
-          <label>Data di riferimento / Scadenza (opzionale)</label>
+          <label>{t("board.referenceDateLabel", null, "Data di riferimento / Scadenza (opzionale)")}</label>
           <input
             type="date"
             value={nota.data}
@@ -197,10 +199,10 @@ export default function ModificaNota() {
 
         <div style={{ display: "flex", gap: "12px", marginTop: "16px" }}>
           <button type="submit" className="btn-primary" disabled={saving}>
-            {saving ? <i className="fas fa-spinner fa-spin"></i> : "Salva Modifiche"}
+            {saving ? <i className="fas fa-spinner fa-spin"></i> : t("board.saveChangesBtn", null, "Salva Modifiche")}
           </button>
           <button type="button" className="btn-secondary" onClick={() => navigate("/bacheca")}>
-            Annulla
+            {t("common.cancel", null, "Annulla")}
           </button>
         </div>
       </form>

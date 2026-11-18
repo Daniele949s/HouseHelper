@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { showToast } from "../utils/feedback";
+import { useLanguage } from "../contexts/LanguageContext";
 
 /**
  * Modern Household Status & Presence Component
@@ -15,6 +16,7 @@ export default function HouseholdStatus({
   prossimoTurno = null,
   variant = "full"
 }) {
+  const { t, language } = useLanguage();
   const [copied, setCopied] = useState(false);
 
   const handleCopyCode = async () => {
@@ -24,15 +26,15 @@ export default function HouseholdStatus({
         await navigator.clipboard.writeText(casa.codiceUnivoco);
       }
       setCopied(true);
-      showToast("Codice invito copiato negli appunti!", "success", 2500);
+      showToast(t("householdStatus.codeCopied", {}, "Codice invito copiato negli appunti!"), "success", 2500);
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
-      showToast("Impossibile copiare il codice negli appunti.", "warning");
+      showToast(t("householdStatus.copyError", {}, "Impossibile copiare il codice negli appunti."), "warning");
     }
   };
 
   const formattedDate = prossimoTurno?.data
-    ? new Date(prossimoTurno.data).toLocaleDateString("it-IT", {
+    ? new Date(prossimoTurno.data).toLocaleDateString(language === "en" ? "en-US" : "it-IT", {
         weekday: "short",
         day: "numeric",
         month: "short"
@@ -44,7 +46,7 @@ export default function HouseholdStatus({
       <div className="household-status-compact">
         <div className="status-compact-brand">
           <i className="fas fa-home" aria-hidden="true"></i>
-          <span>{casa?.nome || "La tua Casa"}</span>
+          <span>{casa?.nome || t("householdStatus.yourHouse", {}, "La tua Casa")}</span>
         </div>
         <div
           className="status-compact-badge"
@@ -57,18 +59,18 @@ export default function HouseholdStatus({
               handleCopyCode();
             }
           }}
-          title="Copia codice invito"
-          aria-label="Copia codice invito"
+          title={t("householdStatus.copyInviteCode", {}, "Copia codice invito")}
+          aria-label={t("householdStatus.copyInviteCode", {}, "Copia codice invito")}
         >
           <i className={copied ? "fas fa-check" : "far fa-copy"} aria-hidden="true"></i>
-          <span>{copied ? "Copiato!" : casa?.codiceUnivoco}</span>
+          <span>{copied ? t("householdStatus.copiedShort", {}, "Copiato!") : casa?.codiceUnivoco}</span>
         </div>
       </div>
     );
   }
 
   return (
-    <section className="household-status-card" aria-label="Stato Abitazione">
+    <section className="household-status-card" aria-label={t("householdStatus.ariaLabel", {}, "Stato Abitazione")}>
       {/* Top Row: Household Identity & Protection Seal */}
       <div className="household-status-header">
         <div className="household-identity">
@@ -76,10 +78,10 @@ export default function HouseholdStatus({
             <i className="fas fa-home" aria-hidden="true"></i>
           </div>
           <div>
-            <h2 className="household-name">{casa?.nome || "La tua Casa"}</h2>
+            <h2 className="household-name">{casa?.nome || t("householdStatus.yourHouse", {}, "La tua Casa")}</h2>
             <div className="household-security-tag">
               <i className="fas fa-shield-alt" aria-hidden="true"></i>
-              <span>Spazio Condiviso Protetto</span>
+              <span>{t("householdStatus.protectedSpace", {}, "Spazio Condiviso Protetto")}</span>
             </div>
           </div>
         </div>
@@ -89,14 +91,14 @@ export default function HouseholdStatus({
           type="button"
           className={`invite-code-card-btn ${copied ? "is-copied" : ""}`}
           onClick={handleCopyCode}
-          title="Clicca per copiare il codice invito per i tuoi coinquilini"
-          aria-label={`Codice invito ${casa?.codiceUnivoco || ""}. Clicca per copiare.`}
+          title={t("householdStatus.copyInviteTitle", {}, "Clicca per copiare il codice invito per i tuoi coinquilini")}
+          aria-label={t("householdStatus.copyInviteAria", { code: casa?.codiceUnivoco || "" }, `Codice invito ${casa?.codiceUnivoco || ""}. Clicca per copiare.`)}
         >
           <div className="invite-label">
-            <span>Codice Invito</span>
+            <span>{t("householdStatus.inviteCodeLabel", {}, "Codice Invito")}</span>
             {copied && (
               <span className="copy-feedback">
-                <i className="fas fa-check" aria-hidden="true"></i> Copiato!
+                <i className="fas fa-check" aria-hidden="true"></i> {t("householdStatus.copiedShort", {}, "Copiato!")}
               </span>
             )}
           </div>
@@ -115,9 +117,12 @@ export default function HouseholdStatus({
             <i className="fas fa-users" aria-hidden="true"></i>
           </div>
           <div className="metric-info">
-            <span className="metric-label">Coinquilini Attivi</span>
+            <span className="metric-label">{t("householdStatus.activeRoommates", {}, "Coinquilini Attivi")}</span>
             <span className="metric-val">
-              {roommateCount} {roommateCount === 1 ? "membro" : "membri"}
+              {roommateCount}{" "}
+              {roommateCount === 1
+                ? t("householdStatus.memberSingular", {}, "membro")
+                : t("householdStatus.memberPlural", {}, "membri")}
             </span>
           </div>
         </div>
@@ -128,14 +133,14 @@ export default function HouseholdStatus({
             <i className="fas fa-broom" aria-hidden="true"></i>
           </div>
           <div className="metric-info">
-            <span className="metric-label">Prossimo Turno</span>
+            <span className="metric-label">{t("householdStatus.nextChore", {}, "Prossimo Turno")}</span>
             {prossimoTurno ? (
               <span className="metric-val">
-                {prossimoTurno.mansione || "Pulizia"} ({formattedDate})
+                {prossimoTurno.mansione || t("householdStatus.cleaningFallback", {}, "Pulizia")} ({formattedDate})
               </span>
             ) : (
               <span className="metric-val-empty">
-                <i className="fas fa-check-circle" aria-hidden="true"></i> Tutto in ordine
+                <i className="fas fa-check-circle" aria-hidden="true"></i> {t("householdStatus.allGood", {}, "Tutto in ordine")}
               </span>
             )}
           </div>

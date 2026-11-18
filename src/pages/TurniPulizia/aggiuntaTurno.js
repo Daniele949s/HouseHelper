@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { db } from "../../firebase";
 import { collection, addDoc, query, where, getDocs } from "firebase/firestore";
 import { useAuth } from "../../contexts/AuthContext";
+import { useLanguage } from "../../contexts/LanguageContext";
 import { sanitizeList, validateDate, sanitizeChecklist } from "../../utils/security";
 import { showToast } from "../../utils/feedback";
 import { isUserOnVacation } from "../../utils/choreRotation";
@@ -18,11 +19,10 @@ const generaFasceOrarie = () => {
 };
 const FASCE_DISPONIBILI = generaFasceOrarie();
 
-const ZONE_PRESET = ["Cucina", "Bagno", "Salotto", "Balcone", "Corridoio", "Pattumiera"];
-
 export default function AggiuntaTurno() {
   const navigate = useNavigate();
   const { userData, currentUser } = useAuth();
+  const { t } = useLanguage();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [roommates, setRoommates] = useState([]);
@@ -121,13 +121,22 @@ export default function AggiuntaTurno() {
     );
   }, [turno.nomi, turno.data, roommates]);
 
+  const ZONE_PRESET_LABELS = [
+    t("chores.presetKitchen", {}, "Cucina"),
+    t("chores.presetBathroom", {}, "Bagno"),
+    t("chores.presetLivingRoom", {}, "Salotto"),
+    t("chores.presetBalcony", {}, "Balcone"),
+    t("chores.presetHallway", {}, "Corridoio"),
+    t("chores.presetTrash", {}, "Pattumiera")
+  ];
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (loading) return; // Prevent double submit
     setError("");
 
     if (!userData?.casaId) {
-      setError("Devi prima far parte di una casa.");
+      setError(t("chores.errorNoHouse", {}, "Devi prima far parte di una casa."));
       return;
     }
 
@@ -138,22 +147,22 @@ export default function AggiuntaTurno() {
     const dateValidation = validateDate(turno.data);
 
     if (cleanedNomi.length === 0) {
-      setError("Specifica almeno una persona assegnata al turno.");
+      setError(t("chores.errorNoAssignee", {}, "Specifica almeno una persona assegnata al turno."));
       return;
     }
 
     if (!dateValidation.isValid) {
-      setError(dateValidation.error || "Data del turno non valida.");
+      setError(dateValidation.error || t("chores.errorInvalidDate", {}, "Data del turno non valida."));
       return;
     }
 
     if (cleanedLuoghi.length === 0) {
-      setError("Specifica almeno un luogo o mansione da svolgere.");
+      setError(t("chores.errorNoLocation", {}, "Specifica almeno un luogo o mansione da svolgere."));
       return;
     }
 
     if (!FASCE_DISPONIBILI.includes(turno.fasciaOraria)) {
-      setError("Seleziona una fascia oraria valida dall'elenco.");
+      setError(t("chores.errorInvalidTimeSlot", {}, "Seleziona una fascia oraria valida dall'elenco."));
       return;
     }
 
@@ -176,11 +185,11 @@ export default function AggiuntaTurno() {
 
     try {
       await addDoc(collection(db, "turni"), turnoDaInviare);
-      showToast("Turno creato con successo!", "success");
+      showToast(t("chores.createSuccess", {}, "Turno creato con successo!"), "success");
       navigate("/turni");
     } catch (err) {
       console.error("Errore aggiunta turno:", err);
-      setError("Errore durante la creazione del turno.");
+      setError(t("chores.createError", {}, "Errore durante la creazione del turno."));
     } finally {
       setLoading(false);
     }
@@ -189,10 +198,10 @@ export default function AggiuntaTurno() {
   return (
     <div className="card" style={{ maxWidth: "660px", margin: "2rem auto" }}>
       <h1 style={{ marginBottom: "6px" }}>
-        Nuovo Turno Pulizia
+        {t("chores.newChoreTitle", {}, "Nuovo Turno Pulizia")}
       </h1>
       <p className="subtitle" style={{ marginBottom: "24px" }}>
-        Assegna una mansione e pianifica le pulizie di casa
+        {t("chores.newChoreSubtitle", {}, "Assegna una mansione e pianifica le pulizie di casa")}
       </p>
 
       {error && (
@@ -205,7 +214,7 @@ export default function AggiuntaTurno() {
       <form onSubmit={handleSubmit} className="auth-form" style={{ textAlign: "left" }}>
         {/* Chi farà le pulizie */}
         <div className="input-group">
-          <label htmlFor="turno-nomi">A chi è assegnato il turno? (nomi separati da virgola)</label>
+          <label htmlFor="turno-nomi">{t("chores.assignLabel", {}, "A chi è assegnato il turno? (nomi separati da virgola)")}</label>
           {roommates.length > 0 && (
             <div className="roommate-chips-group" style={{ display: "flex", flexWrap: "wrap", gap: "6px", marginBottom: "8px" }}>
               {roommates.map((r) => {
@@ -258,7 +267,7 @@ export default function AggiuntaTurno() {
                       aria-hidden="true"
                     ></i>
                     <span>{r.username}</span>
-                    {isAway && <span style={{ fontSize: "0.75rem", fontStyle: "italic" }}>(In vacanza)</span>}
+                    {isAway && <span style={{ fontSize: "0.75rem", fontStyle: "italic" }}>{t("chores.onVacationTag", {}, "(In vacanza)")}</span>}
                   </button>
                 );
               })}
@@ -283,8 +292,11 @@ export default function AggiuntaTurno() {
             >
               <i className="fas fa-exclamation-triangle" aria-hidden="true"></i>
               <span>
-                Nota: {selectedVacationingRoommates.map((r) => r.username).join(", ")}{" "}
-                è in vacanza nella data selezionata.
+                {t(
+                  "chores.vacationWarning",
+                  { names: selectedVacationingRoommates.map((r) => r.username).join(", ") },
+                  `Nota: ${selectedVacationingRoommates.map((r) => r.username).join(", ")} è in vacanza nella data selezionata.`
+                )}
               </span>
             </div>
           )}
@@ -297,14 +309,14 @@ export default function AggiuntaTurno() {
             onChange={handleChange}
             required
             maxLength={250}
-            placeholder="es. Mario, Luca"
+            placeholder={t("chores.assignPlaceholder", {}, "es. Mario, Luca")}
             disabled={loading}
           />
         </div>
 
         {/* Data Turno */}
         <div className="input-group">
-          <label htmlFor="turno-data">Data Turno *</label>
+          <label htmlFor="turno-data">{t("chores.dateLabel", {}, "Data Turno *")}</label>
           <input
             id="turno-data"
             type="date"
@@ -320,7 +332,7 @@ export default function AggiuntaTurno() {
 
         {/* Fascia Oraria */}
         <div className="input-group">
-          <label htmlFor="turno-fascia">Fascia Oraria *</label>
+          <label htmlFor="turno-fascia">{t("chores.timeSlotLabel", {}, "Fascia Oraria *")}</label>
           <select
             id="turno-fascia"
             name="fasciaOraria"
@@ -329,7 +341,7 @@ export default function AggiuntaTurno() {
             required
             disabled={loading}
           >
-            <option value="">Seleziona una fascia oraria</option>
+            <option value="">{t("chores.selectTimeSlot", {}, "Seleziona una fascia oraria")}</option>
             {FASCE_DISPONIBILI.map((f) => (
               <option key={f} value={f}>
                 {f}
@@ -340,9 +352,9 @@ export default function AggiuntaTurno() {
 
         {/* Luoghi / Mansioni */}
         <div className="input-group">
-          <label htmlFor="turno-luoghi">Cosa c'è da pulire? (separati da virgola) *</label>
+          <label htmlFor="turno-luoghi">{t("chores.whatToCleanLabel", {}, "Cosa c'è da pulire? (separati da virgola) *")}</label>
           <div className="zone-chips-container" style={{ display: "flex", flexWrap: "wrap", gap: "6px", marginBottom: "8px" }}>
-            {ZONE_PRESET.map((z) => (
+            {ZONE_PRESET_LABELS.map((z) => (
               <button
                 key={z}
                 type="button"
@@ -375,7 +387,7 @@ export default function AggiuntaTurno() {
             onChange={handleChange}
             required
             maxLength={250}
-            placeholder="es. Cucina, Bagno, Pavimento salotto"
+            placeholder={t("chores.whatToCleanPlaceholder", {}, "es. Cucina, Bagno, Pavimento salotto")}
             disabled={loading}
           />
         </div>
@@ -392,13 +404,13 @@ export default function AggiuntaTurno() {
         >
           <label style={{ margin: "0 0 8px 0", display: "flex", alignItems: "center", gap: "8px" }}>
             <i className="fas fa-tasks text-primary" aria-hidden="true"></i>
-            <span>Checklist delle mansioni (opzionale)</span>
+            <span>{t("chores.checklistLabel", {}, "Checklist delle mansioni (opzionale)")}</span>
           </label>
 
           <div style={{ display: "flex", gap: "8px", marginBottom: "10px" }}>
             <input
               type="text"
-              placeholder="es. Svuotare il cestino, lavare il lavello..."
+              placeholder={t("chores.checklistPlaceholder", {}, "es. Svuotare il cestino, lavare il lavello...")}
               value={newChecklistText}
               onChange={(e) => setNewChecklistText(e.target.value)}
               onKeyDown={(e) => {
@@ -418,7 +430,7 @@ export default function AggiuntaTurno() {
               className="btn btn-secondary"
               style={{ padding: "8px 16px", minHeight: "44px", display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "0.85rem", width: "auto" }}
             >
-              <i className="fas fa-plus" aria-hidden="true"></i> Aggiungi mansione
+              <i className="fas fa-plus" aria-hidden="true"></i> {t("chores.addSubtaskBtn", {}, "Aggiungi mansione")}
             </button>
           </div>
 
@@ -447,7 +459,7 @@ export default function AggiuntaTurno() {
                     onClick={() => handleRemoveChecklistItem(item.id)}
                     className="btn-text"
                     style={{ padding: "8px", minHeight: "44px", minWidth: "44px", display: "inline-flex", alignItems: "center", justifyContent: "center", color: "var(--color-danger)" }}
-                    aria-label={`Rimuovi ${item.text}`}
+                    aria-label={t("chores.removeChecklistItemAria", { text: item.text }, `Rimuovi ${item.text}`)}
                   >
                     <i className="fas fa-times" aria-hidden="true"></i>
                   </button>
@@ -459,14 +471,14 @@ export default function AggiuntaTurno() {
 
         {/* Procedura extra */}
         <div className="input-group">
-          <label htmlFor="turno-procedura">Note e istruzioni (opzionale)</label>
+          <label htmlFor="turno-procedura">{t("chores.notesLabel", {}, "Note e istruzioni (opzionale)")}</label>
           <textarea
             id="turno-procedura"
             name="procedura"
             value={turno.procedura}
             onChange={handleChange}
             maxLength={500}
-            placeholder="es. Svuotare la pattumiera dell'organico, passare lo straccio"
+            placeholder={t("chores.notesPlaceholder", {}, "es. Svuotare la pattumiera dell'organico, passare lo straccio")}
             style={{ minHeight: "80px" }}
             disabled={loading}
           />
@@ -475,9 +487,9 @@ export default function AggiuntaTurno() {
         <div style={{ display: "flex", gap: "12px", marginTop: "20px" }}>
           <button type="submit" className="btn-primary" disabled={loading}>
             {loading ? (
-              <span><i className="fas fa-spinner fa-spin" aria-hidden="true"></i> Salvataggio...</span>
+              <span><i className="fas fa-spinner fa-spin" aria-hidden="true"></i> {t("chores.saving", {}, "Salvataggio...")}</span>
             ) : (
-              <span><i className="fas fa-plus" aria-hidden="true"></i> Crea Turno</span>
+              <span><i className="fas fa-plus" aria-hidden="true"></i> {t("chores.createBtn", {}, "Crea Turno")}</span>
             )}
           </button>
           <button
@@ -486,7 +498,7 @@ export default function AggiuntaTurno() {
             onClick={() => navigate("/turni")}
             disabled={loading}
           >
-            Annulla
+            {t("common.cancel", {}, "Annulla")}
           </button>
         </div>
       </form>

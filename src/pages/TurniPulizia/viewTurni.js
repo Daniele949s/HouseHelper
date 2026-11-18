@@ -13,6 +13,7 @@ import {
   getDoc
 } from "firebase/firestore";
 import { useAuth } from "../../contexts/AuthContext";
+import { useLanguage } from "../../contexts/LanguageContext";
 import { showToast, showConfirm } from "../../utils/feedback";
 import { sanitizeText, sanitizeChecklist } from "../../utils/security";
 import {
@@ -24,6 +25,7 @@ import {
 export default function VisualizzaTurni() {
   const navigate = useNavigate();
   const { userData, currentUser } = useAuth();
+  const { t, language } = useLanguage();
   const [turni, setTurni] = useState([]);
   const [roommates, setRoommates] = useState([]);
   const [casaDoc, setCasaDoc] = useState(null);
@@ -59,7 +61,7 @@ export default function VisualizzaTurni() {
         rList.push({
           id: d.id,
           uid: d.id,
-          username: u.username || "Coinquilino",
+          username: u.username || t("chores.defaultRoommate", {}, "Coinquilino"),
           inVacanza: Boolean(u.inVacanza),
           vacanzaInizio: u.vacanzaInizio || null,
           vacanzaFine: u.vacanzaFine || null
@@ -75,11 +77,11 @@ export default function VisualizzaTurni() {
       setTurni(data);
     } catch (err) {
       console.error(err);
-      setError("Errore nel caricamento dei turni.");
+      setError(t("chores.loadError", {}, "Errore nel caricamento dei turni."));
     } finally {
       setLoading(false);
     }
-  }, [userData?.casaId]);
+  }, [userData?.casaId, t]);
 
   useEffect(() => {
     fetchTurni();
@@ -89,17 +91,17 @@ export default function VisualizzaTurni() {
     const turnoTarget = turni.find((t) => t.id === id);
     if (!turnoTarget || turnoTarget.casaId !== userData?.casaId) {
       showToast(
-        "Operazione non autorizzata: turno non appartenente alla tua abitazione.",
+        t("chores.deleteUnauthorized", {}, "Operazione non autorizzata: turno non appartenente alla tua abitazione."),
         "error"
       );
       return;
     }
 
     const confirmed = await showConfirm({
-      title: "Elimina Turno",
-      message: "Vuoi eliminare questo turno di pulizia? L'assegnazione verrà rimossa per tutti i coinquilini.",
-      confirmText: "Elimina",
-      cancelText: "Annulla",
+      title: t("chores.delete", {}, "Elimina Turno"),
+      message: t("chores.deleteConfirmMessage", {}, "Vuoi eliminare questo turno di pulizia? L'assegnazione verrà rimossa per tutti i coinquilini."),
+      confirmText: t("common.delete", {}, "Elimina"),
+      cancelText: t("common.cancel", {}, "Annulla"),
       isDanger: true
     });
 
@@ -107,11 +109,11 @@ export default function VisualizzaTurni() {
 
     try {
       await deleteDoc(doc(db, "turni", id));
-      showToast("Turno eliminato con successo", "success");
+      showToast(t("chores.deleteSuccess", {}, "Turno eliminato con successo"), "success");
       fetchTurni();
     } catch (err) {
       console.error("Errore eliminazione:", err);
-      showToast("Errore nell'eliminazione del turno.", "error");
+      showToast(t("chores.deleteError", {}, "Errore nell'eliminazione del turno."), "error");
     }
   };
 
@@ -130,7 +132,7 @@ export default function VisualizzaTurni() {
         return {
           ...item,
           completed: nextState,
-          completedBy: nextState ? userData?.username || "Utente" : null,
+          completedBy: nextState ? userData?.username || t("chores.defaultUser", {}, "Utente") : null,
           completedAt: nextState ? new Date().toISOString() : null
         };
       }
@@ -162,7 +164,7 @@ export default function VisualizzaTurni() {
       });
     } catch (err) {
       console.error("Errore aggiornamento checklist:", err);
-      showToast("Errore durante il salvataggio della mansione", "error");
+      showToast(t("chores.checklistSaveError", {}, "Errore durante il salvataggio della mansione"), "error");
       fetchTurni(); // Revert on failure
     }
   };
@@ -182,7 +184,7 @@ export default function VisualizzaTurni() {
       ? turnoTarget.checklist
       : [];
     if (currentChecklist.length >= 20) {
-      showToast("Limite massimo di 20 sotto-mansioni raggiunto.", "warning");
+      showToast(t("chores.subtaskLimitError", {}, "Limite massimo di 20 sotto-mansioni raggiunto."), "warning");
       return;
     }
 
@@ -208,10 +210,10 @@ export default function VisualizzaTurni() {
         checklist: updatedChecklist,
         completato: false
       });
-      showToast("Sotto-mansione aggiunta!", "success");
+      showToast(t("chores.subtaskAddSuccess", {}, "Sotto-mansione aggiunta!"), "success");
     } catch (err) {
       console.error("Errore aggiunta sotto-mansione:", err);
-      showToast("Impossibile salvare la sotto-mansione", "error");
+      showToast(t("chores.subtaskAddError", {}, "Impossibile salvare la sotto-mansione"), "error");
       fetchTurni();
     }
   };
@@ -226,16 +228,19 @@ export default function VisualizzaTurni() {
   const handleRotateChores = async () => {
     if (rotating) return;
     if (roommates.length === 0) {
-      showToast("Nessun coinquilino disponibile nella casa.", "warning");
+      showToast(t("chores.rotateNoRoommates", {}, "Nessun coinquilino disponibile nella casa."), "warning");
       return;
     }
 
     const confirmed = await showConfirm({
-      title: "Rotazione Automatica Turni",
-      message:
-        "Vuoi avviare la rotazione dei turni? La mansione verrà assegnata al prossimo coinquilino disponibile, saltando chi è in vacanza.",
-      confirmText: "Avvia Rotazione",
-      cancelText: "Annulla"
+      title: t("chores.rotateConfirmTitle", {}, "Rotazione Automatica Turni"),
+      message: t(
+        "chores.rotateConfirmMessage",
+        {},
+        "Vuoi avviare la rotazione dei turni? La mansione verrà assegnata al prossimo coinquilino disponibile, saltando chi è in vacanza."
+      ),
+      confirmText: t("chores.rotateConfirmBtn", {}, "Avvia Rotazione"),
+      cancelText: t("common.cancel", {}, "Annulla")
     });
 
     if (!confirmed) return;
@@ -244,7 +249,7 @@ export default function VisualizzaTurni() {
     try {
       const activeRoommates = getAvailableRoommates(roommates);
       if (activeRoommates.length === 0) {
-        showToast("Tutti i coinquilini sono in vacanza: rotazione non possibile.", "warning");
+        showToast(t("chores.rotateAllVacation", {}, "Tutti i coinquilini sono in vacanza: rotazione non possibile."), "warning");
         setRotating(false);
         return;
       }
@@ -278,34 +283,38 @@ export default function VisualizzaTurni() {
       );
 
       if (!assignee) {
-        showToast("Impossibile determinare il prossimo assegnatario.", "error");
+        showToast(t("chores.rotateNoAssignee", {}, "Impossibile determinare il prossimo assegnatario."), "error");
         setRotating(false);
         return;
       }
 
       // Create new rotated chore
+      const defaultLocation = t("chores.rotateDefaultLocation", {}, "Pulizia Generale");
       const newChore = {
         nomi: [assignee.username],
         data: nextDateStr,
-        luoghi: ["Pulizia Generale"],
-        procedura: ["Rotazione automatica programmata"],
+        luoghi: [defaultLocation],
+        procedura: [t("chores.rotateDefaultProcedure", {}, "Rotazione automatica programmata")],
         fasciaOraria: ["10:00 - 11:00"],
         casaId: userData.casaId,
         utenteId: currentUser.uid,
-        mansione: "Pulizia Generale",
+        mansione: defaultLocation,
         checklist: [
-          { id: `chk_${Date.now()}_1`, text: "Pulire superfici e pavimenti", completed: false },
-          { id: `chk_${Date.now()}_2`, text: "Svuotare cestini", completed: false }
+          { id: `chk_${Date.now()}_1`, text: t("chores.rotateDefaultTask1", {}, "Pulire superfici e pavimenti"), completed: false },
+          { id: `chk_${Date.now()}_2`, text: t("chores.rotateDefaultTask2", {}, "Svuotare cestini"), completed: false }
         ],
         completato: false
       };
 
       await addDoc(collection(db, "turni"), newChore);
-      showToast(`Nuovo turno assegnato con successo a ${assignee.username}!`, "success");
+      showToast(
+        t("chores.rotateSuccess", { name: assignee.username }, `Nuovo turno assegnato con successo a ${assignee.username}!`),
+        "success"
+      );
       fetchTurni();
     } catch (err) {
       console.error("Errore durante la rotazione:", err);
-      showToast("Errore durante l'esecuzione della rotazione turni.", "error");
+      showToast(t("chores.rotateError", {}, "Errore durante l'esecuzione della rotazione turni."), "error");
     } finally {
       setRotating(false);
     }
@@ -315,7 +324,7 @@ export default function VisualizzaTurni() {
     return (
       <div className="card" style={{ maxWidth: "800px", margin: "2rem auto", textAlign: "center" }}>
         <p><i className="fas fa-spinner fa-spin fa-2x" aria-hidden="true"></i></p>
-        <p style={{ marginTop: "10px" }}>Caricamento turni...</p>
+        <p style={{ marginTop: "10px" }}>{t("chores.loadingList", {}, "Caricamento turni...")}</p>
       </div>
     );
   }
@@ -326,10 +335,10 @@ export default function VisualizzaTurni() {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2rem", flexWrap: "wrap", gap: "12px" }}>
         <div>
           <h1 style={{ margin: 0, textAlign: "left" }}>
-            Turni Pulizia
+            {t("chores.pageTitle", {}, "Turni Pulizia")}
           </h1>
           <p style={{ margin: "4px 0 0 0", color: "var(--text-secondary)", textAlign: "left", fontSize: "0.92rem" }}>
-            Organizza le pulizie e scopri a chi tocca
+            {t("chores.pageSubtitle", {}, "Organizza le pulizie e scopri a chi tocca")}
           </p>
         </div>
         <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
@@ -338,16 +347,16 @@ export default function VisualizzaTurni() {
             className="btn-secondary"
             onClick={handleRotateChores}
             disabled={rotating || isWholeHouseAway}
-            title="Esegue una rotazione automatica del turno assegnandolo al coinquilino successivo"
+            title={t("chores.rotateBtnTitle", {}, "Esegue una rotazione automatica del turno assegnandolo al coinquilino successivo")}
             style={{ width: "auto", padding: "12px 18px" }}
           >
             {rotating ? (
               <>
-                <i className="fas fa-spinner fa-spin" aria-hidden="true"></i> Rotazione...
+                <i className="fas fa-spinner fa-spin" aria-hidden="true"></i> {t("chores.rotating", {}, "Rotazione...")}
               </>
             ) : (
               <>
-                <i className="fas fa-sync-alt" aria-hidden="true"></i> Ruota Turni
+                <i className="fas fa-sync-alt" aria-hidden="true"></i> {t("chores.rotateBtn", {}, "Ruota Turni")}
               </>
             )}
           </button>
@@ -357,7 +366,7 @@ export default function VisualizzaTurni() {
             onClick={() => navigate("/turni/aggiungi")}
             style={{ width: "auto", padding: "12px 24px" }}
           >
-            <i className="fas fa-plus" aria-hidden="true"></i> Nuovo Turno
+            <i className="fas fa-plus" aria-hidden="true"></i> {t("chores.newChoreBtn", {}, "Nuovo Turno")}
           </button>
         </div>
       </div>
@@ -386,9 +395,9 @@ export default function VisualizzaTurni() {
         >
           <i className="fas fa-plane-departure" style={{ fontSize: "1.4rem" }} aria-hidden="true"></i>
           <div>
-            <strong style={{ fontSize: "0.95rem" }}>Casa Momentaneamente Vuota</strong>
+            <strong style={{ fontSize: "0.95rem" }}>{t("chores.houseEmptyTitle", {}, "Casa Momentaneamente Vuota")}</strong>
             <p style={{ margin: "2px 0 0 0", fontSize: "0.85rem" }}>
-              Tutti i coinquilini risultano in vacanza. I turni di pulizia sono temporaneamente in pausa.
+              {t("chores.houseEmptyDesc", {}, "Tutti i coinquilini risultano in vacanza. I turni di pulizia sono temporaneamente in pausa.")}
             </p>
           </div>
         </div>
@@ -399,7 +408,7 @@ export default function VisualizzaTurni() {
           <div className="empty-state-modern" style={{ padding: "3rem 1rem", textAlign: "center", background: "var(--bg-input)", borderRadius: "var(--radius-md)" }}>
             <i className="fas fa-broom" style={{ fontSize: "3rem", opacity: 0.7, color: "var(--color-primary)" }} aria-hidden="true"></i>
             <p className="subtitle" style={{ marginTop: "12px", marginBottom: "16px" }}>
-              Nessun turno programmato. Inizia ad assegnare le mansioni!
+              {t("chores.emptyStateDesc", {}, "Nessun turno programmato. Inizia ad assegnare le mansioni!")}
             </p>
             <button
               type="button"
@@ -407,7 +416,7 @@ export default function VisualizzaTurni() {
               onClick={() => navigate("/turni/aggiungi")}
               style={{ width: "auto", padding: "10px 20px", display: "inline-flex", alignItems: "center", gap: "8px" }}
             >
-              <i className="fas fa-plus" aria-hidden="true"></i> Crea il primo turno
+              <i className="fas fa-plus" aria-hidden="true"></i> {t("chores.createFirstBtn", {}, "Crea il primo turno")}
             </button>
           </div>
         ) : (
@@ -421,8 +430,9 @@ export default function VisualizzaTurni() {
               const isToday = turno.data === oggiStr;
               const checklist = Array.isArray(turno.checklist) ? turno.checklist : [];
               const completedCount = checklist.filter((i) => i.completed).length;
-              const assigneeName = Array.isArray(turno.nomi) ? turno.nomi.join(", ") : (turno.nomi || "Coinquilino");
-              const assigneeInitial = (Array.isArray(turno.nomi) ? turno.nomi[0] : (turno.nomi || "C")).charAt(0).toUpperCase();
+              const defaultRoommate = t("chores.defaultRoommate", {}, "Coinquilino");
+              const assigneeName = Array.isArray(turno.nomi) ? turno.nomi.join(", ") : (turno.nomi || defaultRoommate);
+              const assigneeInitial = (Array.isArray(turno.nomi) ? turno.nomi[0] : (turno.nomi || defaultRoommate)).charAt(0).toUpperCase();
 
               return (
                 <div
@@ -451,7 +461,7 @@ export default function VisualizzaTurni() {
                         }}
                       >
                         <i className={isToday ? "fas fa-bell" : "fas fa-star"} aria-hidden="true"></i>
-                        {isToday ? "Oggi tocca a..." : "Turno in evidenza"}
+                        {isToday ? t("chores.todayTurnTag", {}, "Oggi tocca a...") : t("chores.featuredTurnTag", {}, "Turno in evidenza")}
                       </span>
                       {turno.completato && (
                         <span
@@ -467,7 +477,7 @@ export default function VisualizzaTurni() {
                             gap: "4px"
                           }}
                         >
-                          <i className="fas fa-check-circle" aria-hidden="true"></i> Completato
+                          <i className="fas fa-check-circle" aria-hidden="true"></i> {t("chores.completed", {}, "Completato")}
                         </span>
                       )}
                     </div>
@@ -490,7 +500,7 @@ export default function VisualizzaTurni() {
                           }}
                         >
                           <i className="fas fa-tasks" aria-hidden="true"></i>
-                          {completedCount}/{checklist.length} mansioni
+                          {t("chores.tasksCountPill", { completed: completedCount, total: checklist.length }, `${completedCount}/${checklist.length} mansioni`)}
                         </span>
                       )}
                     </div>
@@ -502,7 +512,7 @@ export default function VisualizzaTurni() {
                       {/* CRITICAL: Level 3 Heading for T1.10 cards[0] */}
                       <h3 style={{ margin: "0 0 8px 0", fontSize: "1.45rem", color: "var(--text-main)", display: "flex", alignItems: "center", gap: "8px" }}>
                         <i className="fas fa-map-marker-alt text-primary" style={{ fontSize: "0.9em" }} aria-hidden="true"></i>
-                        <span>{Array.isArray(turno.luoghi) ? turno.luoghi.join(", ") : (turno.luoghi || turno.mansione || "Pulizia")}</span>
+                        <span>{Array.isArray(turno.luoghi) ? turno.luoghi.join(", ") : (turno.luoghi || turno.mansione || t("chores.defaultLocation", {}, "Pulizia"))}</span>
                       </h3>
 
                       {/* Prominent Assignee Avatar Row */}
@@ -526,7 +536,7 @@ export default function VisualizzaTurni() {
                           {assigneeInitial}
                         </div>
                         <div>
-                          <span style={{ fontSize: "0.8rem", color: "var(--text-muted)", display: "block" }}>Assegnato a:</span>
+                          <span style={{ fontSize: "0.8rem", color: "var(--text-muted)", display: "block" }}>{t("chores.assignedToColon", {}, "Assegnato a:")}</span>
                           <strong style={{ fontSize: "1.05rem", color: "var(--text-main)" }}>{assigneeName}</strong>
                         </div>
                       </div>
@@ -535,7 +545,7 @@ export default function VisualizzaTurni() {
                         <i className="far fa-calendar-alt" aria-hidden="true"></i>
                         <span>
                           {!isNaN(turnoDate.getTime())
-                            ? turnoDate.toLocaleDateString("it-IT", {
+                            ? turnoDate.toLocaleDateString(language === "en" ? "en-US" : "it-IT", {
                                 weekday: "long",
                                 day: "numeric",
                                 month: "long"
@@ -569,7 +579,7 @@ export default function VisualizzaTurni() {
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
                           <span style={{ fontSize: "0.85rem", fontWeight: "600", color: "var(--text-secondary)" }}>
                             <i className="fas fa-tasks" style={{ marginRight: "6px" }} aria-hidden="true"></i>
-                            Mansioni ({completedCount}/{checklist.length})
+                            {t("chores.tasksHeading", { completed: completedCount, total: checklist.length }, `Mansioni (${completedCount}/${checklist.length})`)}
                           </span>
                         </div>
 
@@ -608,7 +618,7 @@ export default function VisualizzaTurni() {
                                 <span>{item.text}</span>
                                 {item.completedBy && (
                                   <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", fontStyle: "italic" }}>
-                                    (completato da {item.completedBy})
+                                    {t("chores.completedBy", { name: item.completedBy }, `(completato da ${item.completedBy})`)}
                                   </span>
                                 )}
                               </label>
@@ -616,7 +626,7 @@ export default function VisualizzaTurni() {
                           </div>
                         ) : (
                           <p style={{ margin: "4px 0 8px 0", fontSize: "0.82rem", color: "var(--text-muted)" }}>
-                            Nessuna mansione aggiunta.
+                            {t("chores.noSubtasks", {}, "Nessuna mansione aggiunta.")}
                           </p>
                         )}
 
@@ -624,7 +634,7 @@ export default function VisualizzaTurni() {
                         <div style={{ display: "flex", gap: "6px", marginTop: "6px" }}>
                           <input
                             type="text"
-                            placeholder="Aggiungi una mansione..."
+                            placeholder={t("chores.addSubtaskPlaceholder", {}, "Aggiungi una mansione...")}
                             value={newSubTaskMap[turno.id] || ""}
                             onChange={(e) =>
                               setNewSubTaskMap({ ...newSubTaskMap, [turno.id]: e.target.value })
@@ -651,7 +661,7 @@ export default function VisualizzaTurni() {
                             onClick={() => handleAddDirectSubTask(turno.id)}
                             className="btn-secondary"
                             style={{ padding: "8px 16px", minHeight: "44px", minWidth: "44px", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: "0.85rem", width: "auto" }}
-                            aria-label="Aggiungi mansione rapida"
+                            aria-label={t("chores.quickAddSubtaskAria", {}, "Aggiungi mansione rapida")}
                           >
                             <i className="fas fa-plus" aria-hidden="true"></i>
                           </button>
@@ -666,17 +676,17 @@ export default function VisualizzaTurni() {
                         className="btn-secondary"
                         onClick={() => navigate(`/turni/modifica/${turno.id}`)}
                         style={{ padding: "8px 16px", minHeight: "44px", display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "0.85rem", width: "auto" }}
-                        title="Modifica"
+                        title={t("common.edit", {}, "Modifica")}
                       >
-                        <i className="fas fa-edit" aria-hidden="true"></i> Modifica
+                        <i className="fas fa-edit" aria-hidden="true"></i> {t("common.edit", {}, "Modifica")}
                       </button>
                       <button
                         type="button"
                         className="btn-danger-outline"
                         onClick={() => handleDelete(turno.id)}
                         style={{ padding: "8px 14px", minHeight: "44px", minWidth: "44px", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: "0.85rem", width: "auto" }}
-                        title="Elimina"
-                        aria-label="Elimina turno"
+                        title={t("common.delete", {}, "Elimina")}
+                        aria-label={t("chores.deleteAria", {}, "Elimina turno")}
                       >
                         <i className="fas fa-trash" aria-hidden="true"></i>
                       </button>
@@ -690,7 +700,7 @@ export default function VisualizzaTurni() {
             {turni.length > 1 && (
               <div className="timeline-chores-section">
                 <h4 style={{ margin: "8px 0 12px 0", fontSize: "0.95rem", color: "var(--text-muted)", fontWeight: "600", textAlign: "left" }}>
-                  Turni successivi
+                  {t("chores.upcomingChoresHeading", {}, "Turni successivi")}
                 </h4>
                 <div className="timeline-chores-list">
                 {turni.slice(1).map((turno) => {
@@ -715,7 +725,7 @@ export default function VisualizzaTurni() {
                       <div className="agenda-date-badge badge-turno">
                         <span className="day-num">{!isNaN(turnoDate.getTime()) ? turnoDate.getDate() : "--"}</span>
                         <span className="month-txt">
-                          {!isNaN(turnoDate.getTime()) ? turnoDate.toLocaleDateString("it-IT", { month: "short" }) : ""}
+                          {!isNaN(turnoDate.getTime()) ? turnoDate.toLocaleDateString(language === "en" ? "en-US" : "it-IT", { month: "short" }) : ""}
                         </span>
                       </div>
 
@@ -726,7 +736,7 @@ export default function VisualizzaTurni() {
                               {/* CRITICAL: Level 3 Heading for T1.10 cards[1...] */}
                               <h3 style={{ margin: 0, fontSize: "1.2rem", color: "var(--text-main)", display: "flex", alignItems: "center", gap: "8px" }}>
                                 <i className="fas fa-map-marker-alt" style={{ color: "var(--color-primary)", fontSize: "0.85em" }} aria-hidden="true"></i>
-                                <span>{Array.isArray(turno.luoghi) ? turno.luoghi.join(", ") : (turno.luoghi || turno.mansione || "Pulizia")}</span>
+                                <span>{Array.isArray(turno.luoghi) ? turno.luoghi.join(", ") : (turno.luoghi || turno.mansione || t("chores.defaultLocation", {}, "Pulizia"))}</span>
                               </h3>
 
                               {turno.completato && (
@@ -740,14 +750,14 @@ export default function VisualizzaTurni() {
                                     fontWeight: "700"
                                   }}
                                 >
-                                  <i className="fas fa-check-circle" aria-hidden="true"></i> Completato
+                                  <i className="fas fa-check-circle" aria-hidden="true"></i> {t("chores.completed", {}, "Completato")}
                                 </span>
                               )}
                             </div>
 
                             <p style={{ margin: "6px 0", color: "var(--text-secondary)", fontSize: "0.92rem" }}>
                               <i className="fas fa-user" style={{ marginRight: "6px", color: "var(--color-primary)" }} aria-hidden="true"></i>
-                              Assegnato a: <strong style={{ color: "var(--text-main)" }}>{Array.isArray(turno.nomi) ? turno.nomi.join(", ") : turno.nomi}</strong>
+                              {t("chores.assignedToColon", {}, "Assegnato a:")} <strong style={{ color: "var(--text-main)" }}>{Array.isArray(turno.nomi) ? turno.nomi.join(", ") : turno.nomi}</strong>
                             </p>
                             <p style={{ margin: "4px 0", color: "var(--text-muted)", fontSize: "0.88rem" }}>
                               <i className="far fa-clock" style={{ marginRight: "6px" }} aria-hidden="true"></i>
@@ -773,7 +783,7 @@ export default function VisualizzaTurni() {
                               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
                                 <span style={{ fontSize: "0.82rem", fontWeight: "600", color: "var(--text-secondary)" }}>
                                   <i className="fas fa-tasks" style={{ marginRight: "6px" }} aria-hidden="true"></i>
-                                  Mansioni ({completedCount}/{checklist.length})
+                                  {t("chores.tasksHeading", { completed: completedCount, total: checklist.length }, `Mansioni (${completedCount}/${checklist.length})`)}
                                 </span>
                               </div>
 
@@ -812,7 +822,7 @@ export default function VisualizzaTurni() {
                                       <span>{item.text}</span>
                                       {item.completedBy && (
                                         <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", fontStyle: "italic" }}>
-                                          (completato da {item.completedBy})
+                                          {t("chores.completedBy", { name: item.completedBy }, `(completato da ${item.completedBy})`)}
                                         </span>
                                       )}
                                     </label>
@@ -820,14 +830,14 @@ export default function VisualizzaTurni() {
                                 </div>
                               ) : (
                                 <p style={{ margin: "4px 0 8px 0", fontSize: "0.82rem", color: "var(--text-muted)" }}>
-                                  Nessuna mansione aggiunta.
+                                  {t("chores.noSubtasks", {}, "Nessuna mansione aggiunta.")}
                                 </p>
                               )}
 
                               <div style={{ display: "flex", gap: "6px", marginTop: "6px" }}>
                                 <input
                                   type="text"
-                                  placeholder="Aggiungi una mansione..."
+                                  placeholder={t("chores.addSubtaskPlaceholder", {}, "Aggiungi una mansione...")}
                                   value={newSubTaskMap[turno.id] || ""}
                                   onChange={(e) =>
                                     setNewSubTaskMap({ ...newSubTaskMap, [turno.id]: e.target.value })
@@ -854,7 +864,7 @@ export default function VisualizzaTurni() {
                                   onClick={() => handleAddDirectSubTask(turno.id)}
                                   className="btn-secondary"
                                   style={{ padding: "8px 16px", minHeight: "44px", minWidth: "44px", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: "0.85rem", width: "auto" }}
-                                  aria-label="Aggiungi mansione rapida"
+                                  aria-label={t("chores.quickAddSubtaskAria", {}, "Aggiungi mansione rapida")}
                                 >
                                   <i className="fas fa-plus" aria-hidden="true"></i>
                                 </button>
@@ -868,17 +878,17 @@ export default function VisualizzaTurni() {
                               className="btn-secondary"
                               onClick={() => navigate(`/turni/modifica/${turno.id}`)}
                               style={{ padding: "8px 16px", minHeight: "44px", display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "0.85rem", width: "auto" }}
-                              title="Modifica"
+                              title={t("common.edit", {}, "Modifica")}
                             >
-                              <i className="fas fa-edit" aria-hidden="true"></i> Modifica
+                              <i className="fas fa-edit" aria-hidden="true"></i> {t("common.edit", {}, "Modifica")}
                             </button>
                             <button
                               type="button"
                               className="btn-danger-outline"
                               onClick={() => handleDelete(turno.id)}
                               style={{ padding: "8px 14px", minHeight: "44px", minWidth: "44px", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: "0.85rem", width: "auto" }}
-                              title="Elimina"
-                              aria-label="Elimina turno"
+                              title={t("common.delete", {}, "Elimina")}
+                              aria-label={t("chores.deleteAria", {}, "Elimina turno")}
                             >
                               <i className="fas fa-trash" aria-hidden="true"></i>
                             </button>
@@ -896,7 +906,7 @@ export default function VisualizzaTurni() {
       </div>
 
       <button type="button" className="btn-text" onClick={() => navigate("/home")} style={{ marginTop: "30px", minHeight: "44px", display: "inline-flex", alignItems: "center" }}>
-        <i className="fas fa-arrow-left" style={{ marginRight: "6px" }} aria-hidden="true"></i> Torna alla dashboard
+        <i className="fas fa-arrow-left" style={{ marginRight: "6px" }} aria-hidden="true"></i> {t("chores.backToDashboard", {}, "Torna alla dashboard")}
       </button>
     </div>
   );

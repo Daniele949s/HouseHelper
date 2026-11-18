@@ -1,6 +1,8 @@
 import React, { useState, useRef, useEffect } from "react";
+import { useLanguage } from "../contexts/LanguageContext";
 
 export default function InteractiveMascot({ targetInputRef, isError, errorMessage }) {
+  const { t } = useLanguage();
   const [pupilOffset, setPupilOffset] = useState({ x: 0, y: 0 });
   const [mascotX, setMascotX] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
@@ -82,7 +84,7 @@ export default function InteractiveMascot({ targetInputRef, isError, errorMessag
         {/* Curved error text arc */}
         {isError && (
           <div className="mascot-error-bubble">
-            <span>{errorMessage || "Attenzione ai campi!"}</span>
+            <span>{errorMessage || t("mascot.defaultError", {}, "Attenzione ai campi!")}</span>
           </div>
         )}
 

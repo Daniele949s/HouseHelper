@@ -124,7 +124,7 @@ describe("Milestone 2 Adversarial Stress Suite", () => {
       expect(screen.getByText("Registrati")).toBeInTheDocument();
       expect(screen.getByText("Home")).toBeInTheDocument();
 
-      const items = container.querySelectorAll(".mobile-menu-item");
+      const items = document.querySelectorAll(".mobile-menu-item");
       expect(items.length).toBe(3);
     });
 

@@ -3,21 +3,23 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { db } from "../../firebase";
 import { collection, addDoc } from "firebase/firestore";
 import { useAuth } from "../../contexts/AuthContext";
+import { useLanguage } from "../../contexts/LanguageContext";
 import { showToast } from "../../utils/feedback";
 import { sanitizeText, validateDate } from "../../utils/security";
 
 const EVENT_CATEGORIES = [
-  { id: "Generale", label: "Generale", icon: "fas fa-bookmark" },
-  { id: "Cena / Festa", label: "Cena / Festa", icon: "fas fa-utensils" },
-  { id: "Manutenzione", label: "Manutenzione", icon: "fas fa-wrench" },
-  { id: "Bollette / Scadenze", label: "Bollette", icon: "fas fa-receipt" },
-  { id: "Ospiti", label: "Ospiti", icon: "fas fa-user-friends" }
+  { id: "Generale", labelKey: "calendar.catGeneral", fallback: "Generale", icon: "fas fa-bookmark" },
+  { id: "Cena / Festa", labelKey: "calendar.catDinnerParty", fallback: "Cena / Festa", icon: "fas fa-utensils" },
+  { id: "Manutenzione", labelKey: "calendar.catMaintenance", fallback: "Manutenzione", icon: "fas fa-wrench" },
+  { id: "Bollette / Scadenze", labelKey: "calendar.catBills", fallback: "Bollette", icon: "fas fa-receipt" },
+  { id: "Ospiti", labelKey: "calendar.catGuests", fallback: "Ospiti", icon: "fas fa-user-friends" }
 ];
 
 export default function AggiungiEvento() {
   const navigate = useNavigate();
   const location = useLocation();
   const { userData, currentUser } = useAuth();
+  const { t } = useLanguage();
 
   const [titolo, setTitolo] = useState("");
   const [contenuto, setContenuto] = useState("");
@@ -53,17 +55,17 @@ export default function AggiungiEvento() {
     const dateValidation = validateDate(dataEvento);
 
     if (!cleanedTitolo) {
-      setError("Il titolo dell'evento è obbligatorio.");
+      setError(t("calendar.errorTitleRequired", null, "Il titolo dell'evento è obbligatorio."));
       return;
     }
 
     if (!dateValidation.isValid) {
-      setError(dateValidation.error || "Data non specificata.");
+      setError(dateValidation.error || t("calendar.errorDateMissing", null, "Data non specificata."));
       return;
     }
 
     if (!cleanedContenuto) {
-      setError("Inserisci una descrizione o orario per l'evento.");
+      setError(t("calendar.errorContentRequired", null, "Inserisci una descrizione o orario per l'evento."));
       return;
     }
 
@@ -80,10 +82,10 @@ export default function AggiungiEvento() {
         createdAt: new Date(),
         isEvento: true
       });
-      showToast("Evento aggiunto al calendario con successo!", "success");
+      showToast(t("calendar.addSuccess", null, "Evento aggiunto al calendario con successo!"), "success");
       navigate("/calendario");
     } catch (e) {
-      setError("Errore durante il salvataggio dell'evento.");
+      setError(t("calendar.saveError", null, "Errore durante il salvataggio dell'evento."));
       console.error(e);
     } finally {
       setLoading(false);
@@ -92,8 +94,8 @@ export default function AggiungiEvento() {
 
   return (
     <div className="card" style={{ maxWidth: "620px" }}>
-      <h1 style={{ marginBottom: "6px" }}>Nuovo Evento Calendario</h1>
-      <p className="subtitle" style={{ marginBottom: "24px" }}>Aggiungi una data o un impegno per tutti gli abitanti</p>
+      <h1 style={{ marginBottom: "6px" }}>{t("calendar.newEventTitle", null, "Nuovo Evento Calendario")}</h1>
+      <p className="subtitle" style={{ marginBottom: "24px" }}>{t("calendar.newEventSubtitle", null, "Aggiungi una data o un impegno per tutti gli abitanti")}</p>
 
       {error && (
         <div className="error-alert" style={{ marginBottom: "20px" }}>
@@ -104,7 +106,7 @@ export default function AggiungiEvento() {
 
       <form onSubmit={handleSubmit} className="auth-form" style={{ textAlign: "left" }}>
         <div className="input-group">
-          <label>Categoria evento</label>
+          <label>{t("calendar.categoryLabel", null, "Categoria evento")}</label>
           <div className="pill-selector-group">
             {EVENT_CATEGORIES.map((cat) => (
               <button
@@ -113,7 +115,7 @@ export default function AggiungiEvento() {
                 className={`pill-selector-btn ${categoria === cat.id ? "active" : ""}`}
                 onClick={() => setCategoria(cat.id)}
               >
-                <i className={cat.icon}></i> {cat.label}
+                <i className={cat.icon}></i> {t(cat.labelKey, null, cat.fallback)}
               </button>
             ))}
           </div>
@@ -121,21 +123,21 @@ export default function AggiungiEvento() {
 
         <div className="input-group">
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <label>Titolo Evento (massimo 80 caratteri)</label>
+            <label>{t("calendar.eventTitleLabel", null, "Titolo Evento (massimo 80 caratteri)")}</label>
             <span className="char-counter">{titolo.length} / 80</span>
           </div>
           <input
             type="text"
             value={titolo}
             onChange={(e) => setTitolo(e.target.value)}
-            placeholder="es. Cena di Casa, Affitto in scadenza, Manutenzione caldaia"
+            placeholder={t("calendar.eventTitlePlaceholder", null, "es. Cena di Casa, Affitto in scadenza, Manutenzione caldaia")}
             maxLength={80}
             required
           />
         </div>
 
         <div className="input-group">
-          <label style={{ color: "var(--color-primary)" }}>Data (Obbligatoria)</label>
+          <label style={{ color: "var(--color-primary)" }}>{t("calendar.dateRequiredLabel", null, "Data (Obbligatoria)")}</label>
           <input
             type="date"
             value={dataEvento}
@@ -148,13 +150,13 @@ export default function AggiungiEvento() {
 
         <div className="input-group">
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <label>Dettagli / Note / Orario (massimo 1500 caratteri)</label>
+            <label>{t("calendar.detailsLabel", null, "Dettagli / Note / Orario (massimo 1500 caratteri)")}</label>
             <span className="char-counter">{contenuto.length} / 1500</span>
           </div>
           <textarea
             value={contenuto}
             onChange={(e) => setContenuto(e.target.value)}
-            placeholder="Orario preciso, note organizzative, chi partecipa..."
+            placeholder={t("calendar.detailsPlaceholder", null, "Orario preciso, note organizzative, chi partecipa...")}
             maxLength={1500}
             required
             style={{ minHeight: "100px" }}
@@ -163,10 +165,10 @@ export default function AggiungiEvento() {
 
         <div style={{ display: "flex", gap: "12px", marginTop: "16px" }}>
           <button type="submit" className="btn-primary" disabled={loading}>
-            {loading ? <i className="fas fa-spinner fa-spin"></i> : "Salva Evento"}
+            {loading ? <i className="fas fa-spinner fa-spin"></i> : t("calendar.saveEventBtn", null, "Salva Evento")}
           </button>
           <button type="button" className="btn-secondary" onClick={() => navigate("/calendario")}>
-            Annulla
+            {t("common.cancel", null, "Annulla")}
           </button>
         </div>
       </form>

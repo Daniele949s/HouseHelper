@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { db } from "../../firebase";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { useAuth } from "../../contexts/AuthContext";
+import { useLanguage } from "../../contexts/LanguageContext";
 import { sanitizeList, validateDate } from "../../utils/security";
 import { showToast } from "../../utils/feedback";
 
@@ -21,6 +22,7 @@ export default function ModificaTurno() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { userData } = useAuth();
+  const { t } = useLanguage();
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -41,7 +43,7 @@ export default function ModificaTurno() {
       try {
         const turnoDoc = await getDoc(doc(db, "turni", id));
         if (!turnoDoc.exists()) {
-          showToast("Turno non trovato o precedentemente rimosso.", "error");
+          showToast(t("chores.notFoundError", {}, "Turno non trovato o precedentemente rimosso."), "error");
           navigate("/turni");
           return;
         }
@@ -50,7 +52,7 @@ export default function ModificaTurno() {
 
         // Multi-tenant Security Check: Prevent accessing turni belonging to other households via URL
         if (data.casaId !== userData.casaId) {
-          showToast("Accesso non consentito: questo turno appartiene a un'altra abitazione.", "error");
+          showToast(t("chores.unauthorizedHouseError", {}, "Accesso non consentito: questo turno appartiene a un'altra abitazione."), "error");
           navigate("/turni");
           return;
         }
@@ -64,14 +66,14 @@ export default function ModificaTurno() {
         });
       } catch (err) {
         console.error("Errore fetch turno:", err);
-        setError("Impossibile caricare il turno.");
+        setError(t("chores.loadOneError", {}, "Impossibile caricare il turno."));
       } finally {
         setLoading(false);
       }
     };
 
     fetchTurno();
-  }, [id, userData, navigate]);
+  }, [id, userData, navigate, t]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -89,22 +91,22 @@ export default function ModificaTurno() {
     const dateValidation = validateDate(turno.data);
 
     if (cleanedNomi.length === 0) {
-      setError("Indica almeno un coinquilino per questo turno.");
+      setError(t("chores.editErrorNoAssignee", {}, "Indica almeno un coinquilino per questo turno."));
       return;
     }
 
     if (!dateValidation.isValid) {
-      setError(dateValidation.error || "Data non valida.");
+      setError(dateValidation.error || t("chores.editErrorInvalidDate", {}, "Data non valida."));
       return;
     }
 
     if (cleanedLuoghi.length === 0) {
-      setError("Specifica almeno una stanza o luogo da pulire.");
+      setError(t("chores.editErrorNoLocation", {}, "Specifica almeno una stanza o luogo da pulire."));
       return;
     }
 
     if (!FASCE_DISPONIBILI.includes(turno.fasciaOraria)) {
-      setError("Seleziona una fascia oraria valida dall'elenco.");
+      setError(t("chores.errorInvalidTimeSlot", {}, "Seleziona una fascia oraria valida dall'elenco."));
       return;
     }
 
@@ -122,11 +124,11 @@ export default function ModificaTurno() {
 
     try {
       await updateDoc(doc(db, "turni", id), turnoAggiornato);
-      showToast("Turno aggiornato con successo!", "success");
+      showToast(t("chores.updateSuccess", {}, "Turno aggiornato con successo!"), "success");
       navigate("/turni");
     } catch (err) {
       console.error("Errore aggiornamento turno:", err);
-      setError("Errore durante l'aggiornamento del turno.");
+      setError(t("chores.updateError", {}, "Errore durante l'aggiornamento del turno."));
     } finally {
       setSaving(false);
     }
@@ -136,7 +138,7 @@ export default function ModificaTurno() {
     return (
       <div className="card" style={{ maxWidth: "600px" }}>
         <p><i className="fas fa-spinner fa-spin fa-2x" aria-hidden="true"></i></p>
-        <p style={{ marginTop: "10px" }}>Verifica autorizzazioni e caricamento turno...</p>
+        <p style={{ marginTop: "10px" }}>{t("chores.loadingAuth", {}, "Verifica autorizzazioni e caricamento turno...")}</p>
       </div>
     );
   }
@@ -144,9 +146,9 @@ export default function ModificaTurno() {
   return (
     <div className="card" style={{ maxWidth: "620px" }}>
       <h1 style={{ marginBottom: "6px" }}>
-        Modifica Turno
+        {t("chores.edit", {}, "Modifica Turno")}
       </h1>
-      <p className="subtitle" style={{ marginBottom: "24px" }}>Aggiorna data, zona o coinquilini assegnati</p>
+      <p className="subtitle" style={{ marginBottom: "24px" }}>{t("chores.editSubtitle", {}, "Aggiorna data, zona o coinquilini assegnati")}</p>
 
       {error && (
         <div className="error-alert" role="alert" style={{ marginBottom: "20px" }}>
@@ -157,7 +159,7 @@ export default function ModificaTurno() {
 
       <form onSubmit={handleSubmit} className="auth-form" style={{ textAlign: "left" }}>
         <div className="input-group">
-          <label htmlFor="edit-nomi">Coinquilini assegnati (separati da virgola)</label>
+          <label htmlFor="edit-nomi">{t("chores.editAssignLabel", {}, "Coinquilini assegnati (separati da virgola)")}</label>
           <input
             id="edit-nomi"
             type="text"
@@ -170,7 +172,7 @@ export default function ModificaTurno() {
         </div>
 
         <div className="input-group">
-          <label htmlFor="edit-data">Data del turno *</label>
+          <label htmlFor="edit-data">{t("chores.editDateLabel", {}, "Data del turno *")}</label>
           <input
             id="edit-data"
             type="date"
@@ -184,9 +186,9 @@ export default function ModificaTurno() {
         </div>
 
         <div className="input-group">
-          <label htmlFor="edit-fascia">Orario indicativo *</label>
+          <label htmlFor="edit-fascia">{t("chores.editTimeSlotLabel", {}, "Orario indicativo *")}</label>
           <select id="edit-fascia" name="fasciaOraria" value={turno.fasciaOraria} onChange={handleChange} required>
-            <option value="">Seleziona una fascia oraria</option>
+            <option value="">{t("chores.selectTimeSlot", {}, "Seleziona una fascia oraria")}</option>
             {FASCE_DISPONIBILI.map((f) => (
               <option key={f} value={f}>{f}</option>
             ))}
@@ -194,7 +196,7 @@ export default function ModificaTurno() {
         </div>
 
         <div className="input-group">
-          <label htmlFor="edit-luoghi">Zona o mansione *</label>
+          <label htmlFor="edit-luoghi">{t("chores.editLocationLabel", {}, "Zona o mansione *")}</label>
           <input
             id="edit-luoghi"
             type="text"
@@ -207,7 +209,7 @@ export default function ModificaTurno() {
         </div>
 
         <div className="input-group">
-          <label htmlFor="edit-procedura">Note e istruzioni (opzionale)</label>
+          <label htmlFor="edit-procedura">{t("chores.notesLabel", {}, "Note e istruzioni (opzionale)")}</label>
           <textarea
             id="edit-procedura"
             name="procedura"
@@ -221,13 +223,13 @@ export default function ModificaTurno() {
         <div style={{ display: "flex", gap: "12px", marginTop: "16px" }}>
           <button type="submit" className="btn-primary" disabled={saving}>
             {saving ? (
-              <span><i className="fas fa-spinner fa-spin" aria-hidden="true"></i> Salvataggio...</span>
+              <span><i className="fas fa-spinner fa-spin" aria-hidden="true"></i> {t("chores.saving", {}, "Salvataggio...")}</span>
             ) : (
-              <span><i className="fas fa-check" aria-hidden="true"></i> Salva Modifiche</span>
+              <span><i className="fas fa-check" aria-hidden="true"></i> {t("chores.saveChangesBtn", {}, "Salva Modifiche")}</span>
             )}
           </button>
           <button type="button" className="btn-secondary" onClick={() => navigate("/turni")}>
-            Annulla
+            {t("common.cancel", {}, "Annulla")}
           </button>
         </div>
       </form>
