@@ -73,7 +73,7 @@ export default function ViewBacheca() {
     };
 
     fetchDati();
-  }, [userData]);
+  }, [userData, t]);
 
   const fetchDatiReload = async () => {
     if (!userData?.casaId) return;

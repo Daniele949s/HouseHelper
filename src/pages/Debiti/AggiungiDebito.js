@@ -48,7 +48,7 @@ export default function AggiungiDebito() {
       }
     };
     fetchCoinquilini();
-  }, [userData]);
+  }, [userData, t]);
 
   const handleKeyDownNumber = (e) => {
     // Block negative signs, addition signs, and exponential notation

@@ -70,7 +70,7 @@ export default function ViewCalendario() {
       }
     };
     fetchDatiCalendario();
-  }, [userData]);
+  }, [userData, t]);
 
   useEffect(() => {
     const dataString = dataSelezionata.toLocaleDateString('en-CA');

@@ -180,7 +180,7 @@ export default function HomeUtente() {
       return;
     }
     fetchDashboardData();
-  }, [currentUser, userData, navigate]);
+  }, [currentUser, userData, navigate, t]);
 
   // Vacation Mode Persistence Handler
   const handleSaveVacation = async (e) => {
