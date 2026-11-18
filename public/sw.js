@@ -8,7 +8,7 @@
  * 4. Automatic cache eviction for old versions
  */
 
-const CACHE_NAME = 'househelper-shell-v1';
+const CACHE_NAME = 'househelper-shell-v2';
 const PRECACHE_ASSETS = [
   '/',
   '/index.html',
@@ -18,6 +18,26 @@ const PRECACHE_ASSETS = [
   '/logo512.png',
   '/fontawesome.min.css'
 ];
+
+function isValidAssetResponse(request, response) {
+  if (!response || response.status !== 200 || response.type !== 'basic') {
+    return false;
+  }
+  const contentType = (response.headers.get('content-type') || '').toLowerCase();
+  if (request.destination === 'script') {
+    return contentType.includes('javascript') || contentType.includes('ecmascript');
+  }
+  if (request.destination === 'style') {
+    return contentType.includes('text/css');
+  }
+  if (request.destination === 'image') {
+    return contentType.startsWith('image/');
+  }
+  if (request.destination === 'font') {
+    return contentType.startsWith('font/') || contentType.includes('font') || contentType.includes('octet-stream');
+  }
+  return !contentType.includes('text/html');
+}
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -62,6 +82,11 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // Never intercept unhashed CRA dev bundles
+  if (url.pathname === '/static/js/bundle.js' || url.pathname.endsWith('.hot-update.js') || url.pathname.endsWith('.hot-update.json')) {
+    return;
+  }
+
   // 1. Navigation requests (HTML pages) -> Network first, fallback to cached /index.html
   if (request.mode === 'navigate') {
     event.respondWith(
@@ -72,7 +97,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // 2. Static assets (JS, CSS, images, fonts) -> Cache first, fallback to network
+  // 2. Static assets (JS, CSS, images, fonts) -> Cache first only when Content-Type is valid
   if (
     request.destination === 'style' ||
     request.destination === 'script' ||
@@ -81,9 +106,11 @@ self.addEventListener('fetch', (event) => {
   ) {
     event.respondWith(
       caches.match(request).then((cached) => {
-        if (cached) return cached;
+        if (cached && isValidAssetResponse(request, cached)) {
+          return cached;
+        }
         return fetch(request).then((response) => {
-          if (response && response.status === 200 && response.type === 'basic') {
+          if (isValidAssetResponse(request, response)) {
             const clone = response.clone();
             caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
           }

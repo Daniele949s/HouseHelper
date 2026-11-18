@@ -58,6 +58,73 @@ const ViewDocumenti = lazy(() => import("./pages/Documenti/ViewDocumenti"));
 const ViewContatti = lazy(() => import("./pages/Contatti/ViewContatti"));
 const ViewImpostazioni = lazy(() => import("./pages/Impostazioni/ViewImpostazioni"));
 
+class AppErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.error("Unhandled application error:", error, errorInfo);
+  }
+
+  handleReload = () => {
+    if ("caches" in window) {
+      caches.keys()
+        .then((names) => Promise.all(names.map((n) => caches.delete(n))))
+        .finally(() => window.location.reload());
+    } else {
+      window.location.reload();
+    }
+  };
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div
+          style={{
+            minHeight: "100vh",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "24px",
+            textAlign: "center",
+            background: "var(--bg-primary, #0f172a)",
+            color: "var(--text-main, #f8fafc)"
+          }}
+        >
+          <i className="fas fa-exclamation-triangle fa-2x" style={{ marginBottom: "12px", color: "#f59e0b" }} aria-hidden="true" />
+          <h2 style={{ marginBottom: "8px" }}>Qualcosa è andato storto</h2>
+          <p style={{ marginBottom: "16px", opacity: 0.85 }}>
+            Si è verificato un errore imprevisto. Ricarica la pagina per ripristinare l'app.
+          </p>
+          <button
+            type="button"
+            onClick={this.handleReload}
+            style={{
+              padding: "10px 20px",
+              borderRadius: "10px",
+              border: "none",
+              background: "var(--color-primary, #3f40d4)",
+              color: "#fff",
+              fontWeight: 600,
+              cursor: "pointer"
+            }}
+          >
+            Ricarica pagina
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 function LoadingFallback() {
   return (
     <div
@@ -84,6 +151,7 @@ function LoadingFallback() {
 
 function App() {
   return (
+    <AppErrorBoundary>
     <LanguageProvider>
       <ThemeProvider>
         <AuthProvider>
@@ -201,6 +269,7 @@ function App() {
       </AuthProvider>
     </ThemeProvider>
     </LanguageProvider>
+    </AppErrorBoundary>
   );
 }
 

@@ -1,7 +1,21 @@
 {
+  "headers": [
+    {
+      "source": "/sw.js",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }
+      ]
+    },
+    {
+      "source": "/index.html",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-cache" }
+      ]
+    }
+  ],
   "rewrites": [
     {
-      "source": "/(.*)",
+      "source": "/((?!static/|sw\\.js|manifest\\.json|favicon\\.ico|logo.*\\.png|bg_images/|webfonts/).*)",
       "destination": "/index.html"
     }
   ]

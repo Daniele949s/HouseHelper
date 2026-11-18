@@ -2,29 +2,43 @@
  * HouseHelper Service Worker Registration
  */
 
-const isLocalhost = Boolean(
-  window.location.hostname === 'localhost' ||
-    window.location.hostname === '[::1]' ||
-    window.location.hostname.match(/^127(?:\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}$/)
-);
-
 export function register(config) {
-  if ('serviceWorker' in navigator && (process.env.NODE_ENV === 'production' || isLocalhost)) {
-    const swUrl = `${process.env.PUBLIC_URL}/sw.js`;
+  if (!('serviceWorker' in navigator)) return;
 
-    window.addEventListener('load', () => {
-      navigator.serviceWorker
-        .register(swUrl)
-        .then((registration) => {
-          if (config && config.onSuccess) {
-            config.onSuccess(registration);
-          }
-        })
-        .catch((error) => {
-          console.warn('Error during service worker registration:', error);
-        });
-    });
+  // Never register SW in development (including localhost) so dev bundles are never cached stale.
+  // Actively unregister any previously installed dev SW and purge stale shell caches.
+  if (process.env.NODE_ENV !== 'production') {
+    navigator.serviceWorker.getRegistrations()
+      .then((registrations) => Promise.all(registrations.map((reg) => reg.unregister())))
+      .catch(() => {});
+    if ('caches' in window) {
+      caches.keys()
+        .then((names) =>
+          Promise.all(
+            names
+              .filter((name) => name.startsWith('househelper-shell-'))
+              .map((name) => caches.delete(name))
+          )
+        )
+        .catch(() => {});
+    }
+    return;
   }
+
+  const swUrl = `${process.env.PUBLIC_URL}/sw.js`;
+
+  window.addEventListener('load', () => {
+    navigator.serviceWorker
+      .register(swUrl)
+      .then((registration) => {
+        if (config && config.onSuccess) {
+          config.onSuccess(registration);
+        }
+      })
+      .catch((error) => {
+        console.warn('Error during service worker registration:', error);
+      });
+  });
 }
 
 export function unregister() {

@@ -12,9 +12,9 @@
     "semantic_hash": ""
   },
   "src/App.js": {
-    "mtime": 1794226204.5379393,
-    "seen": 1794226781.6085832,
-    "ast_hash": "598b6b48b0c32f0f3e26c56df1a13d76",
+    "mtime": 1795028116.9282465,
+    "seen": 1795028149.2196543,
+    "ast_hash": "a238193109384028c345b3a8d6f2b0f7",
     "semantic_hash": ""
   },
   "src/App.test.js": {
@@ -102,9 +102,9 @@
     "semantic_hash": "45fd378e094546b5340f87c2edefec52"
   },
   "src/contexts/AuthContext.js": {
-    "mtime": 1793751881.5004613,
-    "seen": 1793753216.308888,
-    "ast_hash": "1d10d21e8958270888ef25a23f1cc928",
+    "mtime": 1795028101.7456515,
+    "seen": 1795028149.219688,
+    "ast_hash": "9834b6c238697a203a30edd0c028b9dc",
     "semantic_hash": ""
   },
   "src/contexts/ThemeContext.js": {
@@ -2316,9 +2316,9 @@
     "semantic_hash": ""
   },
   "public/sw.js": {
-    "mtime": 1793751898.2352867,
-    "seen": 1793753216.3087282,
-    "ast_hash": "92d869d53ce0cb0e2af0fc20354ce653",
+    "mtime": 1795028098.8545382,
+    "seen": 1795028149.2196403,
+    "ast_hash": "b15aa3977f8d6109808bba697d5732e8",
     "semantic_hash": ""
   },
   "src/pages/Contatti/ViewContatti.js": {
@@ -2328,9 +2328,9 @@
     "semantic_hash": ""
   },
   "src/serviceWorkerRegistration.js": {
-    "mtime": 1793751903.1032355,
-    "seen": 1793753216.309001,
-    "ast_hash": "53f3b35e328ac11c4da940aba0905d6b",
+    "mtime": 1795028113.1680992,
+    "seen": 1795028149.2197256,
+    "ast_hash": "6273f91daf9bbfc6f24ff2f93acbc24d",
     "semantic_hash": ""
   },
   "src/test/tier1_features/contatti.test.js": {
@@ -2730,9 +2730,9 @@
     "semantic_hash": ""
   },
   "vercel.json": {
-    "mtime": 1793755808.0551493,
-    "seen": 1793880257.8289804,
-    "ast_hash": "61bd31a2b0ac08f10f13c932b32d6ca1",
+    "mtime": 1795028095.549409,
+    "seen": 1795028149.2197952,
+    "ast_hash": "7cc1fc42e84ba04468b91e28c4742037",
     "semantic_hash": ""
   },
   "src/test/tier2_boundaries/m8_adversarial_stress.test.jsx": {

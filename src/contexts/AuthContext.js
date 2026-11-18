@@ -18,20 +18,26 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setCurrentUser(user);
-      if (user) {
-        // Fetch user document from firestore to get 'casaId' etc.
-        const userDocRef = doc(db, 'utenti', user.uid);
-        const userDoc = await getDoc(userDocRef);
-        if (userDoc.exists()) {
-          setUserData(userDoc.data());
+      try {
+        if (user) {
+          // Fetch user document from firestore to get 'casaId' etc.
+          const userDocRef = doc(db, 'utenti', user.uid);
+          const userDoc = await getDoc(userDocRef);
+          if (userDoc.exists()) {
+            setUserData(userDoc.data());
+          } else {
+            setUserData(null);
+          }
         } else {
           setUserData(null);
+          purgeAllOfflineStorage();
         }
-      } else {
+      } catch (err) {
+        console.error('Error loading user profile:', err);
         setUserData(null);
-        purgeAllOfflineStorage();
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     });
 
     return unsubscribe;
