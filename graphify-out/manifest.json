@@ -504,15 +504,15 @@
     "semantic_hash": ""
   },
   "public/logo192.png": {
-    "mtime": 1766049134.4449093,
-    "seen": 1793613670.3359327,
-    "ast_hash": "1c344ab6daee97d79ba3b09bfb6cf4eb",
+    "mtime": 1795025740.2056155,
+    "seen": 1795025787.7850537,
+    "ast_hash": "6deba5da057a74d3a3849058ee55af50",
     "semantic_hash": ""
   },
   "public/logo512.png": {
-    "mtime": 1766049179.109966,
-    "seen": 1793613670.335936,
-    "ast_hash": "f8a38a1f79b25bcfcea31612d2468e19",
+    "mtime": 1795025739.7381976,
+    "seen": 1795025787.7850566,
+    "ast_hash": "046ddc0c844fb68d14032397b1940c5d",
     "semantic_hash": ""
   },
   "public/webfonts/fa-brands-400.svg": {
@@ -534,9 +534,9 @@
     "semantic_hash": ""
   },
   "src/logo.png": {
-    "mtime": 1765724926.8279467,
-    "seen": 1793613670.3359523,
-    "ast_hash": "594b765b027e9381e8f068a3a23320a0",
+    "mtime": 1795025741.1414435,
+    "seen": 1795025787.7850683,
+    "ast_hash": "e92c62880860d529a4f5df6a63dc57c6",
     "semantic_hash": ""
   },
   ".agents/teamwork/explorer_m1_scripts/test_check_circular.js": {
@@ -654,9 +654,9 @@
     "semantic_hash": ""
   },
   "src/components/AppHeader.js": {
-    "mtime": 1794315799.8283608,
-    "seen": 1794315969.1898663,
-    "ast_hash": "505d90bed95f0a36506ec7ebaeb4d062",
+    "mtime": 1795025747.9591491,
+    "seen": 1795025787.784047,
+    "ast_hash": "c196ab4a13429006803af51ec9125960",
     "semantic_hash": ""
   },
   "src/components/ConfirmModal.js": {
@@ -3627,6 +3627,12 @@
     "mtime": 1794411469.3636737,
     "seen": 1795023588.2020502,
     "ast_hash": "514eb227fde52141fca580e92a2ceb99",
+    "semantic_hash": ""
+  },
+  "src/logo.svg": {
+    "mtime": 1795025739.1887033,
+    "seen": 1795025787.7850714,
+    "ast_hash": "2e3a827f18acca5127309ea2b84ba890",
     "semantic_hash": ""
   },
   "package-lock.json": {

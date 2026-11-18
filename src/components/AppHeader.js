@@ -4,7 +4,7 @@ import { useAuth } from "../contexts/AuthContext";
 import { useLanguage } from "../contexts/LanguageContext";
 import MobileNavigation from "./MobileNavigation";
 import DesktopNavigation from "./DesktopNavigation";
-import logo from "../logo.png";
+import logo from "../logo.svg";
 
 /**
  * AppHeader component providing responsive navigation and branding.
