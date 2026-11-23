@@ -264,7 +264,7 @@ export default function HomeUtente() {
   };
 
   // In-App Notifications / Reminders computation
-  const activeReminders = useMemo(() => {
+  const rawReminders = useMemo(() => {
     const list = [];
     const oggi = new Date().toISOString().split("T")[0];
     const domaniDate = new Date();
@@ -315,8 +315,12 @@ export default function HomeUtente() {
       }
     });
 
-    return list.filter((r) => !dismissedReminders.includes(r.id));
-  }, [turniList, debitiList, currentUser?.uid, userData?.username, dismissedReminders, t]);
+    return list;
+  }, [turniList, debitiList, currentUser?.uid, userData?.username, t]);
+  const activeReminders = useMemo(
+    () => rawReminders.filter((r) => !dismissedReminders.includes(r.id)),
+    [rawReminders, dismissedReminders]
+  );
 
   const dismissReminder = (id) => {
     setDismissedReminders((prev) => [...prev, id]);
@@ -348,29 +352,31 @@ export default function HomeUtente() {
     navigate("/login");
   };
 
-  const activeGroceriesCount = spesaList.filter((s) => !s.comprato).length;
+  const activeGroceriesCount = useMemo(() => spesaList.filter((s) => !s.comprato).length, [spesaList]);
   const userCurrentlyAway = isUserOnVacation(userData);
 
   const activeHouse = ctxHouse || casa;
   const effectiveAdminUid = ctxAdminUid || activeHouse?.adminUid || activeHouse?.creatoreId || null;
   const isHouseAdmin = Boolean(ctxIsAdmin || (currentUser?.uid && effectiveAdminUid && currentUser.uid === effectiveAdminUid));
 
-  const memberEntries = ctxRoommates?.length
-    ? ctxRoommates.map((member) => [member.uid || member.id, member])
-    : Object.entries(utentiMap);
-  const membersForSection = memberEntries.map(([uid, profile]) => {
-    const username = (typeof profile === "string" ? profile : profile?.username || profile?.nome)
-      || t("dashboard.roommateFallback", {}, "Coinquilino");
-    return {
-      uid,
-      username,
-      initial: username.charAt(0).toUpperCase(),
-      isCurrentUser: uid === currentUser?.uid,
-      isMemberAdmin: uid === effectiveAdminUid,
-      isPending: profile?.statoMembro === "pending",
-      inVacanza: Boolean(profile?.inVacanza),
-    };
-  });
+  const membersForSection = useMemo(() => {
+    const memberEntries = ctxRoommates?.length
+      ? ctxRoommates.map((member) => [member.uid || member.id, member])
+      : Object.entries(utentiMap);
+    return memberEntries.map(([uid, profile]) => {
+      const username = (typeof profile === "string" ? profile : profile?.username || profile?.nome)
+        || t("dashboard.roommateFallback", {}, "Coinquilino");
+      return {
+        uid,
+        username,
+        initial: username.charAt(0).toUpperCase(),
+        isCurrentUser: uid === currentUser?.uid,
+        isMemberAdmin: uid === effectiveAdminUid,
+        isPending: profile?.statoMembro === "pending",
+        inVacanza: Boolean(profile?.inVacanza),
+      };
+    });
+  }, [ctxRoommates, utentiMap, t, currentUser?.uid, effectiveAdminUid]);
 
   const handleAcceptMember = async (member) => {
     try {

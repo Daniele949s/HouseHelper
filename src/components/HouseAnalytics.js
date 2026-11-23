@@ -7,7 +7,7 @@ const EMPTY_LIST = [];
 const EMPTY_USER_MAP = {};
 const PIE_COLORS = ["#6366f1", "#14b8a6", "#f59e0b", "#ec4899", "#8b5cf6", "#3b82f6"];
 
-export default function HouseAnalytics({
+function HouseAnalytics({
   turni = EMPTY_LIST,
   debiti = EMPTY_LIST,
   spesa = EMPTY_LIST,
@@ -308,3 +308,5 @@ export default function HouseAnalytics({
     </div>
   );
 }
+
+export default React.memo(HouseAnalytics);

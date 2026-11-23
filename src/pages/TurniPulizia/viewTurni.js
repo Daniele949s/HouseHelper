@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useMemo, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
+import { useHousehold } from "../../contexts/HouseholdContext";
 import { useLanguage } from "../../contexts/LanguageContext";
 import { fetchHouseholdData } from "../../services/householdService";
 import {
@@ -18,6 +19,7 @@ import { isUserOnVacation } from "../../utils/choreRotation";
 export default function VisualizzaTurni() {
   const navigate = useNavigate();
   const { userData, currentUser } = useAuth();
+  const { house: ctxHouse, roommates: ctxRoommates } = useHousehold();
   const { t, language } = useLanguage();
   const [turni, setTurni] = useState([]);
   const [roommates, setRoommates] = useState([]);
@@ -34,13 +36,34 @@ export default function VisualizzaTurni() {
     translateRef.current = t;
   }, [t]);
 
+  const householdCtxRef = useRef({ ctxHouse, ctxRoommates });
+  useEffect(() => {
+    householdCtxRef.current = { ctxHouse, ctxRoommates };
+  }, [ctxHouse, ctxRoommates]);
+
+  useEffect(() => {
+    if (!ctxHouse || ctxHouse.id !== userData?.casaId) return;
+
+    setCasaDoc((current) => current ?? ctxHouse);
+    if (ctxRoommates?.length > 0) {
+      setRoommates((current) => current.length === 0 ? ctxRoommates : current);
+    }
+  }, [ctxHouse, ctxRoommates, userData?.casaId]);
+
   const fetchTurni = useCallback(async () => {
     if (!userData?.casaId) return;
     setLoading(true);
     setError(null);
     try {
+      const currentCtx = householdCtxRef.current;
+      const canReuseCtx = Boolean(
+        currentCtx?.ctxHouse && currentCtx.ctxHouse.id === userData.casaId &&
+        Array.isArray(currentCtx.ctxRoommates) && currentCtx.ctxRoommates.length > 0
+      );
       const [{ house, roommates: rList }, data] = await Promise.all([
-        fetchHouseholdData(userData.casaId, translateRef.current("chores.defaultRoommate", {}, "Coinquilino")),
+        canReuseCtx
+          ? Promise.resolve({ house: currentCtx.ctxHouse, roommates: currentCtx.ctxRoommates })
+          : fetchHouseholdData(userData.casaId, translateRef.current("chores.defaultRoommate", {}, "Coinquilino")),
         fetchHouseChores(userData.casaId)
       ]);
 

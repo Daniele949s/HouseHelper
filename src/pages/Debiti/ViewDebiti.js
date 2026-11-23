@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useMemo, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
+import { useHousehold } from "../../contexts/HouseholdContext";
 import { useLanguage } from "../../contexts/LanguageContext";
 import { fetchHouseholdData } from "../../services/householdService";
 import {
@@ -19,6 +20,7 @@ import { exportExpensesToCsv, printMonthlyReport } from "../../utils/reportExpor
 export default function ViewDebiti() {
   const navigate = useNavigate();
   const { userData, currentUser } = useAuth();
+  const { house: ctxHouse, roommates: ctxRoommates, roommateMap: ctxRoommateMap } = useHousehold();
   const { t, language } = useLanguage();
 
   const [debiti, setDebiti] = useState([]);
@@ -46,13 +48,26 @@ export default function ViewDebiti() {
     translateRef.current = t;
   }, [t]);
 
+  const householdCtxRef = useRef({ ctxHouse, ctxRoommates, ctxRoommateMap });
+  useEffect(() => {
+    householdCtxRef.current = { ctxHouse, ctxRoommates, ctxRoommateMap };
+  }, [ctxHouse, ctxRoommates, ctxRoommateMap]);
+
   const fetchDati = useCallback(async () => {
     if (!userData?.casaId) return;
     setLoading(true);
     setError(null);
     try {
+      const currentCtx = householdCtxRef.current;
+      const canReuseCtx = Boolean(
+        currentCtx?.ctxHouse && currentCtx.ctxHouse.id === userData.casaId &&
+        Array.isArray(currentCtx.ctxRoommates) && currentCtx.ctxRoommates.length > 0 &&
+        currentCtx.ctxRoommateMap && Object.keys(currentCtx.ctxRoommateMap).length > 0
+      );
       const [{ house, roommates: rList, roommateMap: map }, data] = await Promise.all([
-        fetchHouseholdData(userData.casaId, translateRef.current("expenses.unknownUser", null, "Utente Sconosciuto")),
+        canReuseCtx
+          ? Promise.resolve({ house: currentCtx.ctxHouse, roommates: currentCtx.ctxRoommates, roommateMap: currentCtx.ctxRoommateMap })
+          : fetchHouseholdData(userData.casaId, translateRef.current("expenses.unknownUser", null, "Utente Sconosciuto")),
         fetchHouseDebts(userData.casaId)
       ]);
 

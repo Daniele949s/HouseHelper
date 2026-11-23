@@ -4,19 +4,36 @@ export default function ScrollProgressBar() {
   const [scrollProgress, setScrollProgress] = useState(0);
 
   useEffect(() => {
-    const handleScroll = () => {
+    let frameId = null;
+    let previousProgress = 0;
+
+    const updateProgress = () => {
+      frameId = null;
       const totalPageHeight = document.documentElement.scrollHeight - window.innerHeight;
-      if (totalPageHeight > 0) {
-        const progress = (window.pageYOffset / totalPageHeight) * 100;
-        setScrollProgress(Math.min(100, Math.max(0, progress)));
-      } else {
-        setScrollProgress(0);
+      const next = totalPageHeight > 0
+        ? Math.min(100, Math.max(0, (window.pageYOffset / totalPageHeight) * 100))
+        : 0;
+
+      if (Math.abs(previousProgress - next) >= 0.5 || next === 0 || next === 100) {
+        previousProgress = next;
+        setScrollProgress(next);
+      }
+    };
+
+    const handleScroll = () => {
+      if (frameId === null) {
+        frameId = window.requestAnimationFrame(updateProgress);
       }
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });
     handleScroll();
-    return () => window.removeEventListener("scroll", handleScroll);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      if (frameId !== null) {
+        window.cancelAnimationFrame(frameId);
+      }
+    };
   }, []);
 
   return (

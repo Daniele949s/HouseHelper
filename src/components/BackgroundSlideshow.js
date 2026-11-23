@@ -15,6 +15,11 @@ export default function BackgroundSlideshow() {
   const isAuthPage = ["/", "/login", "/registrazione", "/scelta-casa"].includes(location.pathname);
 
   useEffect(() => {
+    if (!isAuthPage) {
+      setCurrentIdx(0);
+      return;
+    }
+
     let timer;
 
     const syncVisibility = () => {
@@ -32,14 +37,17 @@ export default function BackgroundSlideshow() {
       document.removeEventListener("visibilitychange", syncVisibility);
       clearInterval(timer);
     };
-  }, []);
+  }, [isAuthPage]);
+
+  const images = isAuthPage ? IMAGES : IMAGES.slice(0, 1);
+  const activeIdx = isAuthPage ? currentIdx : 0;
 
   return (
     <div className={`dynamic-bg-container ${isAuthPage ? "dynamic-bg-auth" : "dynamic-bg-interior"}`} aria-hidden="true">
-      {IMAGES.map((imgUrl, idx) => (
+      {images.map((imgUrl, idx) => (
         <div
           key={imgUrl}
-          className={`dynamic-bg-slide ${idx === currentIdx ? "slide-active" : ""}`}
+          className={`dynamic-bg-slide ${idx === activeIdx ? "slide-active" : ""}`}
           style={{ backgroundImage: `url(${imgUrl})` }}
         />
       ))}
