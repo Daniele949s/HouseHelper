@@ -35,9 +35,9 @@ body.dark-mode {
   --text-disabled: #475569;
 
   /* Indigo (Primary Brand & Navigation) */
-  --color-primary: #6366f1;           /* Indigo 500 (Prominent control BG) */
+  --color-primary: #6366f1;           /* Indigo 500 */
   --color-primary-hover: #4f46e5;
-  --color-primary-text: #818cf8;      /* Indigo 400 (5.60:1 contrast text) */
+  --color-primary-text: #a5b4fc;      /* Indigo 300 */
   --color-primary-light: rgba(99, 102, 241, 0.15); /* Soft pill BG */
   --color-primary-border: rgba(99, 102, 241, 0.28);
   --color-primary-glow: rgba(99, 102, 241, 0.25);
@@ -65,6 +65,7 @@ body.dark-mode {
   /* Amber (Warning / Pending) */
   --color-warning: #f59e0b;          /* Amber 500 (7.38:1 contrast text) */
   --color-warning-hover: #d97706;
+  --color-warning-text: #fcd34d;
   --color-warning-light: rgba(245, 158, 11, 0.15);
   --color-warning-border: rgba(245, 158, 11, 0.28);
 
@@ -202,7 +203,8 @@ body.light-mode {
   /* Amber (Warning / Pending) */
   --color-warning: #b45309;          /* Amber 700 (4.55:1 contrast - PASS) */
   --color-warning-hover: #92400e;
-  --color-warning-light: rgba(180, 83, 9, 0.08);
+  --color-warning-text: #b45309;
+  --color-warning-light: #fff7ed;
   --color-warning-border: rgba(180, 83, 9, 0.20);
 
   --color-info: #4f46e5;
@@ -266,7 +268,7 @@ input:focus-visible,
 select:focus-visible,
 textarea:focus-visible,
 [tabindex]:focus-visible {
-  outline: 2px solid var(--color-primary);
+  outline: 2px solid var(--border-focus);
   outline-offset: 2px;
 }
 

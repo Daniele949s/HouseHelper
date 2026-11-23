@@ -1,11 +1,14 @@
 import React, { Suspense, lazy } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import "react-calendar/dist/Calendar.css";
 import "./App.css";
 
 // Import Providers
 import { LanguageProvider } from "./contexts/LanguageContext";
 import { AuthProvider } from "./contexts/AuthContext";
+import { HouseholdProvider } from "./contexts/HouseholdContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
+import { NavigationProvider } from "./navigation/navigationRegistry";
 
 // Import Visual & Interactive Components
 import AppHeader from "./components/AppHeader";
@@ -34,23 +37,15 @@ import HomeUtente from "./pages/homeUtente";
 import SceltaCasa from "./pages/SceltaCasa";
 import NotFound from "./pages/NotFound";
 
-// Import Cleaning Shifts Pages
-import ViewTurni from "./pages/TurniPulizia/viewTurni";
-import AggiuntaTurno from "./pages/TurniPulizia/aggiuntaTurno";
-import ModificaTurno from "./pages/TurniPulizia/modificaTurno";
-
-// Import Debts & Expenses Pages
-import AggiungiDebito from "./pages/Debiti/AggiungiDebito";
-
-// Import Grocery List Pages
-import ViewSpesa from "./pages/Spesa/ViewSpesa";
-
-// Import Bulletin Board & Calendar Pages
-import AggiungiNota from "./pages/Bacheca/AggiungiNota";
-import ModificaNota from "./pages/Bacheca/ModificaNota";
-import AggiungiEvento from "./pages/Bacheca/AggiungiEvento";
-
-// Lazy-loaded secondary domain pages for code splitting & high responsiveness
+// Lazy-loaded secondary routes
+const ViewTurni = lazy(() => import("./pages/TurniPulizia/viewTurni"));
+const AggiuntaTurno = lazy(() => import("./pages/TurniPulizia/aggiuntaTurno"));
+const ModificaTurno = lazy(() => import("./pages/TurniPulizia/modificaTurno"));
+const AggiungiDebito = lazy(() => import("./pages/Debiti/AggiungiDebito"));
+const ViewSpesa = lazy(() => import("./pages/Spesa/ViewSpesa"));
+const AggiungiNota = lazy(() => import("./pages/Bacheca/AggiungiNota"));
+const ModificaNota = lazy(() => import("./pages/Bacheca/ModificaNota"));
+const AggiungiEvento = lazy(() => import("./pages/Bacheca/AggiungiEvento"));
 const ViewDebiti = lazy(() => import("./pages/Debiti/ViewDebiti"));
 const ViewBacheca = lazy(() => import("./pages/Bacheca/ViewBacheca"));
 const ViewCalendario = lazy(() => import("./pages/Bacheca/ViewCalendario"));
@@ -155,6 +150,8 @@ function App() {
     <LanguageProvider>
       <ThemeProvider>
         <AuthProvider>
+          <HouseholdProvider>
+          <NavigationProvider>
           <Router>
           <ScrollProgressBar />
           <BackgroundSlideshow />
@@ -183,9 +180,30 @@ function App() {
                 <Route path="/home" element={<HomeUtente />} />
 
                 {/* Turni Pulizia */}
-                <Route path="/turni" element={<ViewTurni />} />
-                <Route path="/turni/aggiungi" element={<AggiuntaTurno />} />
-                <Route path="/turni/modifica/:id" element={<ModificaTurno />} />
+                <Route
+                  path="/turni"
+                  element={
+                    <Suspense fallback={<LoadingFallback />}>
+                      <ViewTurni />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="/turni/aggiungi"
+                  element={
+                    <Suspense fallback={<LoadingFallback />}>
+                      <AggiuntaTurno />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="/turni/modifica/:id"
+                  element={
+                    <Suspense fallback={<LoadingFallback />}>
+                      <ModificaTurno />
+                    </Suspense>
+                  }
+                />
 
                 {/* Spese e Debiti */}
                 <Route
@@ -196,10 +214,24 @@ function App() {
                     </Suspense>
                   }
                 />
-                <Route path="/debiti/aggiungi" element={<AggiungiDebito />} />
+                <Route
+                  path="/debiti/aggiungi"
+                  element={
+                    <Suspense fallback={<LoadingFallback />}>
+                      <AggiungiDebito />
+                    </Suspense>
+                  }
+                />
 
                 {/* Lista Spesa */}
-                <Route path="/spesa" element={<ViewSpesa />} />
+                <Route
+                  path="/spesa"
+                  element={
+                    <Suspense fallback={<LoadingFallback />}>
+                      <ViewSpesa />
+                    </Suspense>
+                  }
+                />
 
                 {/* Bacheca */}
                 <Route
@@ -210,8 +242,22 @@ function App() {
                     </Suspense>
                   }
                 />
-                <Route path="/bacheca/aggiungi" element={<AggiungiNota />} />
-                <Route path="/bacheca/modifica/:id" element={<ModificaNota />} />
+                <Route
+                  path="/bacheca/aggiungi"
+                  element={
+                    <Suspense fallback={<LoadingFallback />}>
+                      <AggiungiNota />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="/bacheca/modifica/:id"
+                  element={
+                    <Suspense fallback={<LoadingFallback />}>
+                      <ModificaNota />
+                    </Suspense>
+                  }
+                />
 
                 {/* Calendario */}
                 <Route
@@ -222,7 +268,14 @@ function App() {
                     </Suspense>
                   }
                 />
-                <Route path="/calendario/aggiungi" element={<AggiungiEvento />} />
+                <Route
+                  path="/calendario/aggiungi"
+                  element={
+                    <Suspense fallback={<LoadingFallback />}>
+                      <AggiungiEvento />
+                    </Suspense>
+                  }
+                />
 
                 {/* Gestione Documenti */}
                 <Route
@@ -266,6 +319,8 @@ function App() {
             <MobileBottomBar />
           </div>
         </Router>
+          </NavigationProvider>
+          </HouseholdProvider>
       </AuthProvider>
     </ThemeProvider>
     </LanguageProvider>

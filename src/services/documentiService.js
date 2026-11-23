@@ -55,15 +55,99 @@ export function formatFileSize(bytes) {
   return `${val.toFixed(i === 0 ? 0 : 2)} ${units[i]}`;
 }
 
-export function validateDocumentFile(file) {
-  if (!file) {
-    return { isValid: false, error: "Nessun file selezionato." };
+const DOC_MESSAGES = {
+  noFile: {
+    it: "Nessun file selezionato.",
+    en: "No file selected."
+  },
+  emptyFile: {
+    it: "Il file selezionato è vuoto.",
+    en: "The selected file is empty."
+  },
+  fileTooLarge: {
+    it: "Il file supera la dimensione massima consentita di 15 MB.",
+    en: "The file exceeds the maximum allowed size of 15 MB."
+  },
+  unsupportedFormat: {
+    it: "Formato non supportato. Formati ammessi: PDF, JPG, PNG, WEBP, DOC, DOCX, TXT.",
+    en: "Unsupported format. Allowed formats: PDF, JPG, PNG, WEBP, DOC, DOCX, TXT."
+  },
+  invalidHouse: {
+    it: "Identificativo casa non valido.",
+    en: "Invalid household ID."
+  },
+  unauthenticated: {
+    it: "Utente non autenticato.",
+    en: "User not authenticated."
+  },
+  nameRequired: {
+    it: "Nome documento obbligatorio.",
+    en: "Document name is required."
+  },
+  roommateFallback: {
+    it: "Coinquilino",
+    en: "Roommate"
+  },
+  storageUnavailableLimit: {
+    it: "Firebase Storage non è attivo su questo progetto. Sul piano gratuito con Firestore puoi caricare file fino a 800 KB (es. bollette PDF, foto ricevute, scontrini).",
+    en: "Firebase Storage is not enabled on this project. On the free Firestore tier you can upload files up to 800 KB (e.g. PDF bills, receipt photos)."
+  },
+  missingDocId: {
+    it: "ID documento mancante.",
+    en: "Missing document ID."
   }
-  if (file.size <= 0) {
-    return { isValid: false, error: "Il file selezionato è vuoto." };
+};
+
+function resolveDocOptions(options) {
+  if (typeof options === "string") {
+    return { lang: options === "en" ? "en" : "it", t: null };
+  }
+  if (options && typeof options === "object") {
+    return {
+      lang: options.lang === "en" ? "en" : "it",
+      t: typeof options.t === "function" ? options.t : null
+    };
+  }
+  return { lang: "it", t: null };
+}
+
+function getDocMessage(key, i18nKey, options) {
+  const { lang, t } = resolveDocOptions(options);
+  const entry = DOC_MESSAGES[key];
+  const fallback = entry ? entry[lang] : "";
+  if (t) {
+    return t(i18nKey, {}, fallback);
+  }
+  return fallback;
+}
+
+function createCodedError(message, code) {
+  const err = new Error(message);
+  err.code = code;
+  return err;
+}
+
+export function validateDocumentFile(file, options = {}) {
+  if (!file) {
+    return {
+      isValid: false,
+      errorCode: "DOC_NO_FILE",
+      error: getDocMessage("noFile", "documents.errors.noFile", options)
+    };
+  }
+  if (typeof file.size !== "number" || !Number.isFinite(file.size) || file.size <= 0) {
+    return {
+      isValid: false,
+      errorCode: "DOC_EMPTY_FILE",
+      error: getDocMessage("emptyFile", "documents.errors.emptyFile", options)
+    };
   }
   if (file.size > MAX_FILE_SIZE_BYTES) {
-    return { isValid: false, error: "Il file supera la dimensione massima consentita di 15 MB." };
+    return {
+      isValid: false,
+      errorCode: "DOC_FILE_TOO_LARGE",
+      error: getDocMessage("fileTooLarge", "documents.errors.fileTooLarge", options)
+    };
   }
   const allowedExts = ["pdf", "jpg", "jpeg", "png", "webp", "heic", "doc", "docx", "txt"];
   const ext = file.name ? file.name.split(".").pop().toLowerCase() : "";
@@ -73,7 +157,8 @@ export function validateDocumentFile(file) {
   if (!mimeAllowed && !extAllowed) {
     return {
       isValid: false,
-      error: "Formato non supportato. Formati ammessi: PDF, JPG, PNG, WEBP, DOC, DOCX, TXT."
+      errorCode: "DOC_UNSUPPORTED_FORMAT",
+      error: getDocMessage("unsupportedFormat", "documents.errors.unsupportedFormat", options)
     };
   }
   return { isValid: true };
@@ -88,24 +173,47 @@ export function fileToDataUrl(file) {
   });
 }
 
-export async function caricaDocumento({ file, nome, categoria, note, casaId, currentUser, userData }) {
-  const validation = validateDocumentFile(file);
-  if (!validation.isValid) throw new Error(validation.error);
-  if (!casaId) throw new Error("Identificativo casa non valido.");
-  if (!currentUser?.uid) throw new Error("Utente non autenticato.");
+export async function caricaDocumento({ file, nome, categoria, note, casaId, currentUser, userData, lang, t }) {
+  const locOpts = { lang, t };
+  const validation = validateDocumentFile(file, locOpts);
+  if (!validation.isValid) {
+    throw createCodedError(validation.error, validation.errorCode);
+  }
+  if (!casaId) {
+    throw createCodedError(
+      getDocMessage("invalidHouse", "documents.errors.invalidHouse", locOpts),
+      "DOC_INVALID_HOUSE"
+    );
+  }
+  if (!currentUser?.uid) {
+    throw createCodedError(
+      getDocMessage("unauthenticated", "documents.errors.unauthenticated", locOpts),
+      "DOC_UNAUTHENTICATED"
+    );
+  }
 
   if (nome !== undefined && nome !== null && typeof nome === "string" && !nome.trim()) {
-    throw new Error("Nome documento obbligatorio.");
+    throw createCodedError(
+      getDocMessage("nameRequired", "documents.errors.nameRequired", locOpts),
+      "DOC_NAME_REQUIRED"
+    );
   }
   const rawNome = (nome && typeof nome === "string" && nome.trim()) ? nome.trim() : (file?.name || "");
   const cleanNome = sanitizeText(rawNome, 120);
-  if (!cleanNome) throw new Error("Nome documento obbligatorio.");
+  if (!cleanNome) {
+    throw createCodedError(
+      getDocMessage("nameRequired", "documents.errors.nameRequired", locOpts),
+      "DOC_NAME_REQUIRED"
+    );
+  }
 
   const cleanCategoria = ALLOWED_CATEGORIES.includes(categoria) ? categoria : "Altro";
   const cleanNote = note ? sanitizeText(note, 300) : "";
   const timestamp = Date.now();
   const safeName = sanitizeFileName(file.name);
   const storagePath = `case/${casaId}/documenti/${timestamp}_${safeName}`;
+  const uploaderFallback = getDocMessage("roommateFallback", "dashboard.roommateFallback", locOpts);
+  const uploaderName = userData?.username || currentUser.displayName || uploaderFallback;
 
   let downloadUrl = "";
   let finalStoragePath = "";
@@ -115,7 +223,7 @@ export async function caricaDocumento({ file, nome, categoria, note, casaId, cur
     customMetadata: {
       casaId,
       caricatoDa: currentUser.uid,
-      caricatoDaNome: userData?.username || currentUser.displayName || "Coinquilino"
+      caricatoDaNome: uploaderName
     }
   };
 
@@ -130,8 +238,9 @@ export async function caricaDocumento({ file, nome, categoria, note, casaId, cur
       downloadUrl = await fileToDataUrl(file);
       finalStoragePath = "";
     } else {
-      throw new Error(
-        "Firebase Storage non è attivo su questo progetto. Sul piano gratuito con Firestore puoi caricare file fino a 800 KB (es. bollette PDF, foto ricevute, scontrini)."
+      throw createCodedError(
+        getDocMessage("storageUnavailableLimit", "documents.errors.storageUnavailableLimit", locOpts),
+        "DOC_STORAGE_UNAVAILABLE_LIMIT"
       );
     }
   }
@@ -149,7 +258,7 @@ export async function caricaDocumento({ file, nome, categoria, note, casaId, cur
     dimensioneFormatted: formatFileSize(file.size),
     formato: file.type || "application/octet-stream",
     caricatoDa: currentUser.uid,
-    caricatoDaNome: userData?.username || currentUser.displayName || "Coinquilino",
+    caricatoDaNome: uploaderName,
     dataCaricamento: new Date().toISOString(),
     casaId
   };
@@ -169,8 +278,13 @@ export async function caricaDocumento({ file, nome, categoria, note, casaId, cur
   }
 }
 
-export async function eliminaDocumento({ docId, storagePath }) {
-  if (!docId) throw new Error("ID documento mancante.");
+export async function eliminaDocumento({ docId, storagePath, lang, t }) {
+  if (!docId) {
+    throw createCodedError(
+      getDocMessage("missingDocId", "documents.errors.missingDocId", { lang, t }),
+      "DOC_ID_MISSING"
+    );
+  }
 
   // Delete Storage file
   if (storagePath) {

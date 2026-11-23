@@ -42,6 +42,64 @@ service cloud.firestore {
         && getUserCasaId() == casaId;
     }
 
+    function housePath(casaId) {
+      return /databases/$(database)/documents/case/$(casaId);
+    }
+
+    function isHouseAdmin(casaId) {
+      return isSignedIn() && casaId is string && casaId.size() > 0
+        && get(housePath(casaId)).data.get(
+          'adminUid', get(housePath(casaId)).data.get('creatoreId', null)
+        ) == request.auth.uid;
+    }
+
+    function isHouseMembershipUpdate(userId) {
+      let before = resource.data;
+      let after = request.resource.data;
+      let casaId = before.casaId;
+      let changed = after.diff(before).affectedKeys();
+      return isHouseAdmin(casaId) && (
+        (userId != request.auth.uid && (
+          (before.get('statoMembro', null) == 'pending'
+            && changed.hasOnly(['statoMembro', 'ruoloCasa'])
+            && after.statoMembro == 'active' && after.ruoloCasa == 'member')
+          || (changed.hasOnly(['casaId', 'ruoloCasa', 'statoMembro'])
+            && after.casaId == null && after.ruoloCasa == null && after.statoMembro == null)
+          || (changed.hasOnly(['statoMembro', 'ruoloCasa'])
+            && after.ruoloCasa == 'admin' && after.statoMembro == 'active'
+            && getAfter(housePath(casaId)).data.adminUid == userId)
+        ))
+        || (userId == request.auth.uid && changed.hasOnly(['ruoloCasa'])
+          && after.ruoloCasa == 'member'
+          && getAfter(housePath(casaId)).data.adminUid != userId)
+      );
+    }
+
+    function isOwnerMembershipUpdate() {
+      let after = request.resource.data;
+      return !after.diff(resource.data).affectedKeys().hasAny(['casaId', 'ruoloCasa', 'statoMembro'])
+        || (after.casaId == null && after.get('ruoloCasa', null) == null
+          && after.get('statoMembro', null) == null)
+        || (after.casaId != resource.data.casaId && (
+          (after.get('ruoloCasa', null) == 'member' && after.get('statoMembro', null) == 'pending')
+          || (after.get('ruoloCasa', null) == 'admin' && after.get('statoMembro', null) == 'active'
+            && isHouseAdmin(after.casaId))
+        ));
+    }
+
+    function isAdminTransfer(casaId) {
+      let uid = request.resource.data.get('adminUid', '');
+      let target = /databases/$(database)/documents/utenti/$(uid);
+      let previous = /databases/$(database)/documents/utenti/$(request.auth.uid);
+      return uid is string && uid.size() > 0 && uid != request.auth.uid
+        && request.resource.data.creatoreId == uid
+        && get(target).data.casaId == casaId
+        && getAfter(target).data.casaId == casaId
+        && getAfter(target).data.ruoloCasa == 'admin'
+        && getAfter(target).data.statoMembro == 'active'
+        && getAfter(previous).data.ruoloCasa == 'member';
+    }
+
     // Helper: Validates that the authenticated user has verified their email or signed in via trusted provider (e.g. Google)
     function isEmailVerified() {
       return isSignedIn() && (
@@ -80,15 +138,18 @@ service cloud.firestore {
       allow create: if isOwner(userId)
         && isNonEmptyString(request.resource.data.username, 50)
         && isNonEmptyString(request.resource.data.email, 100)
-        && (request.resource.data.casaId == null || (request.resource.data.casaId is string && request.resource.data.casaId.size() <= 64));
+        && request.resource.data.casaId == null
+        && request.resource.data.get('ruoloCasa', null) == null
+        && request.resource.data.get('statoMembro', null) == null;
 
-      // Update profile: only owner, email cannot be changed arbitrarily, username validated
-      allow update: if isOwner(userId)
+      // Owners edit their profiles. Household admins can change membership fields.
+      allow update: if (isOwner(userId) && isOwnerMembershipUpdate()
         && isNonEmptyString(request.resource.data.username, 50)
         && (request.resource.data.casaId == null || (request.resource.data.casaId is string && request.resource.data.casaId.size() <= 64))
         && (!('inVacanza' in request.resource.data) || request.resource.data.inVacanza is bool)
         && (!('vacanzaInizio' in request.resource.data) || request.resource.data.vacanzaInizio == null || isValidDateString(request.resource.data.vacanzaInizio))
-        && (!('vacanzaFine' in request.resource.data) || request.resource.data.vacanzaFine == null || isValidDateString(request.resource.data.vacanzaFine));
+        && (!('vacanzaFine' in request.resource.data) || request.resource.data.vacanzaFine == null || isValidDateString(request.resource.data.vacanzaFine)))
+        || isHouseMembershipUpdate(userId);
 
       // Profiles are never deleted directly by clients
       allow delete: if false;
@@ -110,14 +171,19 @@ service cloud.firestore {
         && isNonEmptyString(request.resource.data.nome, 60)
         && isNonEmptyString(request.resource.data.codiceUnivoco, 12)
         && request.resource.data.codiceUnivoco.size() >= 4
-        && request.resource.data.creatoreId == request.auth.uid;
+        && request.resource.data.creatoreId == request.auth.uid
+        && request.resource.data.get('adminUid', request.auth.uid) == request.auth.uid;
 
-      // Update: Only active household members, immutability on creatoreId and codiceUnivoco
-      allow update: if belongsToSameHouse(casaId)
-        && isNonEmptyString(request.resource.data.nome, 60)
-        && request.resource.data.creatoreId == resource.data.creatoreId
-        && request.resource.data.codiceUnivoco == resource.data.codiceUnivoco
-        && (!('impostazioniTurni' in request.resource.data) || request.resource.data.impostazioniTurni is map);
+      allow update: if isNonEmptyString(request.resource.data.nome, 60)
+        && (!('impostazioniTurni' in request.resource.data) || request.resource.data.impostazioniTurni is map)
+        && (
+          ((isHouseAdmin(casaId) || (belongsToSameHouse(casaId)
+            && getUserDoc().data.get('statoMembro', 'active') == 'active'))
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['nome', 'impostazioniTurni']))
+          || (isHouseAdmin(casaId)
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['adminUid', 'creatoreId', 'nome', 'impostazioniTurni'])
+            && isAdminTransfer(casaId))
+        );
 
       allow delete: if false;
     }
@@ -205,13 +271,13 @@ service cloud.firestore {
         && request.resource.data.casaId == getUserCasaId()
         && request.resource.data.autoreId == request.auth.uid
         && isNonEmptyString(request.resource.data.titolo, 100)
-        && isNonEmptyString(request.resource.data.contenuto, 1000);
+        && isNonEmptyString(request.resource.data.contenuto, 1500);
 
       allow update: if belongsToSameHouse(resource.data.casaId)
         && request.resource.data.casaId == resource.data.casaId
         && request.resource.data.autoreId == resource.data.autoreId
         && isNonEmptyString(request.resource.data.titolo, 100)
-        && isNonEmptyString(request.resource.data.contenuto, 1000);
+        && isNonEmptyString(request.resource.data.contenuto, 1500);
 
       allow delete: if belongsToSameHouse(resource.data.casaId)
         && (request.auth.uid == resource.data.autoreId || belongsToSameHouse(resource.data.casaId));

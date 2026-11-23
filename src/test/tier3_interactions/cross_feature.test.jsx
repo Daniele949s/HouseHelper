@@ -91,7 +91,7 @@ describe('Tier 3: Cross-Feature State Interactions & Reactive Workflows', () => 
     });
 
     // Create a future chore assigned to Alice
-    const futureDate = '2026-11-20';
+    const futureDate = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
     renderWithProviders(<AggiuntaTurno />, {
       user: alice,
       userData: { username: 'Alice', casaId: 'casa_1' },

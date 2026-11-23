@@ -738,7 +738,7 @@ describe("Milestone M3 Adversarial Challenger Suite: Visual Ergonomics, Apple HI
       await screen.findByRole("heading", { level: 1, name: /Impostazioni/i });
 
       // Must display no household fallback text
-      expect(screen.getByText("Nessuna casa attiva")).toBeInTheDocument();
+      expect(screen.getAllByText("Nessuna casa attiva").length).toBeGreaterThanOrEqual(1);
       // Must not crash and renders all 4 cards
       expect(container.querySelectorAll(".card").length).toBe(4);
     });

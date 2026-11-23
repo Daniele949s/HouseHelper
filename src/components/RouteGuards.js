@@ -1,6 +1,7 @@
 import React from "react";
 import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
+import { hasHouseholdAccess } from "../navigation/navigationRegistry";
 
 /**
  * Guard for routes requiring both authentication and an active household (casaId).
@@ -13,7 +14,7 @@ export function HouseProtectedRoute() {
     return <Navigate to="/login" replace />;
   }
 
-  if (!userData || !userData.casaId) {
+  if (!hasHouseholdAccess(currentUser, userData)) {
     return <Navigate to="/scelta-casa" replace />;
   }
 

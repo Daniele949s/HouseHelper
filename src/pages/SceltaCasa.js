@@ -1,8 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { auth, db } from "../firebase";
-import { collection, addDoc, doc, updateDoc, query, where, limit, getDocs } from "firebase/firestore";
-import { useAuth } from "../contexts/AuthContext";
+import { auth } from "../firebase";
+import { useHousehold } from "../contexts/HouseholdContext";
 import { signOut } from "firebase/auth";
 import {
   sanitizeText,
@@ -16,7 +15,7 @@ import { useLanguage } from "../contexts/LanguageContext";
 
 export default function SceltaCasa() {
   const navigate = useNavigate();
-  const { currentUser, userData, setUserData } = useAuth();
+  const { createHouse, joinHouse } = useHousehold();
   const { t } = useLanguage();
 
   const [nomeCasa, setNomeCasa] = useState("");
@@ -38,29 +37,12 @@ export default function SceltaCasa() {
     setLoading(true);
 
     try {
-      // Secure 6-character random alphanumeric code
-      const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-      let codice = "";
-      for (let i = 0; i < 6; i++) {
-        codice += chars.charAt(Math.floor(Math.random() * chars.length));
-      }
-
-      const casaRef = await addDoc(collection(db, "case"), {
-        nome: cleanedNome,
-        codiceUnivoco: codice,
-        createdAt: new Date(),
-        creatoreId: currentUser.uid
-      });
-
-      const userDocRef = doc(db, "utenti", currentUser.uid);
-      await updateDoc(userDocRef, { casaId: casaRef.id });
-
-      setUserData({ ...userData, casaId: casaRef.id });
+      const { inviteCode } = await createHouse(cleanedNome);
       showToast(
         t(
           "houseChoice.houseCreatedToast",
-          { name: cleanedNome, code: codice },
-          `Casa "${cleanedNome}" creata con successo! Codice invito: ${codice}`
+          { name: cleanedNome, code: inviteCode },
+          `Casa "${cleanedNome}" creata con successo! Codice invito: ${inviteCode}`
         ),
         "success",
         5000
@@ -97,11 +79,9 @@ export default function SceltaCasa() {
     setLoading(true);
 
     try {
-      const caseRef = collection(db, "case");
-      const q = query(caseRef, where("codiceUnivoco", "==", cleanedCodice), limit(1));
-      const querySnapshot = await getDocs(q);
+      const result = await joinHouse(cleanedCodice);
 
-      if (querySnapshot.empty) {
+      if (!result) {
         recordFailedInviteAttempt();
         const err = t("houseChoice.houseNotFoundError", {}, "Codice casa non valido o non trovato. Verifica di averlo digitato correttamente.");
         setError(err);
@@ -112,14 +92,8 @@ export default function SceltaCasa() {
       // Successful join: clear attempt history
       clearInviteCodeRateLimit();
 
-      const casaDoc = querySnapshot.docs[0];
-
-      const userDocRef = doc(db, "utenti", currentUser.uid);
-      await updateDoc(userDocRef, { casaId: casaDoc.id });
-
-      setUserData({ ...userData, casaId: casaDoc.id });
       showToast(
-        t("houseChoice.welcomeToHouseToast", { name: casaDoc.data().nome }, `Benvenuto in ${casaDoc.data().nome}!`),
+        t("houseChoice.welcomeToHouseToast", { name: result.house.nome }, `Benvenuto in ${result.house.nome}!`),
         "success",
         3500
       );

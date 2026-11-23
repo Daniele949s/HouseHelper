@@ -1,22 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { db } from "../../firebase";
-import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { useAuth } from "../../contexts/AuthContext";
 import { useLanguage } from "../../contexts/LanguageContext";
-import { sanitizeList, validateDate } from "../../utils/security";
+import {
+  CHORE_TIME_SLOTS as FASCE_DISPONIBILI,
+  fetchChoreById,
+  validateAndBuildChorePayload,
+  updateChore
+} from "../../services/choreService";
 import { showToast } from "../../utils/feedback";
-
-const generaFasceOrarie = () => {
-  const orari = [];
-  for (let i = 7; i < 23; i++) {
-    const start = i.toString().padStart(2, "0") + ":00";
-    const end = (i + 1).toString().padStart(2, "0") + ":00";
-    orari.push(`${start} - ${end}`);
-  }
-  return orari;
-};
-const FASCE_DISPONIBILI = generaFasceOrarie();
 
 export default function ModificaTurno() {
   const { id } = useParams();
@@ -41,22 +33,19 @@ export default function ModificaTurno() {
       if (!userData?.casaId) return;
 
       try {
-        const turnoDoc = await getDoc(doc(db, "turni", id));
-        if (!turnoDoc.exists()) {
+        const res = await fetchChoreById(id, userData.casaId);
+        if (res.status === "not_found") {
           showToast(t("chores.notFoundError", {}, "Turno non trovato o precedentemente rimosso."), "error");
           navigate("/turni");
           return;
         }
-
-        const data = turnoDoc.data();
-
-        // Multi-tenant Security Check: Prevent accessing turni belonging to other households via URL
-        if (data.casaId !== userData.casaId) {
+        if (res.status === "unauthorized") {
           showToast(t("chores.unauthorizedHouseError", {}, "Accesso non consentito: questo turno appartiene a un'altra abitazione."), "error");
           navigate("/turni");
           return;
         }
 
+        const data = res.chore;
         setTurno({
           nomi: Array.isArray(data.nomi) ? data.nomi.join(", ") : (data.nomi || ""),
           data: data.data || "",
@@ -84,46 +73,31 @@ export default function ModificaTurno() {
     e.preventDefault();
     setError("");
 
-    // Input Validation & Sanitization
-    const cleanedNomi = sanitizeList(turno.nomi, 10, 50);
-    const cleanedLuoghi = sanitizeList(turno.luoghi, 10, 80);
-    const cleanedProcedura = sanitizeList(turno.procedura, 10, 150);
-    const dateValidation = validateDate(turno.data);
+    const validation = validateAndBuildChorePayload({
+      nomi: turno.nomi,
+      data: turno.data,
+      luoghi: turno.luoghi,
+      procedura: turno.procedura,
+      fasciaOraria: turno.fasciaOraria,
+      casaId: userData.casaId,
+      isEdit: true
+    });
 
-    if (cleanedNomi.length === 0) {
-      setError(t("chores.editErrorNoAssignee", {}, "Indica almeno un coinquilino per questo turno."));
-      return;
-    }
-
-    if (!dateValidation.isValid) {
-      setError(dateValidation.error || t("chores.editErrorInvalidDate", {}, "Data non valida."));
-      return;
-    }
-
-    if (cleanedLuoghi.length === 0) {
-      setError(t("chores.editErrorNoLocation", {}, "Specifica almeno una stanza o luogo da pulire."));
-      return;
-    }
-
-    if (!FASCE_DISPONIBILI.includes(turno.fasciaOraria)) {
-      setError(t("chores.errorInvalidTimeSlot", {}, "Seleziona una fascia oraria valida dall'elenco."));
+    if (!validation.valid) {
+      const errorMap = {
+        no_assignee_edit: t("chores.editErrorNoAssignee", {}, "Indica almeno un coinquilino per questo turno."),
+        invalid_date_edit: validation.errorMessage || t("chores.editErrorInvalidDate", {}, "Data non valida."),
+        no_location_edit: t("chores.editErrorNoLocation", {}, "Specifica almeno una stanza o luogo da pulire."),
+        invalid_time_slot: t("chores.errorInvalidTimeSlot", {}, "Seleziona una fascia oraria valida dall'elenco.")
+      };
+      setError(errorMap[validation.errorKey]);
       return;
     }
 
     setSaving(true);
 
-    const turnoAggiornato = {
-      nomi: cleanedNomi,
-      data: dateValidation.date,
-      luoghi: cleanedLuoghi,
-      procedura: cleanedProcedura,
-      fasciaOraria: [turno.fasciaOraria],
-      mansione: cleanedLuoghi.join(", "),
-      casaId: userData.casaId // Enforce current household integrity
-    };
-
     try {
-      await updateDoc(doc(db, "turni", id), turnoAggiornato);
+      await updateChore(id, validation.payload);
       showToast(t("chores.updateSuccess", {}, "Turno aggiornato con successo!"), "success");
       navigate("/turni");
     } catch (err) {

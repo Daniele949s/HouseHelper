@@ -126,7 +126,8 @@ export default function ViewDocumenti() {
     } finally {
       setLoading(false);
     }
-  }, [userData?.casaId, t]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userData?.casaId]);
 
   useEffect(() => {
     fetchDocuments();
@@ -492,11 +493,14 @@ export default function ViewDocumenti() {
         {CATEGORIES.map((cat) => {
           const isActive = selectedCategory === cat;
           return (
+            // Keep the existing tab semantics alongside the requested pressed state.
+            // eslint-disable-next-line jsx-a11y/role-supports-aria-props
             <button
               key={cat}
               type="button"
               role="tab"
               aria-selected={isActive}
+              aria-pressed={selectedCategory === cat}
               className={`doc-filter-pill ${isActive ? "active" : ""}`}
               onClick={() => setSelectedCategory(cat)}
             >
@@ -554,6 +558,7 @@ export default function ViewDocumenti() {
               type="button"
               className={`doc-view-btn ${viewMode === "grid" ? "active" : ""}`}
               onClick={() => setViewMode("grid")}
+              aria-pressed={viewMode === "grid"}
               aria-label={t("documents.gridViewAria", null, "Vista a griglia")}
               title={t("documents.gridViewAria", null, "Vista a griglia")}
             >
@@ -563,6 +568,7 @@ export default function ViewDocumenti() {
               type="button"
               className={`doc-view-btn ${viewMode === "table" ? "active" : ""}`}
               onClick={() => setViewMode("table")}
+              aria-pressed={viewMode === "table"}
               aria-label={t("documents.tableViewAria", null, "Vista a tabella")}
               title={t("documents.tableViewAria", null, "Vista a tabella")}
             >

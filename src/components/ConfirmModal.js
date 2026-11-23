@@ -2,12 +2,92 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { subscribeConfirm } from "../utils/feedback";
 import { useLanguage } from "../contexts/LanguageContext";
 
+const openDialogs = [];
+const focusableSelector = [
+  "a[href]", "button", "input:not([type='hidden'])", "select", "textarea",
+  "summary", "[contenteditable='true']", "[tabindex]",
+].join(", ");
+
+function getTabStops(dialog) {
+  const view = dialog.ownerDocument.defaultView;
+  return Array.from(dialog.querySelectorAll(focusableSelector))
+    .filter((element) => {
+      if (
+        element.tabIndex < 0 ||
+        element.matches(":disabled") ||
+        element.closest("[hidden], [inert], [aria-hidden='true']")
+      ) return false;
+
+      if (view.getComputedStyle(element).visibility !== "visible") return false;
+
+      for (let parent = element; parent; parent = parent.parentElement) {
+        if (view.getComputedStyle(parent).display === "none") return false;
+      }
+      return true;
+    })
+    .sort((a, b) => (a.tabIndex || Infinity) - (b.tabIndex || Infinity));
+}
+
+// Give the dialog tabIndex={-1} so it can receive focus when it has no tab stops.
+export function useModalFocusTrap(isOpen, modalRef, onClose) {
+  const closeRef = useRef(onClose);
+
+  useEffect(() => {
+    closeRef.current = onClose;
+  }, [onClose]);
+
+  useEffect(() => {
+    const dialog = modalRef.current;
+    if (!isOpen || !dialog) return;
+
+    const { ownerDocument } = dialog;
+    const view = ownerDocument.defaultView;
+    const entry = { previousFocus: ownerDocument.activeElement };
+    openDialogs.push(entry);
+
+    const tabStops = getTabStops(dialog);
+    const initialFocus = tabStops.find((element) => element.hasAttribute("data-modal-initial-focus"));
+    (initialFocus || tabStops[0] || dialog).focus({ preventScroll: true });
+
+    const handleKeyDown = (event) => {
+      if (openDialogs[openDialogs.length - 1] !== entry || event.defaultPrevented) return;
+
+      if (event.key === "Escape" && closeRef.current) {
+        event.preventDefault();
+        closeRef.current();
+      }
+
+      if (event.key === "Tab") {
+        const stops = getTabStops(dialog);
+        const activeIndex = stops.indexOf(ownerDocument.activeElement);
+        const atBoundary = event.shiftKey ? activeIndex === 0 : activeIndex === stops.length - 1;
+        if (activeIndex === -1 || atBoundary) {
+          event.preventDefault();
+          (stops[event.shiftKey ? stops.length - 1 : 0] || dialog).focus();
+        }
+      }
+    };
+
+    view.addEventListener("keydown", handleKeyDown);
+    return () => {
+      view.removeEventListener("keydown", handleKeyDown);
+      const index = openDialogs.indexOf(entry);
+      const nextDialog = openDialogs[index + 1];
+      openDialogs.splice(index, 1);
+      if (nextDialog) {
+        if (dialog.contains(nextDialog.previousFocus)) nextDialog.previousFocus = entry.previousFocus;
+      } else if (entry.previousFocus?.isConnected) {
+        entry.previousFocus.focus({ preventScroll: true });
+      }
+    };
+  }, [isOpen, modalRef]);
+}
+
 export default function ConfirmModal() {
   const { t } = useLanguage();
   const [modalData, setModalData] = useState(null);
   const modalDataRef = useRef(null);
-  const cancelBtnRef = useRef(null);
-  const confirmBtnRef = useRef(null);
+  const modalRef = useRef(null);
   const confirmingModalsRef = useRef(new Set());
   const isConfirmingRef = useRef(false);
 
@@ -101,56 +181,26 @@ export default function ConfirmModal() {
     };
   }, []);
 
-  // Keyboard navigation & body scroll lock
+  const isOpen = Boolean(modalData);
+  useModalFocusTrap(isOpen, modalRef, handleCancel);
+
+  // A new confirmation can replace the current one while the dialog stays open.
   useEffect(() => {
-    if (!modalData) return;
-
-    // Lock background scroll
-    const originalOverflow = document.body ? document.body.style.overflow : "";
-    if (document.body) {
-      document.body.style.overflow = "hidden";
+    if (modalData) {
+      modalRef.current?.querySelector("[data-modal-initial-focus]")?.focus({ preventScroll: true });
     }
+  }, [modalData]);
 
-    // Focus default button (focus Cancel for danger actions to prevent accidental deletion)
-    const timer = setTimeout(() => {
-      if (modalData.isDanger && cancelBtnRef.current) {
-        cancelBtnRef.current.focus();
-      } else if (confirmBtnRef.current) {
-        confirmBtnRef.current.focus();
-      }
-    }, 50);
+  useEffect(() => {
+    if (!isOpen) return;
 
-    const handleKeyDown = (e) => {
-      if (e.key === "Escape") {
-        e.preventDefault();
-        handleCancel();
-      }
-      // Focus trap between Cancel and Confirm buttons
-      if (e.key === "Tab") {
-        const focusable = [cancelBtnRef.current, confirmBtnRef.current].filter(Boolean);
-        if (focusable.length < 2) return;
-        const first = focusable[0];
-        const last = focusable[focusable.length - 1];
-        if (e.shiftKey && document.activeElement === first) {
-          e.preventDefault();
-          last.focus();
-        } else if (!e.shiftKey && document.activeElement === last) {
-          e.preventDefault();
-          first.focus();
-        }
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-
+    const { style } = document.body;
+    const originalOverflow = style.overflow;
+    style.overflow = "hidden";
     return () => {
-      clearTimeout(timer);
-      if (document.body) {
-        document.body.style.overflow = originalOverflow;
-      }
-      window.removeEventListener("keydown", handleKeyDown);
+      style.overflow = originalOverflow;
     };
-  }, [modalData, handleCancel]);
+  }, [isOpen]);
 
   if (!modalData) return null;
 
@@ -161,7 +211,9 @@ export default function ConfirmModal() {
       role="presentation"
     >
       <div
+        ref={modalRef}
         className="confirm-modal-card"
+        tabIndex={-1}
         role="dialog"
         aria-modal="true"
         aria-labelledby="confirm-modal-title"
@@ -181,6 +233,7 @@ export default function ConfirmModal() {
           <button
             type="button"
             className="confirm-modal-close"
+            tabIndex={-1}
             onClick={handleCancel}
             aria-label={t("common.closeModal", {}, "Chiudi finestra modale")}
           >
@@ -197,7 +250,7 @@ export default function ConfirmModal() {
         <div className="confirm-modal-footer">
           <button
             type="button"
-            ref={cancelBtnRef}
+            data-modal-initial-focus={modalData.isDanger ? "" : undefined}
             className="btn-secondary"
             onClick={handleCancel}
           >
@@ -205,7 +258,7 @@ export default function ConfirmModal() {
           </button>
           <button
             type="button"
-            ref={confirmBtnRef}
+            data-modal-initial-focus={modalData.isDanger ? undefined : ""}
             className={modalData.isDanger ? "btn-danger" : "btn-primary"}
             onClick={handleConfirm}
           >

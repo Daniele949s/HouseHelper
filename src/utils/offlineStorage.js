@@ -8,6 +8,7 @@
  */
 
 const STORAGE_PREFIX = "hh_offline_";
+export const OFFLINE_SCHEMA_VERSION = 1;
 
 /**
  * Generates isolated key scoped to a specific house.
@@ -38,6 +39,7 @@ export function saveOfflineData(casaId, key, data) {
 
   try {
     const payload = {
+      version: OFFLINE_SCHEMA_VERSION,
       cachedAt: new Date().toISOString(),
       data
     };
@@ -66,6 +68,12 @@ export function getOfflineData(casaId, key) {
     const raw = window.localStorage.getItem(scopedKey);
     if (!raw) return null;
     const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+      return null;
+    }
+    if (parsed.version !== undefined && parsed.version !== OFFLINE_SCHEMA_VERSION) {
+      return null;
+    }
     return parsed.data !== undefined ? parsed.data : null;
   } catch {
     return null;
@@ -114,4 +122,34 @@ export function purgeAllOfflineStorage() {
   }
 
   keysToRemove.forEach((k) => window.localStorage.removeItem(k));
+}
+
+const CACHE_KEYS = {
+  DASHBOARD: "dashboard_cache",
+  HOUSEHOLD: "settings_household_cache",
+  CONTACTS: "contatti",
+};
+
+export function getDashboardSnapshot(casaId) {
+  return getOfflineData(casaId, CACHE_KEYS.DASHBOARD);
+}
+
+export function saveDashboardSnapshot(casaId, snapshot) {
+  return saveOfflineData(casaId, CACHE_KEYS.DASHBOARD, snapshot);
+}
+
+export function getHouseholdSnapshot(casaId) {
+  return getOfflineData(casaId, CACHE_KEYS.HOUSEHOLD);
+}
+
+export function saveHouseholdSnapshot(casaId, snapshot) {
+  return saveOfflineData(casaId, CACHE_KEYS.HOUSEHOLD, snapshot);
+}
+
+export function getContactsSnapshot(casaId) {
+  return getOfflineData(casaId, CACHE_KEYS.CONTACTS) || [];
+}
+
+export function saveContactsSnapshot(casaId, contacts) {
+  return saveOfflineData(casaId, CACHE_KEYS.CONTACTS, contacts);
 }

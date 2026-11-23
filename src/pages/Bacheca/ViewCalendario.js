@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Calendar from 'react-calendar';
-import 'react-calendar/dist/Calendar.css';
 import { db } from "../../firebase";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { useAuth } from "../../contexts/AuthContext";
+import { useHousehold } from "../../contexts/HouseholdContext";
 import { useLanguage } from "../../contexts/LanguageContext";
 
 const EVENT_CATEGORY_KEYS = {
@@ -18,14 +18,13 @@ const EVENT_CATEGORY_KEYS = {
 export default function ViewCalendario() {
   const navigate = useNavigate();
   const { userData } = useAuth();
+  const { roommateMap: utentiMap } = useHousehold();
   const { t, language } = useLanguage();
 
   const [eventi, setEventi] = useState([]);
   const [turni, setTurni] = useState([]);
-  const [utentiMap, setUtentiMap] = useState({});
   const [dataSelezionata, setDataSelezionata] = useState(new Date());
 
-  const [itemsDelGiorno, setItemsDelGiorno] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -33,19 +32,13 @@ export default function ViewCalendario() {
       if (!userData?.casaId) return;
       setLoading(true);
       try {
-        const qUtenti = query(collection(db, "utenti"), where("casaId", "==", userData.casaId));
         const qNote = query(collection(db, "note"), where("casaId", "==", userData.casaId));
         const qTurni = query(collection(db, "turni"), where("casaId", "==", userData.casaId));
 
-        const [snapUtenti, snapNote, snapTurni] = await Promise.all([
-          getDocs(qUtenti),
+        const [snapNote, snapTurni] = await Promise.all([
           getDocs(qNote),
           getDocs(qTurni)
         ]);
-
-        const map = {};
-        snapUtenti.forEach(d => { map[d.id] = d.data().username || t("calendar.unknownAuthor", null, "Sconosciuto"); });
-        setUtentiMap(map);
 
         const eventiC = [];
         snapNote.forEach(d => {
@@ -70,13 +63,13 @@ export default function ViewCalendario() {
       }
     };
     fetchDatiCalendario();
-  }, [userData, t]);
+  }, [userData?.casaId]);
 
-  useEffect(() => {
+  const itemsDelGiorno = useMemo(() => {
     const dataString = dataSelezionata.toLocaleDateString('en-CA');
     const eventiOggi = eventi.filter(e => e.data === dataString);
     const turniOggi = turni.filter(t => t.data === dataString);
-    setItemsDelGiorno([...turniOggi, ...eventiOggi]);
+    return [...turniOggi, ...eventiOggi];
   }, [dataSelezionata, eventi, turni]);
 
   const tileContent = ({ date, view }) => {

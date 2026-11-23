@@ -15,10 +15,23 @@ export default function BackgroundSlideshow() {
   const isAuthPage = ["/", "/login", "/registrazione", "/scelta-casa"].includes(location.pathname);
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentIdx(prev => (prev + 1) % IMAGES.length);
-    }, 7000);
-    return () => clearInterval(timer);
+    let timer;
+
+    const syncVisibility = () => {
+      clearInterval(timer);
+      if (!document.hidden) {
+        timer = setInterval(() => {
+          setCurrentIdx(prev => (prev + 1) % IMAGES.length);
+        }, 7000);
+      }
+    };
+
+    syncVisibility();
+    document.addEventListener("visibilitychange", syncVisibility);
+    return () => {
+      document.removeEventListener("visibilitychange", syncVisibility);
+      clearInterval(timer);
+    };
   }, []);
 
   return (

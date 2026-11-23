@@ -1,67 +1,74 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { safeFloat } from "../utils/security";
 import { useLanguage } from "../contexts/LanguageContext";
 import "./HouseAnalytics.css";
 
+const EMPTY_LIST = [];
+const EMPTY_USER_MAP = {};
+const PIE_COLORS = ["#6366f1", "#14b8a6", "#f59e0b", "#ec4899", "#8b5cf6", "#3b82f6"];
+
 export default function HouseAnalytics({
-  turni = [],
-  debiti = [],
-  spesa = [],
-  utentiMap = {},
-  currentUserId
+  turni = EMPTY_LIST,
+  debiti = EMPTY_LIST,
+  spesa = EMPTY_LIST,
+  utentiMap = EMPTY_USER_MAP
 }) {
   const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState("debiti"); // 'debiti' | 'turni' | 'spesa'
 
-  // ==========================================
-  // 1. STATISTICHE SPESE & DEBITI
-  // ==========================================
-  const totalVolumeSpese = debiti.reduce((acc, d) => acc + Math.max(0, safeFloat(d.importo)), 0);
-  
-  // Raggruppamento per creditore (chi ha speso/anticipato)
-  const spesePerUtente = {};
-  debiti.forEach(d => {
-    const nome = utentiMap[d.creditoreId] || t("analytics.otherUser", {}, "Altro");
-    spesePerUtente[nome] = (spesePerUtente[nome] || 0) + Math.max(0, safeFloat(d.importo));
-  });
+  const otherUser = t("analytics.otherUser", {}, "Altro");
+  const { totalVolumeSpese, pieData } = useMemo(() => {
+    let totalVolumeSpese = 0;
+    const spesePerUtente = new Map();
+    debiti.forEach(({ creditoreId, importo }) => {
+      const nome = utentiMap[creditoreId] || otherUser;
+      const amount = Math.max(0, safeFloat(importo));
+      totalVolumeSpese += amount;
+      spesePerUtente.set(nome, (spesePerUtente.get(nome) || 0) + amount);
+    });
 
-  const pieColors = ["#6366f1", "#14b8a6", "#f59e0b", "#ec4899", "#8b5cf6", "#3b82f6"];
-  const pieData = Object.entries(spesePerUtente).map(([nome, importo], idx) => ({
-    nome,
-    importo,
-    percent: totalVolumeSpese > 0 ? (importo / totalVolumeSpese) * 100 : 0,
-    color: pieColors[idx % pieColors.length]
-  }));
+    const pieData = Array.from(spesePerUtente, ([nome, importo], idx) => ({
+      nome,
+      importo,
+      percent: totalVolumeSpese > 0 ? (importo / totalVolumeSpese) * 100 : 0,
+      color: PIE_COLORS[idx % PIE_COLORS.length]
+    }));
 
-  // ==========================================
-  // 2. STATISTICHE TURNI PULIZIA
-  // ==========================================
+    return { totalVolumeSpese, pieData };
+  }, [debiti, utentiMap, otherUser]);
+
   const oggiStr = new Date().toISOString().split("T")[0];
-  const turniCompletati = turni.filter(t => t.data < oggiStr).length;
-  const turniFuturi = turni.filter(t => t.data >= oggiStr).length;
+  const { turniCompletati, turniFuturi, turniPerPersona, maxTurni } = useMemo(() => {
+    const turniPerPersona = Object.create(null);
+    turni.forEach(({ nomi }) => {
+      const persone = Array.isArray(nomi) ? nomi : [nomi];
+      persone.forEach(persona => {
+        const nome = (persona || "").trim();
+        if (nome) {
+          turniPerPersona[nome] = (turniPerPersona[nome] || 0) + 1;
+        }
+      });
+    });
+
+    return {
+      turniCompletati: turni.filter(turno => turno.data < oggiStr).length,
+      turniFuturi: turni.filter(turno => turno.data >= oggiStr).length,
+      turniPerPersona,
+      maxTurni: Math.max(...Object.values(turniPerPersona), 1)
+    };
+  }, [turni, oggiStr]);
   const totalTurni = turni.length;
 
-  // Turni per persona
-  const turniPerPersona = {};
-  turni.forEach(t => {
-    const persone = Array.isArray(t.nomi) ? t.nomi : [t.nomi];
-    persone.forEach(p => {
-      const pClean = (p || "").trim();
-      if (pClean) {
-        turniPerPersona[pClean] = (turniPerPersona[pClean] || 0) + 1;
-      }
-    });
-  });
-
-  const maxTurni = Math.max(...Object.values(turniPerPersona), 1);
-
-  // ==========================================
-  // 3. STATISTICHE LISTA SPESA
-  // ==========================================
-  const totalSpesaItems = spesa.length;
-  const spesaPresi = spesa.filter(s => s.comprato).length;
-  const spesaDaComprare = totalSpesaItems - spesaPresi;
-  const percentPresi = totalSpesaItems > 0 ? Math.round((spesaPresi / totalSpesaItems) * 100) : 0;
+  const { totalSpesaItems, spesaPresi, spesaDaComprare, percentPresi } = useMemo(() => {
+    const totalSpesaItems = spesa.length;
+    const spesaPresi = spesa.filter(item => item.comprato).length;
+    return {
+      totalSpesaItems,
+      spesaPresi,
+      spesaDaComprare: totalSpesaItems - spesaPresi,
+      percentPresi: totalSpesaItems > 0 ? Math.round((spesaPresi / totalSpesaItems) * 100) : 0
+    };
+  }, [spesa]);
 
   // SVG Donut calculation helper
   const radius = 60;
@@ -230,7 +237,7 @@ export default function HouseAnalytics({
                             className="bar-fill"
                             style={{
                               width: `${percent}%`,
-                              background: pieColors[idx % pieColors.length]
+                              background: PIE_COLORS[idx % PIE_COLORS.length]
                             }}
                           />
                         </div>

@@ -1,19 +1,18 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { db } from "../../firebase";
-import { collection, query, where, getDocs, addDoc } from "firebase/firestore";
 import { useAuth } from "../../contexts/AuthContext";
+import { useHousehold } from "../../contexts/HouseholdContext";
 import { useLanguage } from "../../contexts/LanguageContext";
 import { validateNumber, sanitizeText, safeFloat } from "../../utils/security";
 import { showToast } from "../../utils/feedback";
-import { calculateSplitAllocations } from "../../utils/debtSimplification";
+import { calculateSplitAllocations, createLedgerDebts } from "../../services/ledgerService";
 
 export default function AggiungiDebito() {
   const navigate = useNavigate();
   const { userData, currentUser } = useAuth();
+  const { roommates: coinquilini } = useHousehold();
   const { t } = useLanguage();
 
-  const [coinquilini, setCoinquilini] = useState([]);
   const [loading, setLoading] = useState(false);
   const [isDiviso, setIsDiviso] = useState(false);
   const [splitMode, setSplitMode] = useState("uguali"); // "uguali" | "fissi" | "percentuali" | "esclusioni"
@@ -32,23 +31,9 @@ export default function AggiungiDebito() {
   });
 
   useEffect(() => {
-    const fetchCoinquilini = async () => {
-      if (!userData?.casaId) return;
-      try {
-        const q = query(collection(db, "utenti"), where("casaId", "==", userData.casaId));
-        const snap = await getDocs(q);
-        const utenti = [];
-        snap.forEach((docSnap) => {
-          utenti.push({ uid: docSnap.id, id: docSnap.id, ...docSnap.data() });
-        });
-        setCoinquilini(utenti);
-      } catch (err) {
-        console.error("Errore fetch coinquilini:", err);
-        setError(t("expenses.loadRoommatesError", null, "Impossibile caricare l'elenco dei coinquilini."));
-      }
-    };
-    fetchCoinquilini();
-  }, [userData, t]);
+    if (!currentUser?.uid) return;
+    setDebito((prev) => prev.creditoreId ? prev : { ...prev, creditoreId: currentUser.uid });
+  }, [currentUser?.uid]);
 
   const handleKeyDownNumber = (e) => {
     // Block negative signs, addition signs, and exponential notation
@@ -179,18 +164,14 @@ export default function AggiungiDebito() {
           return;
         }
 
-        const promesse = allocations.map((alloc) => {
-          return addDoc(collection(db, "debiti"), {
-            importo: alloc.amount,
-            descrizione: `${cleanedDescrizione} (${t("expenses.quotaSuffix", null, "Quota")})`,
-            debitoreId: alloc.debitoreId,
-            creditoreId: debito.creditoreId,
-            casaId: userData.casaId,
-            createdAt: new Date()
-          });
-        });
+        const entries = allocations.map((alloc) => ({
+          importo: alloc.amount,
+          descrizione: `${cleanedDescrizione} (${t("expenses.quotaSuffix", null, "Quota")})`,
+          debitoreId: alloc.debitoreId,
+          creditoreId: debito.creditoreId
+        }));
 
-        await Promise.all(promesse);
+        await createLedgerDebts({ casaId: userData.casaId, entries });
       } else {
         if (!debito.debitoreId) {
           setError(t("expenses.selectDebtorError", null, "Seleziona chi deve restituire i soldi."));
@@ -211,13 +192,16 @@ export default function AggiungiDebito() {
           return;
         }
 
-        await addDoc(collection(db, "debiti"), {
-          importo: numValidation.formatted,
-          descrizione: cleanedDescrizione,
-          debitoreId: debito.debitoreId,
-          creditoreId: debito.creditoreId,
+        await createLedgerDebts({
           casaId: userData.casaId,
-          createdAt: new Date()
+          entries: [
+            {
+              importo: numValidation.formatted,
+              descrizione: cleanedDescrizione,
+              debitoreId: debito.debitoreId,
+              creditoreId: debito.creditoreId
+            }
+          ]
         });
       }
 
@@ -365,6 +349,7 @@ export default function AggiungiDebito() {
                 <button
                   type="button"
                   onClick={() => setSplitMode("uguali")}
+                  aria-pressed={splitMode === "uguali"}
                   className={`btn-split-mode ${splitMode === "uguali" ? "active" : ""}`}
                   style={{
                     padding: "8px 10px",
@@ -387,6 +372,7 @@ export default function AggiungiDebito() {
                 <button
                   type="button"
                   onClick={() => setSplitMode("fissi")}
+                  aria-pressed={splitMode === "fissi"}
                   className={`btn-split-mode ${splitMode === "fissi" ? "active" : ""}`}
                   style={{
                     padding: "8px 10px",
@@ -409,6 +395,7 @@ export default function AggiungiDebito() {
                 <button
                   type="button"
                   onClick={() => setSplitMode("percentuali")}
+                  aria-pressed={splitMode === "percentuali"}
                   className={`btn-split-mode ${splitMode === "percentuali" ? "active" : ""}`}
                   style={{
                     padding: "8px 10px",
@@ -431,6 +418,7 @@ export default function AggiungiDebito() {
                 <button
                   type="button"
                   onClick={() => setSplitMode("esclusioni")}
+                  aria-pressed={splitMode === "esclusioni"}
                   className={`btn-split-mode ${splitMode === "esclusioni" ? "active" : ""}`}
                   style={{
                     padding: "8px 10px",
@@ -494,6 +482,7 @@ export default function AggiungiDebito() {
                           step="0.01"
                           min="0"
                           max="50000"
+                          aria-label={t("expenses.fixedAmountFor", { name: c.username }, `Quota fissa per ${c.username}`)}
                           placeholder="0.00"
                           value={fixedAmounts[c.uid] !== undefined ? fixedAmounts[c.uid] : ""}
                           onKeyDown={handleKeyDownNumber}
@@ -537,6 +526,7 @@ export default function AggiungiDebito() {
                           step="0.1"
                           min="0"
                           max="100"
+                          aria-label={t("expenses.percentageFor", { name: c.username }, `Percentuale per ${c.username}`)}
                           placeholder="0"
                           value={percentages[c.uid] !== undefined ? percentages[c.uid] : ""}
                           onKeyDown={handleKeyDownNumber}

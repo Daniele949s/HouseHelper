@@ -7,6 +7,92 @@
  * 4. Invalid or manipulated calendar dates
  */
 
+const SECURITY_MESSAGES = {
+  numberRequired: {
+    it: () => "Il valore è obbligatorio.",
+    en: () => "Value is required."
+  },
+  numberInvalidFormat: {
+    it: () => "Inserisci un numero valido.",
+    en: () => "Enter a valid number."
+  },
+  numberInvalid: {
+    it: () => "Numero non valido.",
+    en: () => "Invalid number."
+  },
+  numberTooSmallPositive: {
+    it: ({ minFormatted }) => `L'importo non può essere negativo o nullo (minimo ${minFormatted} €).`,
+    en: ({ minFormatted }) => `Amount cannot be negative or zero (minimum ${minFormatted} €).`
+  },
+  numberBelowMin: {
+    it: ({ min }) => `Il valore minimo consentito è ${min}.`,
+    en: ({ min }) => `Minimum allowed value is ${min}.`
+  },
+  numberAboveMax: {
+    it: ({ maxFormatted }) => `L'importo inserito è troppo elevato (massimo consentito ${maxFormatted} €).`,
+    en: ({ maxFormatted }) => `Entered amount is too high (maximum allowed ${maxFormatted} €).`
+  },
+  numberTooManyDecimals: {
+    it: ({ decimals }) => `Massimo ${decimals} cifre decimali consentite.`,
+    en: ({ decimals }) => `Maximum ${decimals} decimal places allowed.`
+  },
+  dateRequired: {
+    it: () => "Data non specificata.",
+    en: () => "Date not specified."
+  },
+  dateInvalidFormat: {
+    it: () => "Formato data non valido (atteso AAAA-MM-GG).",
+    en: () => "Invalid date format (expected YYYY-MM-DD)."
+  },
+  dateYearOutOfRange: {
+    it: ({ minYear, maxYear }) => `L'anno deve essere compreso tra ${minYear} e ${maxYear}.`,
+    en: ({ minYear, maxYear }) => `Year must be between ${minYear} and ${maxYear}.`
+  },
+  dateInvalidMonth: {
+    it: () => "Mese non valido.",
+    en: () => "Invalid month."
+  },
+  dateInvalidDay: {
+    it: ({ daysInMonth }) => `Giorno non valido per il mese selezionato (max ${daysInMonth}).`,
+    en: ({ daysInMonth }) => `Invalid day for the selected month (max ${daysInMonth}).`
+  },
+  rateLimitRegistration: {
+    it: ({ remainingMins }) =>
+      `Troppi tentativi di registrazione ravvicinati. Attendi ${remainingMins} ${remainingMins === 1 ? "minuto" : "minuti"} prima di riprovare.`,
+    en: ({ remainingMins }) =>
+      `Too many registration attempts in a short time. Wait ${remainingMins} ${remainingMins === 1 ? "minute" : "minutes"} before trying again.`
+  },
+  rateLimitInviteCode: {
+    it: ({ remainingMins }) =>
+      `Troppi tentativi errati di inserimento codice. Attendi ${remainingMins} ${remainingMins === 1 ? "minuto" : "minuti"} prima di riprovare.`,
+    en: ({ remainingMins }) =>
+      `Too many failed invite code attempts. Wait ${remainingMins} ${remainingMins === 1 ? "minute" : "minutes"} before trying again.`
+  }
+};
+
+function resolveSecurityOptions(options) {
+  if (typeof options === "string") {
+    return { lang: options === "en" ? "en" : "it", t: null };
+  }
+  if (options && typeof options === "object") {
+    return {
+      lang: options.lang === "en" ? "en" : "it",
+      t: typeof options.t === "function" ? options.t : null
+    };
+  }
+  return { lang: "it", t: null };
+}
+
+function getSecurityMessage(key, i18nKey, params = {}, options = {}) {
+  const { lang, t } = resolveSecurityOptions(options);
+  const entry = SECURITY_MESSAGES[key];
+  const fallback = entry ? entry[lang](params) : "";
+  if (t) {
+    return t(i18nKey, params, fallback);
+  }
+  return fallback;
+}
+
 /**
  * Strips HTML tags, scripts, dangerous schemes, and unprintable characters.
  * Truncates output to maxLength and trims whitespace.
@@ -66,50 +152,88 @@ export function validateNumber(val, {
   min = 0.01,
   max = 50000,
   decimals = 2,
-  required = true
+  required = true,
+  lang,
+  t
 } = {}) {
+  const locOpts = { lang, t };
+  const resolvedLang = resolveSecurityOptions(locOpts).lang;
+
   if (val === null || val === undefined || String(val).trim() === "") {
     if (!required) {
       return { isValid: true, value: 0, formatted: "0.00" };
     }
-    return { isValid: false, value: 0, formatted: "", error: "Il valore è obbligatorio." };
+    return {
+      isValid: false,
+      value: 0,
+      formatted: "",
+      errorCode: "NUMBER_REQUIRED",
+      error: getSecurityMessage("numberRequired", "validation.numberRequired", {}, locOpts)
+    };
   }
 
   // Reject strings with multiple decimal points, unexpected characters, or scientific 'e'
   const strVal = String(val).trim();
   if (!/^-?\d+(\.\d+)?$/.test(strVal)) {
-    return { isValid: false, value: 0, formatted: "", error: "Inserisci un numero valido." };
+    return {
+      isValid: false,
+      value: 0,
+      formatted: "",
+      errorCode: "NUMBER_INVALID_FORMAT",
+      error: getSecurityMessage("numberInvalidFormat", "validation.numberInvalidFormat", {}, locOpts)
+    };
   }
 
   const num = parseFloat(strVal);
 
   if (!Number.isFinite(num) || Number.isNaN(num)) {
-    return { isValid: false, value: 0, formatted: "", error: "Numero non valido." };
+    return {
+      isValid: false,
+      value: 0,
+      formatted: "",
+      errorCode: "NUMBER_INVALID",
+      error: getSecurityMessage("numberInvalid", "validation.numberInvalid", {}, locOpts)
+    };
   }
 
   if (min !== undefined && num < min) {
     if (min > 0) {
+      const minFormatted = min.toFixed(decimals);
       return {
         isValid: false,
         value: num,
         formatted: "",
-        error: `L'importo non può essere negativo o nullo (minimo ${min.toFixed(decimals)} €).`
+        errorCode: "NUMBER_TOO_SMALL_POSITIVE",
+        error: getSecurityMessage(
+          "numberTooSmallPositive",
+          "validation.numberTooSmallPositive",
+          { min, minFormatted },
+          locOpts
+        )
       };
     }
     return {
       isValid: false,
       value: num,
       formatted: "",
-      error: `Il valore minimo consentito è ${min}.`
+      errorCode: "NUMBER_BELOW_MIN",
+      error: getSecurityMessage("numberBelowMin", "validation.numberBelowMin", { min }, locOpts)
     };
   }
 
   if (max !== undefined && num > max) {
+    const maxFormatted = max.toLocaleString(resolvedLang === "en" ? "en-US" : "it-IT");
     return {
       isValid: false,
       value: num,
       formatted: "",
-      error: `L'importo inserito è troppo elevato (massimo consentito ${max.toLocaleString('it-IT')} €).`
+      errorCode: "NUMBER_ABOVE_MAX",
+      error: getSecurityMessage(
+        "numberAboveMax",
+        "validation.numberAboveMax",
+        { max, maxFormatted },
+        locOpts
+      )
     };
   }
 
@@ -120,7 +244,13 @@ export function validateNumber(val, {
       isValid: false,
       value: num,
       formatted: "",
-      error: `Massimo ${decimals} cifre decimali consentite.`
+      errorCode: "NUMBER_TOO_MANY_DECIMALS",
+      error: getSecurityMessage(
+        "numberTooManyDecimals",
+        "validation.numberTooManyDecimals",
+        { decimals },
+        locOpts
+      )
     };
   }
 
@@ -154,33 +284,82 @@ export function safeFloat(val, fallback = 0) {
  * @param {number} maxYear
  * @returns {{ isValid: boolean, date: string, error?: string }}
  */
-export function validateDate(dateStr, minYear = 2020, maxYear = 2100) {
+export function validateDate(dateStr, minYearOrOptions = 2020, maxYear = 2100, options = {}) {
+  let effectiveMinYear = minYearOrOptions;
+  let effectiveMaxYear = maxYear;
+  let locOpts = options;
+
+  if (typeof minYearOrOptions === "string") {
+    effectiveMinYear = 2020;
+    effectiveMaxYear = 2100;
+    locOpts = minYearOrOptions;
+  } else if (typeof minYearOrOptions === "object" && minYearOrOptions !== null) {
+    effectiveMinYear = minYearOrOptions.minYear !== undefined ? minYearOrOptions.minYear : 2020;
+    effectiveMaxYear = minYearOrOptions.maxYear !== undefined ? minYearOrOptions.maxYear : 2100;
+    locOpts = minYearOrOptions;
+  }
+
   if (!dateStr || typeof dateStr !== "string") {
-    return { isValid: false, date: "", error: "Data non specificata." };
+    return {
+      isValid: false,
+      date: "",
+      errorCode: "DATE_REQUIRED",
+      error: getSecurityMessage("dateRequired", "validation.dateRequired", {}, locOpts)
+    };
   }
 
   const trimmed = dateStr.trim();
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(trimmed);
   if (!match) {
-    return { isValid: false, date: "", error: "Formato data non valido (atteso AAAA-MM-GG)." };
+    return {
+      isValid: false,
+      date: "",
+      errorCode: "DATE_INVALID_FORMAT",
+      error: getSecurityMessage("dateInvalidFormat", "validation.dateInvalidFormat", {}, locOpts)
+    };
   }
 
   const year = parseInt(match[1], 10);
   const month = parseInt(match[2], 10);
   const day = parseInt(match[3], 10);
 
-  if (year < minYear || year > maxYear) {
-    return { isValid: false, date: "", error: `L'anno deve essere compreso tra ${minYear} e ${maxYear}.` };
+  if (year < effectiveMinYear || year > effectiveMaxYear) {
+    return {
+      isValid: false,
+      date: "",
+      errorCode: "DATE_YEAR_OUT_OF_RANGE",
+      error: getSecurityMessage(
+        "dateYearOutOfRange",
+        "validation.dateYearOutOfRange",
+        { minYear: effectiveMinYear, maxYear: effectiveMaxYear },
+        locOpts
+      )
+    };
   }
 
   if (month < 1 || month > 12) {
-    return { isValid: false, date: "", error: "Mese non valido." };
+    return {
+      isValid: false,
+      date: "",
+      errorCode: "DATE_INVALID_MONTH",
+      error: getSecurityMessage("dateInvalidMonth", "validation.dateInvalidMonth", {}, locOpts)
+    };
   }
 
   // Validate days in month
   const daysInMonth = new Date(year, month, 0).getDate();
   if (day < 1 || day > daysInMonth) {
-    return { isValid: false, date: "", error: `Giorno non valido per il mese selezionato (max ${daysInMonth}).` };
+    return {
+      isValid: false,
+      date: "",
+      errorCode: "DATE_INVALID_DAY",
+      error: getSecurityMessage(
+        "dateInvalidDay",
+        "validation.dateInvalidDay",
+        { daysInMonth },
+        locOpts
+      )
+    };
   }
 
   return { isValid: true, date: trimmed };
@@ -307,7 +486,7 @@ export function isDisposableEmail(email) {
  *
  * @returns {{ allowed: boolean, remainingMs: number, error?: string }}
  */
-export function checkRegistrationRateLimit() {
+export function checkRegistrationRateLimit(options = {}) {
   if (typeof window === "undefined" || !window.sessionStorage) {
     return { allowed: true, remainingMs: 0 };
   }
@@ -337,7 +516,13 @@ export function checkRegistrationRateLimit() {
       return {
         allowed: false,
         remainingMs,
-        error: `Troppi tentativi di registrazione ravvicinati. Attendi ${remainingMins} ${remainingMins === 1 ? "minuto" : "minuti"} prima di riprovare.`
+        errorCode: "RATE_LIMIT_REGISTRATION",
+        error: getSecurityMessage(
+          "rateLimitRegistration",
+          "validation.rateLimitRegistration",
+          { remainingMins },
+          options
+        )
       };
     }
 
@@ -483,7 +668,7 @@ export function isSafeDownloadUrl(url) {
  *
  * @returns {{ allowed: boolean, remainingMs: number, error?: string }}
  */
-export function checkInviteCodeRateLimit() {
+export function checkInviteCodeRateLimit(options = {}) {
   if (typeof window === "undefined" || !window.sessionStorage) {
     return { allowed: true, remainingMs: 0 };
   }
@@ -513,7 +698,13 @@ export function checkInviteCodeRateLimit() {
       return {
         allowed: false,
         remainingMs,
-        error: `Troppi tentativi errati di inserimento codice. Attendi ${remainingMins} ${remainingMins === 1 ? "minuto" : "minuti"} prima di riprovare.`
+        errorCode: "RATE_LIMIT_INVITE_CODE",
+        error: getSecurityMessage(
+          "rateLimitInviteCode",
+          "validation.rateLimitInviteCode",
+          { remainingMins },
+          options
+        )
       };
     }
 

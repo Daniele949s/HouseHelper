@@ -49,7 +49,7 @@ export default function ModificaNota() {
         }
 
         // Authorization Check: Only author can edit
-        if (data.autoreId !== currentUser.uid) {
+        if (!currentUser?.uid || data.autoreId !== currentUser.uid) {
           showToast(t("board.notAuthor", null, "Non sei l'autore di questo avviso!"), "warning");
           navigate("/bacheca");
           return;
@@ -70,7 +70,8 @@ export default function ModificaNota() {
     };
 
     fetchNota();
-  }, [id, currentUser, userData, navigate, t]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, currentUser?.uid, userData?.casaId, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -143,13 +144,19 @@ export default function ModificaNota() {
 
       <form onSubmit={handleSubmit} className="auth-form" style={{ textAlign: "left" }}>
         <div className="input-group">
-          <label>{t("board.priorityLabel", null, "Priorità avviso")}</label>
-          <div className="pill-selector-group">
+          <div
+            id="edit-note-priority"
+            style={{ fontWeight: 600, marginBottom: "8px", color: "var(--text-secondary)", fontSize: "0.88rem", letterSpacing: "0.01em" }}
+          >
+            {t("board.priorityLabel", null, "Priorità avviso")}
+          </div>
+          <div className="pill-selector-group" role="group" aria-labelledby="edit-note-priority">
             {PRIORITY_OPTIONS.map((opt) => (
               <button
                 key={opt.id}
                 type="button"
                 className={`pill-selector-btn ${nota.priorita === opt.id ? "active" : ""}`}
+                aria-pressed={nota.priorita === opt.id}
                 onClick={() => setNota({ ...nota, priorita: opt.id })}
               >
                 <i className={opt.icon}></i> {t(opt.labelKey, null, opt.fallback)}
@@ -160,10 +167,11 @@ export default function ModificaNota() {
 
         <div className="input-group">
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <label>{t("board.titleLabel", null, "Titolo (massimo 80 caratteri)")}</label>
+            <label htmlFor="edit-note-title">{t("board.titleLabel", null, "Titolo (massimo 80 caratteri)")}</label>
             <span className="char-counter">{nota.titolo.length} / 80</span>
           </div>
           <input
+            id="edit-note-title"
             type="text"
             value={nota.titolo}
             onChange={(e) => setNota({ ...nota, titolo: e.target.value })}
@@ -174,10 +182,11 @@ export default function ModificaNota() {
 
         <div className="input-group">
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <label>{t("board.messageLabel", null, "Messaggio (massimo 1500 caratteri)")}</label>
+            <label htmlFor="edit-note-message">{t("board.messageLabel", null, "Messaggio (massimo 1500 caratteri)")}</label>
             <span className="char-counter">{nota.contenuto.length} / 1500</span>
           </div>
           <textarea
+            id="edit-note-message"
             value={nota.contenuto}
             onChange={(e) => setNota({ ...nota, contenuto: e.target.value })}
             maxLength={1500}
@@ -187,8 +196,9 @@ export default function ModificaNota() {
         </div>
 
         <div className="input-group">
-          <label>{t("board.referenceDateLabel", null, "Data di riferimento / Scadenza (opzionale)")}</label>
+          <label htmlFor="edit-note-date">{t("board.referenceDateLabel", null, "Data di riferimento / Scadenza (opzionale)")}</label>
           <input
+            id="edit-note-date"
             type="date"
             value={nota.data}
             onChange={(e) => setNota({ ...nota, data: e.target.value })}

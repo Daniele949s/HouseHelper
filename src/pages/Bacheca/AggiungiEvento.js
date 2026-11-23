@@ -106,13 +106,19 @@ export default function AggiungiEvento() {
 
       <form onSubmit={handleSubmit} className="auth-form" style={{ textAlign: "left" }}>
         <div className="input-group">
-          <label>{t("calendar.categoryLabel", null, "Categoria evento")}</label>
-          <div className="pill-selector-group">
+          <div
+            id="add-event-category"
+            style={{ fontWeight: 600, marginBottom: "8px", color: "var(--text-secondary)", fontSize: "0.88rem", letterSpacing: "0.01em" }}
+          >
+            {t("calendar.categoryLabel", null, "Categoria evento")}
+          </div>
+          <div className="pill-selector-group" role="group" aria-labelledby="add-event-category">
             {EVENT_CATEGORIES.map((cat) => (
               <button
                 key={cat.id}
                 type="button"
                 className={`pill-selector-btn ${categoria === cat.id ? "active" : ""}`}
+                aria-pressed={categoria === cat.id}
                 onClick={() => setCategoria(cat.id)}
               >
                 <i className={cat.icon}></i> {t(cat.labelKey, null, cat.fallback)}
@@ -123,10 +129,11 @@ export default function AggiungiEvento() {
 
         <div className="input-group">
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <label>{t("calendar.eventTitleLabel", null, "Titolo Evento (massimo 80 caratteri)")}</label>
+            <label htmlFor="add-event-title">{t("calendar.eventTitleLabel", null, "Titolo Evento (massimo 80 caratteri)")}</label>
             <span className="char-counter">{titolo.length} / 80</span>
           </div>
           <input
+            id="add-event-title"
             type="text"
             value={titolo}
             onChange={(e) => setTitolo(e.target.value)}
@@ -137,8 +144,9 @@ export default function AggiungiEvento() {
         </div>
 
         <div className="input-group">
-          <label style={{ color: "var(--color-primary)" }}>{t("calendar.dateRequiredLabel", null, "Data (Obbligatoria)")}</label>
+          <label htmlFor="add-event-date" style={{ color: "var(--color-primary)" }}>{t("calendar.dateRequiredLabel", null, "Data (Obbligatoria)")}</label>
           <input
+            id="add-event-date"
             type="date"
             value={dataEvento}
             onChange={(e) => setDataEvento(e.target.value)}
@@ -150,10 +158,11 @@ export default function AggiungiEvento() {
 
         <div className="input-group">
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <label>{t("calendar.detailsLabel", null, "Dettagli / Note / Orario (massimo 1500 caratteri)")}</label>
+            <label htmlFor="add-event-details">{t("calendar.detailsLabel", null, "Dettagli / Note / Orario (massimo 1500 caratteri)")}</label>
             <span className="char-counter">{contenuto.length} / 1500</span>
           </div>
           <textarea
+            id="add-event-details"
             value={contenuto}
             onChange={(e) => setContenuto(e.target.value)}
             placeholder={t("calendar.detailsPlaceholder", null, "Orario preciso, note organizzative, chi partecipa...")}

@@ -65,17 +65,19 @@ const en = {
     "ariaMoreTab": "Open more menu"
   },
   "settings": {
+    "copyFeedback": "Copied!",
     "title": "Settings",
     "subtitle": "Customize appearance, preferences, and manage your account",
     "backToDashboard": "Back to Dashboard",
     "household": {
+      "roleAdmin": "Household Admin",
       "title": "Active Household",
       "name": "Household Name",
       "inviteCode": "Invite Code",
       "copyCode": "Copy code",
       "codeCopied": "Invite code copied to clipboard!",
       "membersCount": "{count} housemates",
-      "roleCreator": "Host",
+      "roleCreator": "Household Admin",
       "roleMember": "Member",
       "noHousehold": "No active household"
     },
@@ -112,6 +114,10 @@ const en = {
       "disabled": "Disabled"
     },
     "security": {
+      "userIdCopied": "User ID copied to clipboard!",
+      "defaultUser": "User",
+      "userIdLabel": "User ID:",
+      "copyUserId": "Copy ID",
       "title": "Account & Security",
       "description": "User profile details and authentication credentials",
       "profileSection": "User Profile",
@@ -141,6 +147,7 @@ const en = {
     }
   },
   "chores": {
+    "addSubtaskLabel": "New subtask",
     "title": "Cleaning Chores",
     "subtitle": "Manage chores and shared cleaning duties",
     "add": "Add Chore",
@@ -251,8 +258,10 @@ const en = {
     "backToDashboard": "Back to dashboard"
   },
   "expenses": {
+    "fixedAmountFor": "Fixed amount for {name}",
+    "percentageFor": "Percentage for {name}",
     "title": "Expenses & Balances",
-    "subtitle": "Shared expenses and balances between housemates",
+    "subtitle": "Shared expenses and balances between roommates",
     "add": "Add Expense",
     "settle": "Settle Balance",
     "totalExpenses": "Total Expenses",
@@ -369,6 +378,7 @@ const en = {
     "backToDashboard": "Back to Dashboard"
   },
   "groceries": {
+    "newProductAria": "New product",
     "title": "Grocery List",
     "subtitle": "Items to purchase for the household",
     "add": "Add Item",
@@ -405,7 +415,7 @@ const en = {
   },
   "board": {
     "title": "Notice Board",
-    "subtitle": "Announcements, notes, and notices for housemates",
+    "subtitle": "Announcements, notes, and notices for roommates",
     "add": "New Note",
     "edit": "Edit Note",
     "pin": "Pin to top",
@@ -491,7 +501,7 @@ const en = {
     "addSuccess": "Event added to the calendar successfully!",
     "saveError": "Error while saving the event.",
     "newEventTitle": "New Calendar Event",
-    "newEventSubtitle": "Add a date or commitment for all housemates",
+    "newEventSubtitle": "Add a date or commitment for all roommates",
     "categoryLabel": "Event category",
     "eventTitleLabel": "Event Title (max 80 characters)",
     "eventTitlePlaceholder": "e.g. House Dinner, Rent due, Boiler maintenance",
@@ -828,6 +838,22 @@ const en = {
     "joinBtn": "Join"
   },
   "dashboard": {
+    "membersSectionTitle": "Household Members",
+    "membersSectionSubtitle": "Roommate roles and membership management",
+    "roleAdmin": "Household Admin",
+    "roleMember": "Member",
+    "statusPending": "Pending approval",
+    "acceptMemberBtn": "Accept",
+    "acceptMemberSuccess": "{name} is now a household member!",
+    "acceptMemberError": "Could not accept the member.",
+    "promoteAdminBtn": "Promote to Household Admin",
+    "promoteAdminConfirm": "Transfer the Household Admin role to {name}? You will become a Member.",
+    "promoteAdminSuccess": "Transferred the Household Admin role to {name}.",
+    "promoteAdminError": "Could not transfer the Household Admin role.",
+    "kickMemberBtn": "Remove",
+    "kickMemberConfirm": "Remove {name} from the household?",
+    "kickMemberSuccess": "{name} was removed from the household.",
+    "kickMemberError": "Could not remove the member.",
     "roommateFallback": "Roommate",
     "invalidVacationStart": "Invalid vacation start date.",
     "invalidVacationEnd": "Invalid vacation end date.",

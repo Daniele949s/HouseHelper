@@ -3,7 +3,9 @@ import { render } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { AuthProvider } from '../contexts/AuthContext';
+import { HouseholdProvider } from '../contexts/HouseholdContext';
 import { ThemeProvider } from '../contexts/ThemeContext';
+import { NavigationProvider } from '../navigation/navigationRegistry';
 import { LanguageProvider } from '../contexts/LanguageContext';
 import mockStore from './mockFirebase';
 
@@ -41,9 +43,13 @@ export function renderWithProviders(ui, options = {}) {
       <ThemeProvider>
         <LanguageProvider initialLanguage={language}>
           <AuthProvider>
+            <HouseholdProvider>
+            <NavigationProvider>
             <MemoryRouter initialEntries={initialEntries}>
               {children}
             </MemoryRouter>
+            </NavigationProvider>
+            </HouseholdProvider>
           </AuthProvider>
         </LanguageProvider>
       </ThemeProvider>

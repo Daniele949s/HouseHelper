@@ -9,6 +9,144 @@
  */
 
 /**
+ * Escapes HTML special characters to neutralize XSS when interpolating dynamic strings into HTML.
+ *
+ * @param {any} value
+ * @returns {string}
+ */
+export function escapeHtml(value) {
+  if (value === null || value === undefined) return "";
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+const REPORT_COPY = {
+  it: {
+    defaultHouse: "Casa",
+    defaultUser: "Utente",
+    defaultUnknown: "Sconosciuto",
+    defaultExpense: "Spesa",
+    csvTitle: "HOUSEHELPER - RESOCONTO SPESE E DEBITI",
+    csvHousePrefix: "Casa",
+    csvPeriodPrefix: "Periodo",
+    csvAllPeriod: "Tutto",
+    csvAllPeriodFile: "tutto",
+    csvGeneratedDatePrefix: "Data Generazione",
+    csvSectionExpenses: "--- REGISTRO SPESE ---",
+    csvColDate: "Data",
+    csvColDesc: "Descrizione",
+    csvColPaidBy: "Pagato Da (Creditore)",
+    csvColOwedBy: "A Carico Di (Debitore)",
+    csvColAmount: "Importo (€)",
+    csvSectionSettlement: "--- PIANO DI PAREGGIO SEMPLIFICATO ---",
+    csvColWhoPays: "Chi Deve Pagare",
+    csvColToWhom: "A Chi",
+    csvColAmountDue: "Importo da Versare (€)",
+    csvNoDebts: "Nessun debito da pareggiare",
+    csvFilePrefix: "Resoconto_Spese",
+    printTitlePrefix: "Resoconto Spese",
+    printHeading: "HouseHelper - Resoconto Spese & Debiti",
+    printAllPeriod: "Tutte le Spese",
+    printDateLabel: "Data stampa",
+    printTotalMoved: "Totale Movimentato",
+    printEntryCount: "Numero Voci",
+    printTransferCount: "Transazioni di Pareggio",
+    printSettlementHeading: "Piano di Pareggio Semplificato",
+    printWhoPays: "Chi deve pagare",
+    printToWhom: "A chi",
+    printAmountDue: "Importo da versare",
+    printNoDebts: "Nessun debito da pareggiare! Tutti i conti sono in pari.",
+    printDetailsHeading: "Dettaglio Spese Registrate",
+    printPaidBy: "Pagato da",
+    printOwedBy: "A carico di",
+    printAmount: "Importo",
+    printNoExpenses: "Nessuna spesa presente in questo periodo.",
+    locale: "it-IT",
+  },
+  en: {
+    defaultHouse: "Household",
+    defaultUser: "User",
+    defaultUnknown: "Unknown",
+    defaultExpense: "Expense",
+    csvTitle: "HOUSEHELPER - EXPENSE & DEBT REPORT",
+    csvHousePrefix: "Household",
+    csvPeriodPrefix: "Period",
+    csvAllPeriod: "All",
+    csvAllPeriodFile: "all",
+    csvGeneratedDatePrefix: "Generated Date",
+    csvSectionExpenses: "--- EXPENSE LEDGER ---",
+    csvColDate: "Date",
+    csvColDesc: "Description",
+    csvColPaidBy: "Paid By (Creditor)",
+    csvColOwedBy: "Owed By (Debtor)",
+    csvColAmount: "Amount (€)",
+    csvSectionSettlement: "--- SIMPLIFIED SETTLEMENT PLAN ---",
+    csvColWhoPays: "Who Pays",
+    csvColToWhom: "To Whom",
+    csvColAmountDue: "Amount Due (€)",
+    csvNoDebts: "No debts to settle",
+    csvFilePrefix: "Expense_Report",
+    printTitlePrefix: "Expense Report",
+    printHeading: "HouseHelper - Expense & Debt Report",
+    printAllPeriod: "All Expenses",
+    printDateLabel: "Printed on",
+    printTotalMoved: "Total Volume",
+    printEntryCount: "Number of Entries",
+    printTransferCount: "Settlement Transfers",
+    printSettlementHeading: "Simplified Settlement Plan",
+    printWhoPays: "Who pays",
+    printToWhom: "To whom",
+    printAmountDue: "Amount due",
+    printNoDebts: "No debts to settle! All balances are even.",
+    printDetailsHeading: "Recorded Expense Details",
+    printPaidBy: "Paid by",
+    printOwedBy: "Owed by",
+    printAmount: "Amount",
+    printNoExpenses: "No expenses recorded for this period.",
+    locale: "en-US",
+  },
+};
+
+function resolveReportCopy(options = {}) {
+  let lang = "it";
+  let t = null;
+  if (typeof options === "string") {
+    lang = options === "en" ? "en" : "it";
+  } else if (options && typeof options === "object") {
+    lang = options.lang === "en" ? "en" : "it";
+    if (typeof options.t === "function") {
+      t = options.t;
+    }
+  }
+  const base = REPORT_COPY[lang];
+  const label = (key, fallback) => (t ? t(`reportExport.${key}`, {}, fallback) : fallback);
+  return { lang, base, label };
+}
+
+function safeAmount(value) {
+  const n = Number(value);
+  return Number.isFinite(n) ? n : 0;
+}
+
+function formatReportDate(createdAt, locale) {
+  if (!createdAt) return "-";
+  let dateObj = null;
+  if (typeof createdAt.toDate === "function") {
+    dateObj = createdAt.toDate();
+  } else {
+    dateObj = new Date(createdAt);
+  }
+  if (!(dateObj instanceof Date) || Number.isNaN(dateObj.getTime())) {
+    return "-";
+  }
+  return dateObj.toLocaleDateString(locale);
+}
+
+/**
  * Sanitizes a single CSV cell value against Formula Injection (CWE-1236)
  * and escapes internal double-quotes according to RFC 4180.
  *
@@ -38,6 +176,7 @@ export function sanitizeCsvCell(value) {
  * @param {Array<object>} roommates - List of roommates { uid, username }
  * @param {string} casaNome - Name of the house
  * @param {string} monthYear - Period e.g. "2026-11"
+ * @param {object|string} options - Optional localization config { lang, t } or "it"|"en"
  * @returns {string} The CSV content string
  */
 export function exportExpensesToCsv(
@@ -45,67 +184,88 @@ export function exportExpensesToCsv(
   simplifiedDebts = [],
   roommates = [],
   casaNome = "Casa",
-  monthYear = ""
+  monthYear = "",
+  options = {}
 ) {
+  const { base, label } = resolveReportCopy(options);
+  const safeExpenses = Array.isArray(expenses) ? expenses : [];
+  const safeSimplified = Array.isArray(simplifiedDebts) ? simplifiedDebts : [];
+  const safeRoommates = Array.isArray(roommates) ? roommates : [];
+  const resolvedCasaNome = casaNome || label("defaultHouse", base.defaultHouse);
+
   const roommateMap = new Map();
-  roommates.forEach((r) => {
-    if (r && r.uid) roommateMap.set(r.uid, r.username || "Utente");
+  safeRoommates.forEach((r) => {
+    if (r && r.uid) {
+      roommateMap.set(r.uid, r.username || label("defaultUser", base.defaultUser));
+    }
   });
 
-  const getUsername = (uid) => roommateMap.get(uid) || uid || "Sconosciuto";
+  const getUsername = (uid) =>
+    roommateMap.get(uid) || uid || label("defaultUnknown", base.defaultUnknown);
 
   const rows = [];
 
   // Header metadata
-  rows.push([sanitizeCsvCell("HOUSEHELPER - RESOCONTO SPESE E DEBITI")]);
-  rows.push([sanitizeCsvCell(`Casa: ${casaNome}`), sanitizeCsvCell(`Periodo: ${monthYear || "Tutto"}`)]);
-  rows.push([sanitizeCsvCell(`Data Generazione: ${new Date().toLocaleDateString("it-IT")}`)]);
+  rows.push([sanitizeCsvCell(label("csvTitle", base.csvTitle))]);
+  rows.push([
+    sanitizeCsvCell(`${label("csvHousePrefix", base.csvHousePrefix)}: ${resolvedCasaNome}`),
+    sanitizeCsvCell(
+      `${label("csvPeriodPrefix", base.csvPeriodPrefix)}: ${monthYear || label("csvAllPeriod", base.csvAllPeriod)}`
+    ),
+  ]);
+  rows.push([
+    sanitizeCsvCell(
+      `${label("csvGeneratedDatePrefix", base.csvGeneratedDatePrefix)}: ${new Date().toLocaleDateString(base.locale)}`
+    ),
+  ]);
   rows.push([]); // Empty line
 
   // Section 1: Detailed Transactions
-  rows.push([sanitizeCsvCell("--- REGISTRO SPESE ---")]);
+  rows.push([sanitizeCsvCell(label("csvSectionExpenses", base.csvSectionExpenses))]);
   rows.push([
-    sanitizeCsvCell("Data"),
-    sanitizeCsvCell("Descrizione"),
-    sanitizeCsvCell("Pagato Da (Creditore)"),
-    sanitizeCsvCell("A Carico Di (Debitore)"),
-    sanitizeCsvCell("Importo (€)")
+    sanitizeCsvCell(label("csvColDate", base.csvColDate)),
+    sanitizeCsvCell(label("csvColDesc", base.csvColDesc)),
+    sanitizeCsvCell(label("csvColPaidBy", base.csvColPaidBy)),
+    sanitizeCsvCell(label("csvColOwedBy", base.csvColOwedBy)),
+    sanitizeCsvCell(label("csvColAmount", base.csvColAmount)),
   ]);
 
-  expenses.forEach((e) => {
-    const dataStr = e.createdAt?.toDate
-      ? e.createdAt.toDate().toLocaleDateString("it-IT")
-      : e.createdAt
-      ? new Date(e.createdAt).toLocaleDateString("it-IT")
-      : "-";
+  safeExpenses.forEach((e) => {
+    const item = e || {};
+    const dataStr = formatReportDate(item.createdAt, base.locale);
 
     rows.push([
       sanitizeCsvCell(dataStr),
-      sanitizeCsvCell(e.descrizione || "Spesa"),
-      sanitizeCsvCell(getUsername(e.creditoreId)),
-      sanitizeCsvCell(getUsername(e.debitoreId)),
-      sanitizeCsvCell(Number(e.importo || 0).toFixed(2))
+      sanitizeCsvCell(item.descrizione || label("defaultExpense", base.defaultExpense)),
+      sanitizeCsvCell(getUsername(item.creditoreId)),
+      sanitizeCsvCell(getUsername(item.debitoreId)),
+      sanitizeCsvCell(safeAmount(item.importo).toFixed(2)),
     ]);
   });
 
   rows.push([]); // Empty line
 
   // Section 2: Simplified Settlement Plan
-  rows.push([sanitizeCsvCell("--- PIANO DI PAREGGIO SEMPLIFICATO ---")]);
+  rows.push([sanitizeCsvCell(label("csvSectionSettlement", base.csvSectionSettlement))]);
   rows.push([
-    sanitizeCsvCell("Chi Deve Pagare"),
-    sanitizeCsvCell("A Chi"),
-    sanitizeCsvCell("Importo da Versare (€)")
+    sanitizeCsvCell(label("csvColWhoPays", base.csvColWhoPays)),
+    sanitizeCsvCell(label("csvColToWhom", base.csvColToWhom)),
+    sanitizeCsvCell(label("csvColAmountDue", base.csvColAmountDue)),
   ]);
 
-  if (simplifiedDebts.length === 0) {
-    rows.push([sanitizeCsvCell("Nessun debito da pareggiare"), sanitizeCsvCell("-"), sanitizeCsvCell("0.00")]);
+  if (safeSimplified.length === 0) {
+    rows.push([
+      sanitizeCsvCell(label("csvNoDebts", base.csvNoDebts)),
+      sanitizeCsvCell("-"),
+      sanitizeCsvCell("0.00"),
+    ]);
   } else {
-    simplifiedDebts.forEach((s) => {
+    safeSimplified.forEach((s) => {
+      const item = s || {};
       rows.push([
-        sanitizeCsvCell(s.fromName || getUsername(s.from)),
-        sanitizeCsvCell(s.toName || getUsername(s.to)),
-        sanitizeCsvCell(Number(s.amount || 0).toFixed(2))
+        sanitizeCsvCell(item.fromName || getUsername(item.from)),
+        sanitizeCsvCell(item.toName || getUsername(item.to)),
+        sanitizeCsvCell(safeAmount(item.amount).toFixed(2)),
       ]);
     });
   }
@@ -121,8 +281,8 @@ export function exportExpensesToCsv(
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    const sanitizedFileName = (casaNome || "Casa").replace(/[^a-zA-Z0-9_-]/g, "_");
-    link.download = `Resoconto_Spese_${sanitizedFileName}_${monthYear || "tutto"}.csv`;
+    const sanitizedFileName = String(resolvedCasaNome).replace(/[^a-zA-Z0-9_-]/g, "_");
+    link.download = `${base.csvFilePrefix}_${sanitizedFileName}_${monthYear || base.csvAllPeriodFile}.csv`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -143,28 +303,44 @@ export function exportExpensesToCsv(
  * @param {Array<object>} roommates
  * @param {string} casaNome
  * @param {string} monthYear
+ * @param {object|string} options
  */
 export function printMonthlyReport(
   expenses = [],
   simplifiedDebts = [],
   roommates = [],
   casaNome = "Casa",
-  monthYear = ""
+  monthYear = "",
+  options = {}
 ) {
-  const roommateMap = new Map();
-  roommates.forEach((r) => {
-    if (r && r.uid) roommateMap.set(r.uid, r.username || "Utente");
-  });
-  const getUsername = (uid) => roommateMap.get(uid) || uid || "Sconosciuto";
+  const { lang, base, label } = resolveReportCopy(options);
+  const safeExpenses = Array.isArray(expenses) ? expenses : [];
+  const safeSimplified = Array.isArray(simplifiedDebts) ? simplifiedDebts : [];
+  const safeRoommates = Array.isArray(roommates) ? roommates : [];
+  const resolvedCasaNome = casaNome || label("defaultHouse", base.defaultHouse);
 
-  const totalSpent = expenses.reduce((sum, e) => sum + (parseFloat(e.importo) || 0), 0);
+  const roommateMap = new Map();
+  safeRoommates.forEach((r) => {
+    if (r && r.uid) {
+      roommateMap.set(r.uid, r.username || label("defaultUser", base.defaultUser));
+    }
+  });
+  const getUsername = (uid) =>
+    roommateMap.get(uid) || uid || label("defaultUnknown", base.defaultUnknown);
+
+  const totalSpent = safeExpenses.reduce((sum, e) => sum + safeAmount(e?.importo), 0);
+  const safeCasaNomeHtml = escapeHtml(String(resolvedCasaNome));
+  const safeMonthYearHtml = escapeHtml(
+    monthYear || label("printAllPeriod", base.printAllPeriod)
+  );
+  const generatedDateHtml = escapeHtml(new Date().toLocaleDateString(base.locale));
 
   const printHtml = `
     <!DOCTYPE html>
-    <html lang="it">
+    <html lang="${lang}">
     <head>
       <meta charset="utf-8" />
-      <title>Resoconto Spese - ${casaNome}</title>
+      <title>${escapeHtml(label("printTitlePrefix", base.printTitlePrefix))} - ${safeCasaNomeHtml}</title>
       <style>
         body {
           font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -258,83 +434,83 @@ export function printMonthlyReport(
     </head>
     <body>
       <div class="header">
-        <h1>HouseHelper - Resoconto Spese & Debiti</h1>
-        <p><strong>Casa:</strong> ${casaNome} | <strong>Periodo:</strong> ${monthYear || "Tutte le Spese"}</p>
-        <p><strong>Data stampa:</strong> ${new Date().toLocaleDateString("it-IT")}</p>
+        <h1>${escapeHtml(label("printHeading", base.printHeading))}</h1>
+        <p><strong>${escapeHtml(label("csvHousePrefix", base.csvHousePrefix))}:</strong> ${safeCasaNomeHtml} | <strong>${escapeHtml(label("csvPeriodPrefix", base.csvPeriodPrefix))}:</strong> ${safeMonthYearHtml}</p>
+        <p><strong>${escapeHtml(label("printDateLabel", base.printDateLabel))}:</strong> ${generatedDateHtml}</p>
       </div>
 
       <div class="summary-card">
         <div class="summary-item">
-          <h3>Totale Movimentato</h3>
+          <h3>${escapeHtml(label("printTotalMoved", base.printTotalMoved))}</h3>
           <p>${totalSpent.toFixed(2)} €</p>
         </div>
         <div class="summary-item">
-          <h3>Numero Voci</h3>
-          <p>${expenses.length}</p>
+          <h3>${escapeHtml(label("printEntryCount", base.printEntryCount))}</h3>
+          <p>${safeExpenses.length}</p>
         </div>
         <div class="summary-item">
-          <h3>Transazioni di Pareggio</h3>
-          <p>${simplifiedDebts.length}</p>
+          <h3>${escapeHtml(label("printTransferCount", base.printTransferCount))}</h3>
+          <p>${safeSimplified.length}</p>
         </div>
       </div>
 
-      <h2>Piano di Pareggio Semplificato</h2>
+      <h2>${escapeHtml(label("printSettlementHeading", base.printSettlementHeading))}</h2>
       <table>
         <thead>
           <tr>
-            <th>Chi deve pagare</th>
-            <th>A chi</th>
-            <th class="text-right">Importo da versare</th>
+            <th>${escapeHtml(label("printWhoPays", base.printWhoPays))}</th>
+            <th>${escapeHtml(label("printToWhom", base.printToWhom))}</th>
+            <th class="text-right">${escapeHtml(label("printAmountDue", base.printAmountDue))}</th>
           </tr>
         </thead>
         <tbody>
           ${
-            simplifiedDebts.length === 0
-              ? `<tr><td colspan="3" style="text-align:center; color:#6b7280;">Nessun debito da pareggiare! Tutti i conti sono in pari.</td></tr>`
-              : simplifiedDebts
-                  .map(
-                    (s) => `
+            safeSimplified.length === 0
+              ? `<tr><td colspan="3" style="text-align:center; color:#6b7280;">${escapeHtml(label("printNoDebts", base.printNoDebts))}</td></tr>`
+              : safeSimplified
+                  .map((s) => {
+                    const item = s || {};
+                    const fromHtml = escapeHtml(item.fromName || getUsername(item.from));
+                    const toHtml = escapeHtml(item.toName || getUsername(item.to));
+                    return `
             <tr>
-              <td><strong>${s.fromName || getUsername(s.from)}</strong></td>
-              <td><strong>${s.toName || getUsername(s.to)}</strong></td>
-              <td class="text-right"><span class="badge">${Number(s.amount || 0).toFixed(2)} €</span></td>
+              <td><strong>${fromHtml}</strong></td>
+              <td><strong>${toHtml}</strong></td>
+              <td class="text-right"><span class="badge">${safeAmount(item.amount).toFixed(2)} €</span></td>
             </tr>
-          `
-                  )
+          `;
+                  })
                   .join("")
           }
         </tbody>
       </table>
 
-      <h2>Dettaglio Spese Registrate</h2>
+      <h2>${escapeHtml(label("printDetailsHeading", base.printDetailsHeading))}</h2>
       <table>
         <thead>
           <tr>
-            <th>Data</th>
-            <th>Descrizione</th>
-            <th>Pagato da</th>
-            <th>A carico di</th>
-            <th class="text-right">Importo</th>
+            <th>${escapeHtml(label("csvColDate", base.csvColDate))}</th>
+            <th>${escapeHtml(label("csvColDesc", base.csvColDesc))}</th>
+            <th>${escapeHtml(label("printPaidBy", base.printPaidBy))}</th>
+            <th>${escapeHtml(label("printOwedBy", base.printOwedBy))}</th>
+            <th class="text-right">${escapeHtml(label("printAmount", base.printAmount))}</th>
           </tr>
         </thead>
         <tbody>
           ${
-            expenses.length === 0
-              ? `<tr><td colspan="5" style="text-align:center; color:#6b7280;">Nessuna spesa presente in questo periodo.</td></tr>`
-              : expenses
+            safeExpenses.length === 0
+              ? `<tr><td colspan="5" style="text-align:center; color:#6b7280;">${escapeHtml(label("printNoExpenses", base.printNoExpenses))}</td></tr>`
+              : safeExpenses
                   .map((e) => {
-                    const dataStr = e.createdAt?.toDate
-                      ? e.createdAt.toDate().toLocaleDateString("it-IT")
-                      : e.createdAt
-                      ? new Date(e.createdAt).toLocaleDateString("it-IT")
-                      : "-";
+                    const item = e || {};
+                    const dataStr = formatReportDate(item.createdAt, base.locale);
                     return `
               <tr>
-                <td>${dataStr}</td>
-                <td>${e.descrizione || "Spesa"}</td>
-                <td>${getUsername(e.creditoreId)}</td>
-                <td>${getUsername(e.debitoreId)}</td>
-                <td class="text-right">${Number(e.importo || 0).toFixed(2)} €</td>
+                <td>${escapeHtml(dataStr)}</td>
+                <td>${escapeHtml(item.descrizione || label("defaultExpense", base.defaultExpense))}</td>
+                <td>${escapeHtml(getUsername(item.creditoreId))}</td>
+                <td>${escapeHtml(getUsername(item.debitoreId))}</td>
+                <td class="text-right">${safeAmount(item.importo).toFixed(2)} €</td>
               </tr>
             `;
                   })

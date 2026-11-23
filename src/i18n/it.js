@@ -65,10 +65,12 @@ const it = {
     "ariaMoreTab": "Apri menu altro"
   },
   "settings": {
+    "copyFeedback": "Copiato!",
     "title": "Impostazioni",
     "subtitle": "Personalizza aspetto, preferenze e gestisci il tuo account",
     "backToDashboard": "Torna alla Dashboard",
     "household": {
+      "roleAdmin": "Amministratore della casa",
       "title": "Casa Attiva",
       "name": "Nome Casa",
       "inviteCode": "Codice Invito",
@@ -112,6 +114,10 @@ const it = {
       "disabled": "Disattivato"
     },
     "security": {
+      "userIdCopied": "ID utente copiato negli appunti!",
+      "defaultUser": "Utente",
+      "userIdLabel": "ID Utente:",
+      "copyUserId": "Copia ID",
       "title": "Account e Sicurezza",
       "description": "Dati del profilo utente e parametri di autenticazione",
       "profileSection": "Profilo Utente",
@@ -141,6 +147,7 @@ const it = {
     }
   },
   "chores": {
+    "addSubtaskLabel": "Nuova mansione",
     "title": "Turni di Pulizia",
     "subtitle": "Gestione turni e pulizie condivise della casa",
     "add": "Aggiungi Turno",
@@ -251,6 +258,8 @@ const it = {
     "backToDashboard": "Torna alla dashboard"
   },
   "expenses": {
+    "fixedAmountFor": "Quota fissa per {name}",
+    "percentageFor": "Percentuale per {name}",
     "title": "Spese e Debiti",
     "subtitle": "Contabilita condivisa e saldi tra coinquilini",
     "add": "Aggiungi Spesa",
@@ -369,6 +378,7 @@ const it = {
     "backToDashboard": "Torna alla Dashboard"
   },
   "groceries": {
+    "newProductAria": "Nuovo prodotto",
     "title": "Lista della Spesa",
     "subtitle": "Articoli da acquistare per la casa",
     "add": "Aggiungi Articolo",
@@ -828,6 +838,22 @@ const it = {
     "joinBtn": "Unisciti"
   },
   "dashboard": {
+    "membersSectionTitle": "Membri della Casa",
+    "membersSectionSubtitle": "Ruoli e gestione dei coinquilini della casa",
+    "roleAdmin": "Amministratore della casa",
+    "roleMember": "Membro",
+    "statusPending": "In attesa di approvazione",
+    "acceptMemberBtn": "Accetta",
+    "acceptMemberSuccess": "{name} è ora un membro effettivo della casa!",
+    "acceptMemberError": "Impossibile accettare il membro.",
+    "promoteAdminBtn": "Promuovi ad Amministratore",
+    "promoteAdminConfirm": "Vuoi cedere il ruolo di Amministratore della casa a {name}? Diventerai un Membro della casa.",
+    "promoteAdminSuccess": "Ruolo di Amministratore ceduto a {name}.",
+    "promoteAdminError": "Impossibile cedere il ruolo di Amministratore.",
+    "kickMemberBtn": "Espelli",
+    "kickMemberConfirm": "Vuoi rimuovere {name} dalla casa?",
+    "kickMemberSuccess": "{name} è stato rimosso dalla casa.",
+    "kickMemberError": "Impossibile rimuovere il membro.",
     "roommateFallback": "Coinquilino",
     "invalidVacationStart": "Data inizio vacanza non valida.",
     "invalidVacationEnd": "Data fine vacanza non valida.",

@@ -41,7 +41,7 @@ export class SecurityRulesValidator {
     return coll && coll[id] ? { ...coll[id] } : undefined;
   }
 
-  evaluate({ auth, resource, requestResource, operation, collection, id }) {
+  evaluate({ auth, resource, requestResource, operation, collection, id, request, afterStore = {} }) {
     // 1. Unauthenticated check
     if (!auth || !auth.uid) {
       return { allowed: false, reason: 'Unauthenticated request rejected' };
@@ -68,6 +68,20 @@ export class SecurityRulesValidator {
         userCasaId === casaId
       );
     };
+
+    const isHouseAdmin = (casaId) => {
+      const house = casaId && this.getDocData('case', casaId);
+      return Boolean(house && (Object.hasOwn(house, 'adminUid') ? house.adminUid : house.creatoreId) === auth.uid);
+    };
+    const getAfter = (coll, uid) => afterStore[coll]?.[uid] || this.getDocData(coll, uid);
+    const changedOnly = (before, after, allowedKeys) =>
+      Object.keys({ ...before, ...after }).every((key) =>
+        allowedKeys.includes(key) || (
+          Object.hasOwn(before, key) === Object.hasOwn(after, key) &&
+          JSON.stringify(before[key]) === JSON.stringify(after[key])
+        )
+      );
+    const membershipKeys = ['casaId', 'ruoloCasa', 'statoMembro'];
 
     const isValidImporto = (val) => {
       if (typeof val === 'number') {
@@ -109,20 +123,42 @@ export class SecurityRulesValidator {
             requestResource &&
             isNonEmptyString(requestResource.username, 50) &&
             isNonEmptyString(requestResource.email, 100) &&
-            (requestResource.casaId === null ||
-              requestResource.casaId === undefined ||
-              (typeof requestResource.casaId === 'string' && requestResource.casaId.length <= 64));
+            requestResource.casaId === null &&
+            requestResource.ruoloCasa == null &&
+            requestResource.statoMembro == null;
           return { allowed: Boolean(isOwner && validReq) };
         }
         if (operation === 'update') {
-          const isOwner = auth.uid === id;
-          const validReq =
-            requestResource &&
-            isNonEmptyString(requestResource.username, 50) &&
-            (requestResource.casaId === null ||
-              requestResource.casaId === undefined ||
-              (typeof requestResource.casaId === 'string' && requestResource.casaId.length <= 64));
-          return { allowed: Boolean(isOwner && validReq) };
+          const req = requestResource;
+          if (!req || !resource) return { allowed: false };
+
+          const nonMembershipKeys = Object.keys({ ...resource, ...req })
+            .filter((key) => !membershipKeys.includes(key));
+          const ownerMembershipUpdate = changedOnly(resource, req, nonMembershipKeys) ||
+            (req.casaId === null && req.ruoloCasa == null && req.statoMembro == null) ||
+            (req.casaId !== resource.casaId && (
+              (req.ruoloCasa === 'member' && req.statoMembro === 'pending') ||
+              (req.ruoloCasa === 'admin' && req.statoMembro === 'active' && isHouseAdmin(req.casaId))
+            ));
+          const ownerUpdate = auth.uid === id && ownerMembershipUpdate &&
+            isNonEmptyString(req.username, 50) &&
+            (req.casaId === null || (typeof req.casaId === 'string' && req.casaId.length <= 64)) &&
+            (!Object.hasOwn(req, 'inVacanza') || typeof req.inVacanza === 'boolean') &&
+            ['vacanzaInizio', 'vacanzaFine'].every((key) => req[key] == null || isValidDateString(req[key]));
+
+          const nextAdmin = getAfter('case', resource.casaId)?.adminUid;
+          const roleOnly = changedOnly(resource, req, ['statoMembro', 'ruoloCasa']);
+          const adminUpdate = isHouseAdmin(resource.casaId) && (
+            auth.uid === id
+              ? changedOnly(resource, req, ['ruoloCasa']) && req.ruoloCasa === 'member' &&
+                nextAdmin !== undefined && nextAdmin !== id
+              : (roleOnly && resource.statoMembro === 'pending' &&
+                  req.statoMembro === 'active' && req.ruoloCasa === 'member') ||
+                (changedOnly(resource, req, membershipKeys) &&
+                  req.casaId === null && req.ruoloCasa === null && req.statoMembro === null) ||
+                (roleOnly && req.ruoloCasa === 'admin' && req.statoMembro === 'active' && nextAdmin === id)
+          );
+          return { allowed: Boolean(ownerUpdate || adminUpdate) };
         }
         if (operation === 'delete') {
           return { allowed: false, reason: 'User profiles cannot be deleted' };
@@ -147,19 +183,31 @@ export class SecurityRulesValidator {
             isNonEmptyString(req.nome, 60) &&
             isNonEmptyString(req.codiceUnivoco, 12) &&
             req.codiceUnivoco.length >= 4 &&
-            req.creatoreId === auth.uid;
+            req.creatoreId === auth.uid &&
+            (!Object.hasOwn(req, 'adminUid') || req.adminUid === auth.uid);
           return { allowed: Boolean(valid) };
         }
         if (operation === 'update') {
           const req = requestResource;
-          const valid =
-            belongsToSameHouse(id) &&
-            req &&
-            isNonEmptyString(req.nome, 60) &&
-            resource &&
-            req.creatoreId === resource.creatoreId &&
-            req.codiceUnivoco === resource.codiceUnivoco;
-          return { allowed: Boolean(valid) };
+          if (!req || !resource || !isNonEmptyString(req.nome, 60) ||
+            (Object.hasOwn(req, 'impostazioniTurni') &&
+              (!req.impostazioniTurni || typeof req.impostazioniTurni !== 'object' ||
+                Array.isArray(req.impostazioniTurni)))) {
+            return { allowed: false };
+          }
+
+          const settings = ['nome', 'impostazioniTurni'];
+          const admin = isHouseAdmin(id);
+          const member = belongsToSameHouse(id) &&
+            (!Object.hasOwn(userDoc, 'statoMembro') || userDoc.statoMembro === 'active');
+          const uid = req.adminUid;
+          const target = getAfter('utenti', uid);
+          const transfer = admin && changedOnly(resource, req, [...settings, 'adminUid', 'creatoreId']) &&
+            typeof uid === 'string' && uid.length > 0 && uid !== auth.uid && req.creatoreId === uid &&
+            this.getDocData('utenti', uid)?.casaId === id && target?.casaId === id &&
+            target.ruoloCasa === 'admin' && target.statoMembro === 'active' &&
+            getAfter('utenti', auth.uid)?.ruoloCasa === 'member';
+          return { allowed: Boolean(((admin || member) && changedOnly(resource, req, settings)) || transfer) };
         }
         if (operation === 'delete') {
           return { allowed: false, reason: 'Houses cannot be deleted directly' };
@@ -293,7 +341,7 @@ export class SecurityRulesValidator {
             req.casaId === userCasaId &&
             req.autoreId === auth.uid &&
             isNonEmptyString(req.titolo, 100) &&
-            isNonEmptyString(req.contenuto, 1000);
+            isNonEmptyString(req.contenuto, 1500);
           return { allowed: Boolean(valid) };
         }
         if (operation === 'update') {
@@ -305,7 +353,7 @@ export class SecurityRulesValidator {
             req.casaId === resource.casaId &&
             req.autoreId === resource.autoreId &&
             isNonEmptyString(req.titolo, 100) &&
-            isNonEmptyString(req.contenuto, 1000);
+            isNonEmptyString(req.contenuto, 1500);
           return { allowed: Boolean(valid) };
         }
         if (operation === 'delete') {
@@ -788,20 +836,25 @@ describe('Milestone 5: Application Security Hardening & Firestore Rules', () => 
       expect(res.allowed).toBe(false);
     });
 
-    test('rejects note exceeding 1000 character content limit', () => {
-      const oversizedNote = {
+    test.each([
+      ['create', 1500, true],
+      ['create', 1501, false],
+      ['update', 1500, true],
+      ['update', 1501, false]
+    ])('%s with %i note characters has allowed=%s', (operation, length, allowed) => {
+      const note = {
         casaId: 'casa_alpha',
         autoreId: 'user_alpha_1',
         titolo: 'Avviso lungo',
-        contenuto: 'A'.repeat(1005)
+        contenuto: 'A'.repeat(length)
       };
-      const res = validator.evaluate({
+      expect(validator.evaluate({
         auth: { uid: 'user_alpha_1' },
-        requestResource: oversizedNote,
+        resource: { ...note, contenuto: 'Testo precedente' },
+        requestResource: note,
         collection: 'note',
-        operation: 'create'
-      });
-      expect(res.allowed).toBe(false);
+        operation
+      }).allowed).toBe(allowed);
     });
 
     test('accepts valid note within size bounds', () => {
@@ -999,6 +1052,71 @@ describe('Milestone 5: Application Security Hardening & Firestore Rules', () => 
     });
   });
 
+  describe('Household admin role', () => {
+    const admin = 'user_alpha_1';
+    const member = 'user_alpha_2';
+    const casaId = 'casa_alpha';
+    const legacyHouse = { nome: 'Casa Alpha', codiceUnivoco: 'ALPHA1', creatoreId: admin };
+    const house = { ...legacyHouse, adminUid: admin };
+    const pending = { ...mockUsers[member], ruoloCasa: 'member', statoMembro: 'pending' };
+    const accepted = { ...pending, statoMembro: 'active' };
+    const kicked = { ...pending, casaId: null, ruoloCasa: null, statoMembro: null };
+    const promoted = { ...accepted, ruoloCasa: 'admin' };
+    const nextHouse = { ...house, adminUid: member, creatoreId: member };
+    const demoted = { ...mockUsers[admin], ruoloCasa: 'member', statoMembro: 'active' };
+    const afterStore = { case: { [casaId]: nextHouse }, utenti: { [member]: promoted, [admin]: demoted } };
+
+    const updateProfile = (uid, id, resource, requestResource, after) => validator.evaluate({
+      auth: { uid }, id, resource, requestResource, collection: 'utenti', operation: 'update', afterStore: after
+    }).allowed;
+
+    const updateHouse = (uid, requestResource, after) => validator.evaluate({
+      auth: { uid }, id: casaId, resource: house, requestResource,
+      collection: 'case', operation: 'update', afterStore: after
+    }).allowed;
+
+    beforeEach(() => {
+      validator.setDocData('case', casaId, house);
+      validator.setDocData('utenti', member, pending);
+    });
+
+    test('admin can accept or kick a pending member within the household', () => {
+      expect(updateProfile(admin, member, pending, accepted)).toBe(true);
+      expect(updateProfile(admin, member, pending, kicked)).toBe(true);
+      expect(updateProfile(admin, member, accepted, kicked)).toBe(true);
+      expect(updateProfile(admin, member, pending, { ...accepted, username: 'Renamed' })).toBe(false);
+      expect(updateProfile(admin, admin, demoted, kicked)).toBe(true); // Owners can leave voluntarily.
+    });
+
+    test('pending members cannot self-approve and other households cannot manage membership', () => {
+      expect(updateProfile(member, member, pending, accepted)).toBe(false);
+      expect(updateProfile('user_beta_1', member, pending, kicked)).toBe(false);
+      expect(updateProfile(admin, 'user_beta_1', mockUsers.user_beta_1, kicked)).toBe(false);
+    });
+
+    test('falls back to the creator only if adminUid is absent', () => {
+      validator.setDocData('case', casaId, legacyHouse);
+      expect(updateProfile(admin, member, pending, accepted)).toBe(true);
+      validator.setDocData('case', casaId, { ...legacyHouse, adminUid: member });
+      expect(updateProfile(admin, member, pending, accepted)).toBe(false);
+    });
+
+    test('requires an atomic same-house transfer and protects role fields', () => {
+      const oldAdmin = { ...demoted, ruoloCasa: 'admin' };
+      expect(updateProfile(admin, member, pending, promoted)).toBe(false);
+      expect(updateProfile(admin, member, pending, promoted, afterStore)).toBe(true);
+      expect(updateProfile(admin, admin, oldAdmin, demoted, afterStore)).toBe(true);
+      expect(updateHouse(admin, nextHouse)).toBe(false);
+      expect(updateHouse(admin, nextHouse, afterStore)).toBe(true);
+      expect(updateHouse(admin, { ...nextHouse, codiceUnivoco: 'CHANGE' }, afterStore)).toBe(false);
+      expect(updateHouse(member, nextHouse, afterStore)).toBe(false);
+      expect(updateHouse(member, { ...house, nome: 'Nuovo nome' })).toBe(false);
+      validator.setDocData('utenti', member, accepted);
+      expect(updateHouse(member, { ...house, nome: 'Nuovo nome' })).toBe(true);
+      expect(updateHouse(member, { ...house, adminUid: member }, afterStore)).toBe(false);
+    });
+  });
+
   describe('SEC-12: Unauthenticated and Default-Deny Boundaries', () => {
     test('unauthenticated request is rejected immediately', () => {
       const res = validator.evaluate({
@@ -1032,6 +1150,8 @@ describe('Milestone 5: Application Security Hardening & Firestore Rules', () => 
       expect(content).toContain('function hasValidCasa()');
       expect(content).toContain('function belongsToSameHouse(casaId)');
       expect(content).toContain('function isEmailVerified()');
+      expect(content).toContain('function isHouseAdmin(casaId)');
+      expect(content.match(/isNonEmptyString\(request\.resource\.data\.contenuto, 1500\)/g)).toHaveLength(2);
       expect(content).toContain('getUserDoc().data.casaId != null');
       expect(content).toContain('getUserDoc().data.casaId is string');
 

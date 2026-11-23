@@ -88,10 +88,22 @@ export default function MiniGuy() {
       timer = setTimeout(nextFrame, current.dur);
     };
 
-    nextFrame();
+    const motion = window.matchMedia?.("(prefers-reduced-motion: reduce)");
+    const syncMotion = () => {
+      clearTimeout(timer);
+      if (motion?.matches) {
+        seqIdx = 0;
+        drawFrame(ANIMATION_SEQUENCE[0].frame);
+      } else {
+        nextFrame();
+      }
+    };
 
+    syncMotion();
+    motion?.addEventListener?.("change", syncMotion);
     return () => {
-      if (timer) clearTimeout(timer);
+      clearTimeout(timer);
+      motion?.removeEventListener?.("change", syncMotion);
     };
   }, []);
 

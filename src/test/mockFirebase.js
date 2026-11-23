@@ -289,6 +289,76 @@ export const deleteDoc = async (docRef) => {
   return mockStore.deleteDoc(docRef.coll, docRef.id);
 };
 
+export const writeBatch = (db) => {
+  const operations = [];
+  let committed = false;
+
+  const batch = {
+    set(docRef, data, options = {}) {
+      operations.push({ type: 'set', docRef, data, options });
+      return batch;
+    },
+    update(docRef, data) {
+      operations.push({ type: 'update', docRef, data });
+      return batch;
+    },
+    delete(docRef) {
+      operations.push({ type: 'delete', docRef });
+      return batch;
+    },
+    async commit() {
+      if (committed) {
+        throw new Error('WriteBatch has already been committed.');
+      }
+      committed = true;
+
+      const staged = {};
+      const getStagedColl = (collName) => {
+        if (!staged[collName]) {
+          staged[collName] = { ...(mockStore.collections[collName] || {}) };
+        }
+        return staged[collName];
+      };
+
+      for (const op of operations) {
+        if (!op.docRef || !op.docRef.coll || !op.docRef.id) {
+          throw new Error('Invalid DocumentReference in WriteBatch.');
+        }
+        const collName = op.docRef.coll;
+        const docId = op.docRef.id;
+        const coll = getStagedColl(collName);
+
+        if (op.type === 'set') {
+          const processed = mockStore._wrapTimestamps(op.data);
+          if (op.options && op.options.merge && coll[docId]) {
+            coll[docId] = { ...coll[docId], ...processed };
+          } else {
+            coll[docId] = { ...processed };
+          }
+        } else if (op.type === 'update') {
+          if (!coll[docId]) {
+            throw new Error(`Document ${collName}/${docId} does not exist.`);
+          }
+          const processed = mockStore._wrapTimestamps(op.data);
+          coll[docId] = { ...coll[docId], ...processed };
+        } else if (op.type === 'delete') {
+          if (coll[docId]) {
+            delete coll[docId];
+          }
+        }
+      }
+
+      for (const [collName, docsMap] of Object.entries(staged)) {
+        mockStore.collections[collName] = docsMap;
+      }
+
+      return Promise.resolve();
+    }
+  };
+
+  return batch;
+};
+
 // Firebase Auth Mock API
 export const getAuth = () => {
   return {
@@ -412,6 +482,7 @@ export const firestoreMock = {
   addDoc,
   updateDoc,
   deleteDoc,
+  writeBatch,
   getFirestore
 };
 

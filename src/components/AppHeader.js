@@ -27,24 +27,17 @@ export default function AppHeader() {
 
   return (
     <header className="app-topbar">
-      <div
+      <button
+        type="button"
         className="brand-wrapper"
         onClick={handleBrandClick}
-        role="button"
-        tabIndex={0}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            handleBrandClick();
-          }
-        }}
         aria-label={t("nav.ariaHomeLink", {}, "Torna alla pagina principale HouseHelper")}
       >
-        <div className="brand-icon-badge">
+        <span className="brand-icon-badge">
           <img src={logo} alt="HouseHelper Logo" className="brand-logo-img" />
-        </div>
+        </span>
         <span className="brand-title">HouseHelper</span>
-      </div>
+      </button>
 
       {/* Desktop Navigation links (hidden <= 768px via CSS) */}
       <DesktopNavigation />

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 import { useLanguage } from "../../contexts/LanguageContext";
 import { db } from "../../firebase";
@@ -19,7 +19,7 @@ import {
   isValidEmail
 } from "../../utils/security";
 import { showToast, showConfirm } from "../../utils/feedback";
-import { saveOfflineData, getOfflineData } from "../../utils/offlineStorage";
+import { saveContactsSnapshot, getContactsSnapshot } from "../../utils/offlineStorage";
 
 export const CATEGORIES = [
   "Tutti",
@@ -56,7 +56,7 @@ export default function ViewContatti() {
   const getCategoryLabel = (cat) => (CATEGORY_KEYS[cat] ? t(CATEGORY_KEYS[cat], null, cat) : cat);
   const [contatti, setContatti] = useState(() => {
     if (userData?.casaId) {
-      return getOfflineData(userData.casaId, "contatti") || [];
+      return getContactsSnapshot(userData.casaId);
     }
     return [];
   });
@@ -64,6 +64,7 @@ export default function ViewContatti() {
   const [selectedCategory, setSelectedCategory] = useState("Tutti");
   const [searchTerm, setSearchTerm] = useState("");
   const [showAddModal, setShowAddModal] = useState(false);
+  const addModalRef = useRef(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formError, setFormError] = useState("");
 
@@ -89,14 +90,15 @@ export default function ViewContatti() {
       const list = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
       list.sort((a, b) => (a.nome || "").localeCompare(b.nome || ""));
       setContatti(list);
-      saveOfflineData(userData.casaId, "contatti", list);
+      saveContactsSnapshot(userData.casaId, list);
     } catch (err) {
       console.error("Errore nel caricamento contatti:", err);
       showToast(t("contacts.offlineLoadWarning", null, "Impossibile caricare i contatti dal server. Visualizzazione offline."), "warning");
     } finally {
       setLoading(false);
     }
-  }, [userData?.casaId, t]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userData?.casaId]);
 
   useEffect(() => {
     fetchContatti();
@@ -124,14 +126,40 @@ export default function ViewContatti() {
 
   useEffect(() => {
     if (!showAddModal) return;
+    const previousFocus = document.activeElement;
+    addModalRef.current.querySelector("#contact-nome").focus();
+    return () => previousFocus?.focus();
+  }, [showAddModal]);
+
+  useEffect(() => {
+    if (!showAddModal) return;
     const handleKeyDown = (e) => {
-      if (e.key === "Escape" && !isSubmitting) {
+      const modal = addModalRef.current;
+      if (e.key === "Escape") {
+        e.preventDefault();
         handleCloseModal();
+      } else if (e.key === "Tab") {
+        const controls = modal.querySelectorAll(
+          "button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled)"
+        );
+        if (controls.length === 0) {
+          e.preventDefault();
+          modal.focus();
+          return;
+        }
+
+        const first = controls[0];
+        const last = controls[controls.length - 1];
+        const active = document.activeElement;
+        if (!Array.from(controls).includes(active) || active === (e.shiftKey ? first : last)) {
+          e.preventDefault();
+          (e.shiftKey ? last : first).focus();
+        }
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [showAddModal, isSubmitting, handleCloseModal]);
+  }, [showAddModal, handleCloseModal]);
 
   const handleAddSubmit = async (e) => {
     e.preventDefault();
@@ -345,6 +373,7 @@ export default function ViewContatti() {
               key={cat}
               type="button"
               className={`pill-btn ${selectedCategory === cat ? "active" : ""}`}
+              aria-pressed={selectedCategory === cat}
               onClick={() => setSelectedCategory(cat)}
             >
               {cat !== "Tutti" && (
@@ -421,13 +450,19 @@ export default function ViewContatti() {
       {showAddModal && (
         <div
           className="modal-backdrop"
-          role="dialog"
-          aria-modal="true"
           onClick={handleCloseModal}
         >
-          <div className="modal-card" onClick={(e) => e.stopPropagation()}>
+          <div
+            className="modal-card"
+            ref={addModalRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="add-contact-modal-title"
+            tabIndex={-1}
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="modal-header">
-              <h2 className="modal-title">
+              <h2 className="modal-title" id="add-contact-modal-title">
                 <i className="fas fa-user-plus" aria-hidden="true"></i> {t("contacts.newContactBtn", null, "Nuovo Contatto")}
               </h2>
               <button

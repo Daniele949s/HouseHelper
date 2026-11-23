@@ -135,6 +135,17 @@ export function ThemeProvider({ children }) {
       }
     }
 
+    const themeColor = effectiveTheme === "light" ? "#f8fafc" : "#0b0f19";
+    let metaThemeColor = document.querySelector('meta[name="theme-color"]');
+    if (!metaThemeColor && document.head) {
+      metaThemeColor = document.createElement("meta");
+      metaThemeColor.setAttribute("name", "theme-color");
+      document.head.appendChild(metaThemeColor);
+    }
+    if (metaThemeColor) {
+      metaThemeColor.setAttribute("content", themeColor);
+    }
+
     // Persist preference to localStorage
     try {
       if (typeof window !== "undefined" && window.localStorage) {

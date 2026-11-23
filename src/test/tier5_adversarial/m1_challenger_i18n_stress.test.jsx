@@ -638,7 +638,7 @@ describe("Milestone M1 Adversarial Challenger Suite: i18n & LanguageContext Stre
       expect(missingInEn).toEqual([]);
       expect(missingInIt).toEqual([]);
       expect(itLeaves.length).toBe(enLeaves.length);
-      expect(itLeaves.length).toBe(844);
+      expect(itLeaves.length).toBe(870);
     });
 
     test("4.4 All 216 keys resolve to non-empty strings with zero emojis in both languages", () => {

@@ -1,59 +1,47 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { useLanguage } from "../contexts/LanguageContext";
 import { signOut } from "firebase/auth";
 import { auth } from "../firebase";
+import { useModalFocusTrap } from "./ConfirmModal";
+import {
+  MOBILE_DRAWER_HOUSEHOLD_ITEMS,
+  MOBILE_DRAWER_PUBLIC_ITEMS,
+  hasHouseholdAccess,
+  isRouteActive,
+  useNavigation
+} from "../navigation/navigationRegistry";
 
 export default function MobileNavigation() {
-  const [isOpen, setIsOpen] = useState(false);
+  const { isMobileMenuOpen: isOpen, setMobileMenuOpen: setIsOpen } = useNavigation();
   const navigate = useNavigate();
   const location = useLocation();
   const { currentUser, userData } = useAuth();
   const { t } = useLanguage();
+  const drawerRef = useRef(null);
+
+  useModalFocusTrap(isOpen, drawerRef, () => setIsOpen(false));
 
   // Close menu on route change
   useEffect(() => {
     setIsOpen(false);
-  }, [location.pathname]);
-
-  // Handle external toggle from MobileBottomBar "Altro" button
-  useEffect(() => {
-    const handleToggle = () => {
-      setIsOpen((prev) => !prev);
-    };
-    window.addEventListener("toggle-mobile-menu", handleToggle);
-    return () => {
-      window.removeEventListener("toggle-mobile-menu", handleToggle);
-    };
-  }, []);
-
-  // Handle Escape key to close mobile menu
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (e.key === "Escape" && isOpen) {
-        setIsOpen(false);
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [isOpen]);
+  }, [location.pathname, setIsOpen]);
 
   // Lock body & html scroll completely when mobile menu is open
   useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = "hidden";
-      document.documentElement.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-      document.documentElement.style.overflow = "";
-    }
+    if (!isOpen) return;
+    const { style: bodyStyle } = document.body;
+    const { style: rootStyle } = document.documentElement;
+    const bodyOverflow = bodyStyle.overflow;
+    const rootOverflow = rootStyle.overflow;
+    bodyStyle.overflow = "hidden";
+    rootStyle.overflow = "hidden";
+
     return () => {
-      document.body.style.overflow = "";
-      document.documentElement.style.overflow = "";
+      bodyStyle.overflow = bodyOverflow;
+      rootStyle.overflow = rootOverflow;
     };
   }, [isOpen]);
 
@@ -74,28 +62,27 @@ export default function MobileNavigation() {
     }
   };
 
-  const menuItems = currentUser
-    ? [
-        { label: t("nav.dashboard", {}, "Dashboard"), icon: "fa-home", path: "/home" },
-        { label: t("nav.choresFull", {}, "Turni Pulizia"), icon: "fa-broom", path: "/turni" },
-        { label: t("nav.debtsFull", {}, "Spese & Debiti"), icon: "fa-wallet", path: "/debiti" },
-        { label: t("nav.groceriesFull", {}, "Lista Spesa"), icon: "fa-shopping-cart", path: "/spesa" },
-        { label: t("nav.calendarFull", {}, "Calendario Casa"), icon: "fa-calendar-alt", path: "/calendario" },
-        { label: t("nav.board", {}, "Bacheca"), icon: "fa-thumbtack", path: "/bacheca" },
-        { label: t("nav.documentsFull", {}, "Documenti & Contratti"), icon: "fa-folder-open", path: "/documenti" },
-        { label: t("nav.contactsFull", {}, "Contatti Utili"), icon: "fa-address-book", path: "/contatti" },
-        { label: t("nav.settings", {}, "Impostazioni"), icon: "fa-sliders-h", path: "/impostazioni" },
-      ]
-    : [
-        { label: t("nav.home", {}, "Home"), icon: "fa-home", path: "/" },
-        { label: t("nav.login", {}, "Accedi"), icon: "fa-sign-in-alt", path: "/login" },
-        { label: t("nav.register", {}, "Registrati"), icon: "fa-user-plus", path: "/registrazione" },
-      ];
+  const rawItems = hasHouseholdAccess(currentUser, userData)
+    ? MOBILE_DRAWER_HOUSEHOLD_ITEMS
+    : currentUser
+      ? []
+      : MOBILE_DRAWER_PUBLIC_ITEMS;
+
+  const menuItems = rawItems.map((item) => ({
+    ...item,
+    label: t(item.key, {}, item.fallback),
+  }));
 
   const drawerOverlay = (
     <div
       className={`mobile-menu-overlay ${isOpen ? "menu-opened" : ""}`}
+      ref={drawerRef}
+      role="dialog"
+      aria-modal={isOpen ? "true" : undefined}
+      aria-label={t("nav.menuTitle", {}, "HouseHelper Menu")}
       aria-hidden={!isOpen}
+      inert={!isOpen}
+      tabIndex={-1}
       onClick={handleOverlayClick}
     >
       <div className="mobile-menu-inner">
@@ -123,10 +110,7 @@ export default function MobileNavigation() {
 
         <ul className="mobile-menu-list">
           {menuItems.map((item, idx) => {
-            const isActive =
-              item.path === "/impostazioni"
-                ? location.pathname === "/impostazioni" || location.pathname === "/settings"
-                : location.pathname === item.path;
+            const isActive = isRouteActive(location.pathname, item);
 
             return (
               <li

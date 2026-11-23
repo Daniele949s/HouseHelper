@@ -1,25 +1,38 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { auth, db } from "../firebase";
-import { collection, query, where, getDocs, doc, getDoc, updateDoc } from "firebase/firestore";
+import { collection, query, where, getDocs } from "firebase/firestore";
 import { signOut } from "firebase/auth";
 import { useAuth } from "../contexts/AuthContext";
+import { useHousehold } from "../contexts/HouseholdContext";
+import { fetchHouseholdData } from "../services/householdService";
 import HouseAnalytics from "../components/HouseAnalytics";
 import HouseholdStatus from "../components/HouseholdStatus";
 import { safeFloat, validateDate } from "../utils/security";
 import { showToast, showConfirm } from "../utils/feedback";
 import { isUserOnVacation } from "../utils/choreRotation";
-import { getOfflineData, saveOfflineData } from "../utils/offlineStorage";
+import { getDashboardSnapshot, saveDashboardSnapshot } from "../utils/offlineStorage";
 import { useLanguage } from "../contexts/LanguageContext";
 
 export default function HomeUtente() {
   const navigate = useNavigate();
-  const { currentUser, userData, setUserData } = useAuth();
+  const { currentUser, userData } = useAuth();
+  const {
+    house: ctxHouse,
+    roommates: ctxRoommates,
+    isAdmin: ctxIsAdmin,
+    adminUid: ctxAdminUid,
+    acceptMember,
+    kickMember,
+    transferAdminRole,
+    leaveHouse,
+    updateVacation,
+  } = useHousehold();
   const { t, language } = useLanguage();
 
   const cachedInitial = useMemo(() => {
     if (userData?.casaId) {
-      return getOfflineData(userData.casaId, "dashboard_cache");
+      return getDashboardSnapshot(userData.casaId);
     }
     return null;
   }, [userData?.casaId]);
@@ -55,13 +68,29 @@ export default function HomeUtente() {
     }
   }, [userData]);
 
+  const dashboardInputs = useRef();
   useEffect(() => {
+    dashboardInputs.current = {
+      username: userData?.username,
+      fallbackName: t("dashboard.roommateFallback", {}, "Coinquilino"),
+    };
+  }, [userData?.username, t]);
+
+  useEffect(() => {
+    const uid = currentUser?.uid;
+    const casaId = userData?.casaId;
+    if (!uid || casaId === undefined) return;
+    if (!casaId) {
+      navigate("/scelta-casa");
+      return;
+    }
+
+    let cancelled = false;
+    const { username, fallbackName } = dashboardInputs.current;
     const fetchDashboardData = async () => {
-      const casaId = userData.casaId;
-      if (!casaId) return;
 
       // Hydrate state from offline cache if available
-      const cached = getOfflineData(casaId, "dashboard_cache");
+      const cached = getDashboardSnapshot(casaId);
       if (cached) {
         if (cached.casa) setCasa(cached.casa);
         if (cached.prossimoTurno !== undefined) setProssimoTurno(cached.prossimoTurno);
@@ -76,35 +105,28 @@ export default function HomeUtente() {
 
       setIsSyncing(true);
       try {
-        const casaRef = doc(db, "case", casaId);
-        const qUtenti = query(collection(db, "utenti"), where("casaId", "==", casaId));
         const turniQuery = query(collection(db, "turni"), where("casaId", "==", casaId));
         const debitiQuery = query(collection(db, "debiti"), where("casaId", "==", casaId));
         const spesaQuery = query(collection(db, "spesa"), where("casaId", "==", casaId));
         const noteQuery = query(collection(db, "note"), where("casaId", "==", casaId));
 
-        // Concurrently fetch all independent queries via Promise.all
-        const [casaDoc, snapUtenti, turniSnap, debitiSnap, spesaSnap, noteSnap] = await Promise.all([
-          getDoc(casaRef),
-          getDocs(qUtenti),
+        // Concurrently fetch household + all independent domain queries via Promise.all
+        const [{ house: casaData, roommateMap: uMap }, turniSnap, debitiSnap, spesaSnap, noteSnap] = await Promise.all([
+          fetchHouseholdData(casaId, fallbackName),
           getDocs(turniQuery),
           getDocs(debitiQuery),
           getDocs(spesaQuery),
           getDocs(noteQuery)
         ]);
 
+        if (cancelled) return;
+
         // 1. Casa entity
-        let casaData = null;
-        if (casaDoc.exists()) {
-          casaData = { id: casaDoc.id, ...casaDoc.data() };
+        if (casaData) {
           setCasa(casaData);
         }
 
         // 2. Roommates map
-        const uMap = {};
-        snapUtenti.forEach((d) => {
-          uMap[d.id] = d.data().username || t("dashboard.roommateFallback", {}, "Coinquilino");
-        });
         setUtentiMap(uMap);
 
         const oggi = new Date().toISOString().split("T")[0];
@@ -116,7 +138,7 @@ export default function HomeUtente() {
           const data = d.data();
           const item = { id: d.id, ...data };
           allTurni.push(item);
-          const isAssigned = (data.nomi && data.nomi.includes(userData?.username)) || data.utenteId === currentUser.uid;
+          const isAssigned = (data.nomi && data.nomi.includes(username)) || data.utenteId === uid;
           if (isAssigned && data.data >= oggi) {
             mieiTurni.push(item);
           }
@@ -133,8 +155,8 @@ export default function HomeUtente() {
           const data = d.data();
           allDebiti.push({ id: d.id, ...data });
           const val = safeFloat(data.importo);
-          if (data.debitoreId === currentUser.uid) totale -= val;
-          if (data.creditoreId === currentUser.uid) totale += val;
+          if (data.debitoreId === uid) totale -= val;
+          if (data.creditoreId === uid) totale += val;
         });
         setSaldo(totale);
         setDebitiList(allDebiti);
@@ -156,7 +178,7 @@ export default function HomeUtente() {
         setUltimoAvviso(nextNotice);
 
         // Save refreshed data to tenant-scoped offline storage
-        saveOfflineData(casaId, "dashboard_cache", {
+        saveDashboardSnapshot(casaId, {
           casa: casaData,
           prossimoTurno: nextTurno,
           saldo: totale,
@@ -169,18 +191,18 @@ export default function HomeUtente() {
       } catch (error) {
         console.error("Errore caricamento dashboard:", error);
       } finally {
-        setLoading(false);
-        setIsSyncing(false);
+        if (!cancelled) {
+          setLoading(false);
+          setIsSyncing(false);
+        }
       }
     };
 
-    if (!currentUser || !userData) return;
-    if (!userData.casaId) {
-      navigate("/scelta-casa");
-      return;
-    }
     fetchDashboardData();
-  }, [currentUser, userData, navigate, t]);
+    return () => {
+      cancelled = true;
+    };
+  }, [currentUser?.uid, userData?.casaId, navigate]);
 
   // Vacation Mode Persistence Handler
   const handleSaveVacation = async (e) => {
@@ -202,15 +224,11 @@ export default function HomeUtente() {
 
     setSavingVacanza(true);
     try {
-      const userRef = doc(db, "utenti", currentUser.uid);
-      const payload = {
+      await updateVacation({
         inVacanza: Boolean(inVacanza),
         vacanzaInizio: inVacanza ? (vacanzaInizio || null) : null,
         vacanzaFine: inVacanza ? (vacanzaFine || null) : null
-      };
-
-      await updateDoc(userRef, payload);
-      setUserData({ ...userData, ...payload });
+      });
       showToast(
         inVacanza
           ? t("dashboard.vacationEnabledToast", {}, "Modalità vacanza attivata! I turni non ti verranno assegnati.")
@@ -296,9 +314,7 @@ export default function HomeUtente() {
     if (!confirmed) return;
 
     try {
-      const userDocRef = doc(db, "utenti", currentUser.uid);
-      await updateDoc(userDocRef, { casaId: null });
-      setUserData({ ...userData, casaId: null });
+      await leaveHouse();
       showToast(t("dashboard.leftHouseToast", {}, "Hai lasciato la casa."), "info");
       navigate("/scelta-casa");
     } catch (e) {
@@ -315,27 +331,75 @@ export default function HomeUtente() {
   const activeGroceriesCount = spesaList.filter((s) => !s.comprato).length;
   const userCurrentlyAway = isUserOnVacation(userData);
 
-  // Active roommate presence list
-  const roommatesList = useMemo(() => {
-    const fallbackName = t("dashboard.roommateFallback", {}, "Coinquilino");
-    return Object.entries(utentiMap).map(([id, userVal]) => {
-      const name =
-        typeof userVal === "object" && userVal !== null
-          ? userVal.username || userVal.nome || fallbackName
-          : typeof userVal === "string"
-          ? userVal
-          : fallbackName;
-      const initial =
-        name && typeof name === "string" && name.length > 0
-          ? name.charAt(0).toUpperCase()
-          : "C";
-      return {
-        id,
-        username: name,
-        initial
-      };
+  const activeHouse = ctxHouse || casa;
+  const effectiveAdminUid = ctxAdminUid || activeHouse?.adminUid || activeHouse?.creatoreId || null;
+  const isHouseAdmin = Boolean(ctxIsAdmin || (currentUser?.uid && effectiveAdminUid && currentUser.uid === effectiveAdminUid));
+
+  const memberEntries = ctxRoommates?.length
+    ? ctxRoommates.map((member) => [member.uid || member.id, member])
+    : Object.entries(utentiMap);
+  const membersForSection = memberEntries.map(([uid, profile]) => {
+    const username = (typeof profile === "string" ? profile : profile?.username || profile?.nome)
+      || t("dashboard.roommateFallback", {}, "Coinquilino");
+    return {
+      uid,
+      username,
+      initial: username.charAt(0).toUpperCase(),
+      isCurrentUser: uid === currentUser?.uid,
+      isMemberAdmin: uid === effectiveAdminUid,
+      isPending: profile?.statoMembro === "pending",
+      inVacanza: Boolean(profile?.inVacanza),
+    };
+  });
+
+  const handleAcceptMember = async (member) => {
+    try {
+      await acceptMember(member.uid);
+      showToast(t("dashboard.acceptMemberSuccess", { name: member.username }, `${member.username} è ora un membro effettivo della casa!`), "success");
+    } catch {
+      showToast(t("dashboard.acceptMemberError", {}, "Impossibile accettare il membro."), "error");
+    }
+  };
+
+  const handlePromoteMember = async (member) => {
+    const confirmed = await showConfirm({
+      title: t("dashboard.promoteAdminBtn", {}, "Promuovi ad Amministratore"),
+      message: t("dashboard.promoteAdminConfirm", { name: member.username }, `Vuoi cedere il ruolo di Amministratore della casa a ${member.username}? Diventerai un Membro della casa.`),
+      confirmText: t("dashboard.promoteAdminBtn", {}, "Promuovi ad Amministratore"),
+      cancelText: t("common.cancel", {}, "Annulla"),
     });
-  }, [utentiMap, t]);
+    if (!confirmed) return;
+
+    try {
+      await transferAdminRole(member.uid);
+      showToast(t("dashboard.promoteAdminSuccess", { name: member.username }, `Ruolo di Amministratore ceduto a ${member.username}.`), "success");
+    } catch {
+      showToast(t("dashboard.promoteAdminError", {}, "Impossibile cedere il ruolo di Amministratore."), "error");
+    }
+  };
+
+  const handleKickMember = async (member) => {
+    const confirmed = await showConfirm({
+      title: t("dashboard.kickMemberBtn", {}, "Espelli"),
+      message: t("dashboard.kickMemberConfirm", { name: member.username }, `Vuoi rimuovere ${member.username} dalla casa?`),
+      confirmText: t("dashboard.kickMemberBtn", {}, "Espelli"),
+      cancelText: t("common.cancel", {}, "Annulla"),
+      isDanger: true,
+    });
+    if (!confirmed) return;
+
+    try {
+      await kickMember(member.uid);
+      setUtentiMap((previous) => {
+        const next = { ...previous };
+        delete next[member.uid];
+        return next;
+      });
+      showToast(t("dashboard.kickMemberSuccess", { name: member.username }, `${member.username} è stato rimosso dalla casa.`), "success");
+    } catch {
+      showToast(t("dashboard.kickMemberError", {}, "Impossibile rimuovere il membro."), "error");
+    }
+  };
 
   // Quiet status pill computation
   const choreStatusPill = useMemo(() => {
@@ -424,7 +488,7 @@ export default function HomeUtente() {
                   padding: "6px 12px",
                   borderRadius: "var(--radius-full)",
                   background: "rgba(245, 158, 11, 0.15)",
-                  color: "#f59e0b",
+                  color: "var(--color-warning-text)",
                   fontWeight: "700",
                   fontSize: "0.82rem",
                   display: "flex",
@@ -439,13 +503,13 @@ export default function HomeUtente() {
         </div>
 
         {/* Roommate Presence Avatars row */}
-        {roommatesList.length > 0 && (
+        {membersForSection.length > 0 && (
           <div className="roommate-presence-bar" style={{ display: "flex", alignItems: "center", gap: "10px", margin: "12px 0 16px 0", flexWrap: "wrap" }}>
             <span style={{ fontSize: "0.8rem", color: "var(--text-muted)", fontWeight: "500" }}>{t("dashboard.roommatesLabel", {}, "Coinquilini:")}</span>
             <div style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
-              {roommatesList.map((r) => (
+              {membersForSection.map((r) => (
                 <div
-                  key={r.id}
+                  key={r.uid}
                   className="roommate-avatar-chip"
                   title={r.username}
                   style={{
@@ -498,7 +562,7 @@ export default function HomeUtente() {
                   padding: "8px 14px",
                   borderRadius: "var(--radius-md)",
                   background: r.type === "warning" ? "rgba(245, 158, 11, 0.12)" : "rgba(14, 165, 233, 0.12)",
-                  color: r.type === "warning" ? "#d97706" : "var(--color-primary)",
+                  color: r.type === "warning" ? "var(--color-warning-text)" : "var(--color-primary)",
                   fontSize: "0.85rem",
                   fontWeight: "500"
                 }}
@@ -568,6 +632,82 @@ export default function HomeUtente() {
         )}
       </section>
 
+      <section className="card members-management-card" aria-labelledby="members-section-title">
+        <header style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "12px" }}>
+          <div>
+            <h2 id="members-section-title">
+              <i className="fas fa-users-cog" aria-hidden="true"></i>{" "}
+              {t("dashboard.membersSectionTitle", {}, "Membri della Casa")}
+            </h2>
+            <p className="text-muted">
+              {t("dashboard.membersSectionSubtitle", {}, "Ruoli e gestione dei coinquilini della casa")}
+            </p>
+          </div>
+          <span className="member-role-badge">{membersForSection.length}</span>
+        </header>
+        <ul className="members-list">
+          {membersForSection.map((member) => (
+            <li className="member-row" key={member.uid}>
+              <div className="member-info">
+                <span
+                  aria-hidden="true"
+                  style={{
+                    display: "inline-grid",
+                    placeItems: "center",
+                    width: "2rem",
+                    height: "2rem",
+                    flexShrink: 0,
+                    borderRadius: "50%",
+                    background: "var(--color-primary-light)",
+                    color: "var(--color-primary-text)",
+                    fontWeight: 700,
+                  }}
+                >
+                  {member.initial}
+                </span>
+                <strong>
+                  {member.username}{member.isCurrentUser ? ` ${t("board.youBadge", {}, "(Tu)")}` : ""}
+                </strong>
+                {member.isMemberAdmin ? (
+                  <span className="member-role-badge admin">
+                    <i className="fas fa-crown" aria-hidden="true"></i>{" "}
+                    {t("dashboard.roleAdmin", {}, "Amministratore della casa")}
+                  </span>
+                ) : (
+                  <span className="member-role-badge">
+                    <i className="fas fa-user" aria-hidden="true"></i>{" "}
+                    {t("dashboard.roleMember", {}, "Membro")}
+                  </span>
+                )}
+                {member.isPending && (
+                  <span className="member-role-badge pending">
+                    <i className="fas fa-clock" aria-hidden="true"></i>{" "}
+                    {t("dashboard.statusPending", {}, "In attesa di approvazione")}
+                  </span>
+                )}
+              </div>
+              {isHouseAdmin && !member.isCurrentUser && (
+                <div className="member-actions">
+                  {member.isPending && (
+                    <button type="button" className="btn-primary btn-xs" onClick={() => handleAcceptMember(member)}>
+                      {t("dashboard.acceptMemberBtn", {}, "Accetta")}
+                    </button>
+                  )}
+                  {!member.isPending && !member.isMemberAdmin && (
+                    <button type="button" className="btn-secondary btn-xs" onClick={() => handlePromoteMember(member)}>
+                      {t("dashboard.promoteAdminBtn", {}, "Promuovi ad Amministratore")}
+                    </button>
+                  )}
+                  <button type="button" className="btn-danger-outline btn-xs" onClick={() => handleKickMember(member)}>
+                    {t("dashboard.kickMemberBtn", {}, "Espelli")}
+                  </button>
+                </div>
+              )}
+            </li>
+          ))}
+        </ul>
+      </section>
+
       {/* ================= VACATION / AWAY MODE CONTROLS ================= */}
       <div
         className="card"
@@ -587,7 +727,7 @@ export default function HomeUtente() {
                 height: "40px",
                 borderRadius: "10px",
                 background: inVacanza ? "rgba(245, 158, 11, 0.15)" : "var(--bg-input)",
-                color: inVacanza ? "#f59e0b" : "var(--text-muted)",
+                color: inVacanza ? "var(--color-warning-text)" : "var(--text-muted)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -611,9 +751,9 @@ export default function HomeUtente() {
               type="checkbox"
               checked={inVacanza}
               onChange={(e) => setInVacanza(e.target.checked)}
-              style={{ width: "22px", height: "22px", accentColor: "#f59e0b" }}
+              style={{ width: "22px", height: "22px", accentColor: "var(--color-warning-text)" }}
             />
-            <span style={{ fontWeight: "700", color: inVacanza ? "#f59e0b" : "var(--text-main)" }}>
+            <span style={{ fontWeight: "700", color: inVacanza ? "var(--color-warning-text)" : "var(--text-main)" }}>
               {inVacanza ? t("dashboard.vacationActive", {}, "Attiva (fuori casa)") : t("dashboard.vacationInactive", {}, "Non attiva")}
             </span>
           </label>
@@ -623,10 +763,11 @@ export default function HomeUtente() {
           <form onSubmit={handleSaveVacation} style={{ marginTop: "16px", borderTop: "1px solid var(--border-color)", paddingTop: "12px" }}>
             <div style={{ display: "flex", gap: "12px", flexWrap: "wrap", alignItems: "flex-end" }}>
               <div style={{ flex: 1, minWidth: "140px" }}>
-                <label style={{ fontSize: "0.82rem", color: "var(--text-muted)", display: "block", marginBottom: "4px" }}>
+                <label htmlFor="vacanza-inizio" style={{ fontSize: "0.82rem", color: "var(--text-muted)", display: "block", marginBottom: "4px" }}>
                   {t("dashboard.vacationStartDate", {}, "Data di partenza")}
                 </label>
                 <input
+                  id="vacanza-inizio"
                   type="date"
                   className="form-control"
                   value={vacanzaInizio}
@@ -636,10 +777,11 @@ export default function HomeUtente() {
               </div>
 
               <div style={{ flex: 1, minWidth: "140px" }}>
-                <label style={{ fontSize: "0.82rem", color: "var(--text-muted)", display: "block", marginBottom: "4px" }}>
+                <label htmlFor="vacanza-fine" style={{ fontSize: "0.82rem", color: "var(--text-muted)", display: "block", marginBottom: "4px" }}>
                   {t("dashboard.vacationEndDate", {}, "Data di rientro")}
                 </label>
                 <input
+                  id="vacanza-fine"
                   type="date"
                   className="form-control"
                   value={vacanzaFine}
@@ -712,7 +854,7 @@ export default function HomeUtente() {
                   background: "rgba(245, 158, 11, 0.15)",
                   padding: "10px 14px",
                   borderRadius: "14px",
-                  color: "#f59e0b",
+                  color: "var(--color-warning-text)",
                   fontSize: "1.4rem"
                 }}
               >
@@ -739,7 +881,7 @@ export default function HomeUtente() {
                 </h2>
                 <p
                   style={{
-                    color: "#f59e0b",
+                    color: "var(--color-warning-text)",
                     fontWeight: "600",
                     margin: 0,
                     display: "flex",
@@ -771,7 +913,7 @@ export default function HomeUtente() {
             type="button"
             className="btn-text"
             onClick={() => navigate("/turni")}
-            style={{ alignSelf: "flex-start", padding: "8px 0", minHeight: "44px", display: "inline-flex", alignItems: "center", marginTop: "16px", color: "#f59e0b" }}
+            style={{ alignSelf: "flex-start", padding: "8px 0", minHeight: "44px", display: "inline-flex", alignItems: "center", marginTop: "16px", color: "var(--color-warning-text)" }}
           >
             <span>{t("dashboard.manageAllChores", {}, "Gestisci tutti i turni")}</span>
           </button>

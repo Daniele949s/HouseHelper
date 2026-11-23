@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { db } from "../../firebase";
 import { collection, query, where, getDocs, doc, deleteDoc } from "firebase/firestore";
 import { useAuth } from "../../contexts/AuthContext";
+import { useHousehold } from "../../contexts/HouseholdContext";
 import { useLanguage } from "../../contexts/LanguageContext";
 import { showConfirm, showToast } from "../../utils/feedback";
 
@@ -36,10 +37,10 @@ const PRIORITY_CONFIG = {
 export default function ViewBacheca() {
   const navigate = useNavigate();
   const { userData, currentUser } = useAuth();
+  const { roommateMap: utentiMap } = useHousehold();
   const { t, language } = useLanguage();
 
   const [note, setNote] = useState([]);
-  const [utentiMap, setUtentiMap] = useState({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -47,14 +48,6 @@ export default function ViewBacheca() {
       if (!userData?.casaId) return;
       setLoading(true);
       try {
-        const qUtenti = query(collection(db, "utenti"), where("casaId", "==", userData.casaId));
-        const snapUtenti = await getDocs(qUtenti);
-        const map = {};
-        snapUtenti.forEach((d) => {
-          map[d.id] = d.data().username || t("board.unknownAuthor", null, "Sconosciuto");
-        });
-        setUtentiMap(map);
-
         const qNote = query(collection(db, "note"), where("casaId", "==", userData.casaId));
         const snapNote = await getDocs(qNote);
         const data = snapNote.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() }));
@@ -73,7 +66,7 @@ export default function ViewBacheca() {
     };
 
     fetchDati();
-  }, [userData, t]);
+  }, [userData?.casaId]);
 
   const fetchDatiReload = async () => {
     if (!userData?.casaId) return;

@@ -1,13 +1,13 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
+import { useHousehold } from "../../contexts/HouseholdContext";
 import { useLanguage } from "../../contexts/LanguageContext";
 import { useTheme } from "../../contexts/ThemeContext";
-import { auth, db } from "../../firebase";
+import { auth } from "../../firebase";
 import { signOut, sendEmailVerification, sendPasswordResetEmail } from "firebase/auth";
-import { doc, getDoc, collection, query, where, getDocs } from "firebase/firestore";
 import { showToast, showConfirm } from "../../utils/feedback";
-import { getOfflineData, saveOfflineData } from "../../utils/offlineStorage";
+import { getHouseholdSnapshot } from "../../utils/offlineStorage";
 import { getNotificationPreferences, saveNotificationPreferences } from "../../utils/notificationPrefs";
 
 /**
@@ -21,29 +21,23 @@ import { getNotificationPreferences, saveNotificationPreferences } from "../../u
 export default function ViewImpostazioni() {
   const navigate = useNavigate();
   const { currentUser, userData } = useAuth();
+  const { house: liveHouse, roommates: liveRoommates, loading: loadingHousehold, isAdmin: householdIsAdmin } = useHousehold();
   const { language, setLanguage, t } = useLanguage();
   const { theme, setTheme } = useTheme();
 
+  const cachedHousehold = useMemo(
+    () => (userData?.casaId ? getHouseholdSnapshot(userData.casaId) : null),
+    [userData?.casaId]
+  );
+
   // Household data state with instant offline hydration
-  const [household, setHousehold] = useState(() => {
-    if (userData?.casaId) {
-      return getOfflineData(userData.casaId, "settings_household_cache") || null;
-    }
-    return null;
-  });
+  const household = liveHouse || cachedHousehold || null;
 
   // Roommate count state with instant offline hydration
-  const [roommatesCount, setRoommatesCount] = useState(() => {
-    if (userData?.casaId) {
-      const cached = getOfflineData(userData.casaId, "settings_household_cache");
-      if (cached?.memberCount) return cached.memberCount;
-      const dashCached = getOfflineData(userData.casaId, "dashboard_cache");
-      if (dashCached?.utentiMap) return Object.keys(dashCached.utentiMap).length;
-    }
-    return 1;
-  });
+  const roommatesCount = liveRoommates.length > 0
+    ? liveRoommates.length
+    : (cachedHousehold?.memberCount || 1);
 
-  const [loadingHousehold, setLoadingHousehold] = useState(!household);
   const [copiedCode, setCopiedCode] = useState(false);
   const [copiedUid, setCopiedUid] = useState(false);
 
@@ -54,52 +48,6 @@ export default function ViewImpostazioni() {
   const [cooldown, setCooldown] = useState(0);
   const [sendingVerification, setSendingVerification] = useState(false);
   const [sendingReset, setSendingReset] = useState(false);
-
-  // Fetch household info and roommates count concurrently
-  useEffect(() => {
-    let isMounted = true;
-    const fetchHouseholdDetails = async () => {
-      if (!userData?.casaId) {
-        if (isMounted) setLoadingHousehold(false);
-        return;
-      }
-      try {
-        const casaRef = doc(db, "case", userData.casaId);
-        const qUtenti = query(collection(db, "utenti"), where("casaId", "==", userData.casaId));
-
-        const [casaSnap, utentiSnap] = await Promise.all([
-          getDoc(casaRef),
-          getDocs(qUtenti),
-        ]);
-
-        if (isMounted) {
-          let casaData = null;
-          if (casaSnap && typeof casaSnap.exists === "function" && casaSnap.exists()) {
-            casaData = { id: casaSnap.id, ...casaSnap.data() };
-            setHousehold(casaData);
-          }
-          const count = utentiSnap?.size || (casaData ? 1 : 0);
-          setRoommatesCount(count);
-
-          if (casaData) {
-            saveOfflineData(userData.casaId, "settings_household_cache", {
-              ...casaData,
-              memberCount: count,
-            });
-          }
-        }
-      } catch (err) {
-        console.warn("Could not fetch household details for settings:", err);
-      } finally {
-        if (isMounted) setLoadingHousehold(false);
-      }
-    };
-
-    fetchHouseholdDetails();
-    return () => {
-      isMounted = false;
-    };
-  }, [userData?.casaId]);
 
   // Handle Cooldown countdown
   useEffect(() => {
@@ -145,9 +93,7 @@ export default function ViewImpostazioni() {
       }
       setCopiedUid(true);
       showToast(
-        language === "it"
-          ? "ID utente copiato negli appunti!"
-          : "User ID copied to clipboard!",
+        t("settings.security.userIdCopied", null, "ID utente copiato negli appunti!"),
         "success"
       );
       setTimeout(() => setCopiedUid(false), 2000);
@@ -207,7 +153,15 @@ export default function ViewImpostazioni() {
     });
   }, [navigate, t]);
 
-  const isCreator = household?.creatoreId === currentUser?.uid;
+  const isAdmin = householdIsAdmin ?? Boolean(
+    household && currentUser &&
+      (household.adminUid ? household.adminUid === currentUser.uid : household.creatoreId === currentUser.uid)
+  );
+  const roleLabel = isAdmin
+    ? (household?.creatoreId === currentUser?.uid
+      ? t("settings.household.roleCreator", null, "Creatore")
+      : t("settings.household.roleAdmin", null, "Amministratore"))
+    : t("settings.household.roleMember", null, "Coinquilino");
 
   return (
     <div className="container dashboard-container settings-container domain-page-card" role="main">
@@ -239,7 +193,7 @@ export default function ViewImpostazioni() {
                   {loadingHousehold ? t("common.loading") : (household?.nome || t("settings.household.noHousehold"))}
                 </h2>
                 <span className="household-role-badge">
-                  {isCreator ? t("settings.household.roleCreator") : t("settings.household.roleMember")}
+                  {roleLabel}
                 </span>
               </div>
               <div className="household-meta-row">
@@ -277,7 +231,7 @@ export default function ViewImpostazioni() {
                   style={{ minHeight: "44px", minWidth: "44px" }}
                 >
                   <i className={`fas ${copiedCode ? "fa-check" : "fa-copy"}`} aria-hidden="true"></i>
-                  <span>{copiedCode ? (language === "it" ? "Copiato!" : "Copied!") : t("settings.household.copyCode")}</span>
+                  <span>{copiedCode ? t("settings.copyFeedback", null, "Copiato!") : t("settings.household.copyCode")}</span>
                 </button>
               </div>
             )}
@@ -353,7 +307,7 @@ export default function ViewImpostazioni() {
               style={{ minHeight: "44px", minWidth: "44px" }}
             >
               <i className="fas fa-sun" aria-hidden="true"></i>
-              <span>{language === "it" ? "Chiaro" : "Light"}</span>
+              <span>{t("settings.theme.light", null, "Chiaro")}</span>
             </button>
             <button
               type="button"
@@ -365,7 +319,7 @@ export default function ViewImpostazioni() {
               style={{ minHeight: "44px", minWidth: "44px" }}
             >
               <i className="fas fa-moon" aria-hidden="true"></i>
-              <span>{language === "it" ? "Scuro" : "Dark"}</span>
+              <span>{t("settings.theme.dark", null, "Scuro")}</span>
             </button>
             <button
               type="button"
@@ -377,7 +331,7 @@ export default function ViewImpostazioni() {
               style={{ minHeight: "44px", minWidth: "44px" }}
             >
               <i className="fas fa-desktop" aria-hidden="true"></i>
-              <span>{language === "it" ? "Sistema" : "System"}</span>
+              <span>{t("settings.theme.system", null, "Sistema")}</span>
             </button>
           </div>
         </div>
@@ -502,11 +456,11 @@ export default function ViewImpostazioni() {
               <div className="settings-row-desc" style={{ display: "flex", flexDirection: "column", gap: "6px", marginTop: "4px" }}>
                 <div>
                   <strong>{t("settings.security.username")}: </strong>
-                  <span>{userData?.username || currentUser?.displayName || (language === "it" ? "Utente" : "User")}</span>
+                  <span>{userData?.username || currentUser?.displayName || t("settings.security.defaultUser", null, "Utente")}</span>
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
                   <span style={{ fontSize: "0.82rem", color: "var(--text-secondary)" }}>
-                    {language === "it" ? "ID Utente:" : "User ID:"}
+                    {t("settings.security.userIdLabel", null, "ID Utente:")}
                   </span>
                   <code className="monospace-pill" data-testid="settings-user-uid">
                     {currentUser?.uid || "-"}
@@ -516,11 +470,11 @@ export default function ViewImpostazioni() {
                       type="button"
                       className="btn btn-secondary btn-xs"
                       onClick={handleCopyUid}
-                      aria-label={language === "it" ? "Copia ID" : "Copy ID"}
+                      aria-label={t("settings.security.copyUserId", null, "Copia ID")}
                       style={{ minHeight: "44px", minWidth: "44px", padding: "6px 12px" }}
                     >
                       <i className={`fas ${copiedUid ? "fa-check" : "fa-copy"}`} aria-hidden="true" style={{ marginRight: "4px" }}></i>
-                      {copiedUid ? (language === "it" ? "Copiato!" : "Copied!") : (language === "it" ? "Copia ID" : "Copy ID")}
+                      {copiedUid ? t("settings.copyFeedback", null, "Copiato!") : t("settings.security.copyUserId", null, "Copia ID")}
                     </button>
                   )}
                 </div>

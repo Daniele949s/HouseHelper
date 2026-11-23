@@ -1,4 +1,7 @@
 export function triggerConfetti() {
+  const motion = window.matchMedia?.("(prefers-reduced-motion: reduce)");
+  if (motion?.matches) return;
+
   const canvas = document.createElement("canvas");
   canvas.style.position = "fixed";
   canvas.style.top = "0";
@@ -35,6 +38,11 @@ export function triggerConfetti() {
   const duration = 2200;
 
   function render(time) {
+    if (motion?.matches) {
+      canvas.remove();
+      return;
+    }
+
     const elapsed = time - startTime;
     ctx.clearRect(0, 0, width, height);
 

@@ -2,6 +2,12 @@ import React from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { useLanguage } from "../contexts/LanguageContext";
+import {
+  MOBILE_BOTTOM_TABS,
+  hasHouseholdAccess,
+  isRouteActive,
+  useNavigation
+} from "../navigation/navigationRegistry";
 
 /**
  * MobileBottomBar component providing ergonomic thumb-friendly bottom navigation on mobile (< 768px).
@@ -12,29 +18,18 @@ export default function MobileBottomBar() {
   const { currentUser, userData } = useAuth();
   const location = useLocation();
   const { t } = useLanguage();
+  const { toggleMobileMenu } = useNavigation();
 
   // Guard: Only render when authenticated with an active household
-  if (!currentUser || !userData || !userData.casaId) {
+  if (!hasHouseholdAccess(currentUser, userData)) {
     return null;
   }
 
-  const handleOpenMore = () => {
-    window.dispatchEvent(new CustomEvent("toggle-mobile-menu"));
-  };
-
-  const navTabs = [
-    { label: t("nav.home", {}, "Home"), icon: "fa-home", path: "/home", end: true },
-    { label: t("nav.chores", {}, "Turni"), icon: "fa-broom", path: "/turni", end: false },
-    { label: t("nav.expenses", {}, "Spese"), icon: "fa-wallet", path: "/debiti", end: false },
-    { label: t("nav.groceries", {}, "Spesa"), icon: "fa-shopping-cart", path: "/spesa", end: false },
-  ];
-
   return (
     <nav className="mobile-bottom-bar" aria-label={t("nav.ariaMobileNav", {}, "Navigazione rapida mobile")}>
-      {navTabs.map((tab) => {
-        const isActive = tab.end
-          ? location.pathname === tab.path
-          : location.pathname.startsWith(tab.path);
+      {MOBILE_BOTTOM_TABS.map((tab) => {
+        const isActive = isRouteActive(location.pathname, tab);
+        const label = t(tab.key, {}, tab.fallback);
 
         return (
           <NavLink
@@ -46,7 +41,7 @@ export default function MobileBottomBar() {
             <span className="mobile-bottom-tab-icon">
               <i className={`fas ${tab.icon}`} aria-hidden="true"></i>
             </span>
-            <span className="mobile-bottom-tab-label">{tab.label}</span>
+            <span className="mobile-bottom-tab-label">{label}</span>
           </NavLink>
         );
       })}
@@ -54,7 +49,7 @@ export default function MobileBottomBar() {
       <button
         type="button"
         className="mobile-bottom-tab"
-        onClick={handleOpenMore}
+        onClick={toggleMobileMenu}
         aria-label={t("nav.ariaMoreTab", {}, "Apri menu altro")}
       >
         <span className="mobile-bottom-tab-icon">

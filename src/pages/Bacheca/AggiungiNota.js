@@ -91,13 +91,19 @@ export default function AggiungiNota() {
 
       <form onSubmit={handleSubmit} className="auth-form" style={{ textAlign: "left" }}>
         <div className="input-group">
-          <label>{t("board.priorityLabel", null, "Priorità avviso")}</label>
-          <div className="pill-selector-group">
+          <div
+            id="add-note-priority"
+            style={{ fontWeight: 600, marginBottom: "8px", color: "var(--text-secondary)", fontSize: "0.88rem", letterSpacing: "0.01em" }}
+          >
+            {t("board.priorityLabel", null, "Priorità avviso")}
+          </div>
+          <div className="pill-selector-group" role="group" aria-labelledby="add-note-priority">
             {PRIORITY_OPTIONS.map((opt) => (
               <button
                 key={opt.id}
                 type="button"
                 className={`pill-selector-btn ${nota.priorita === opt.id ? "active" : ""}`}
+                aria-pressed={nota.priorita === opt.id}
                 onClick={() => setNota({ ...nota, priorita: opt.id })}
               >
                 <i className={opt.icon}></i> {t(opt.labelKey, null, opt.fallback)}
@@ -108,10 +114,11 @@ export default function AggiungiNota() {
 
         <div className="input-group">
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <label>{t("board.titleLabel", null, "Titolo (massimo 80 caratteri)")}</label>
+            <label htmlFor="add-note-title">{t("board.titleLabel", null, "Titolo (massimo 80 caratteri)")}</label>
             <span className="char-counter">{nota.titolo.length} / 80</span>
           </div>
           <input
+            id="add-note-title"
             type="text"
             value={nota.titolo}
             onChange={(e) => setNota({ ...nota, titolo: e.target.value })}
@@ -123,10 +130,11 @@ export default function AggiungiNota() {
 
         <div className="input-group">
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <label>{t("board.messageDetailsLabel", null, "Messaggio / Dettagli (massimo 1500 caratteri)")}</label>
+            <label htmlFor="add-note-message">{t("board.messageDetailsLabel", null, "Messaggio / Dettagli (massimo 1500 caratteri)")}</label>
             <span className="char-counter">{nota.contenuto.length} / 1500</span>
           </div>
           <textarea
+            id="add-note-message"
             value={nota.contenuto}
             onChange={(e) => setNota({ ...nota, contenuto: e.target.value })}
             placeholder={t("board.messagePlaceholder", null, "Scrivi qui il messaggio dettagliato...")}
@@ -137,8 +145,9 @@ export default function AggiungiNota() {
         </div>
 
         <div className="input-group">
-          <label>{t("board.optionalDateLabel", null, "Data scadenza o evento (opzionale)")}</label>
+          <label htmlFor="add-note-date">{t("board.optionalDateLabel", null, "Data scadenza o evento (opzionale)")}</label>
           <input
+            id="add-note-date"
             type="date"
             value={nota.data}
             onChange={(e) => setNota({ ...nota, data: e.target.value })}

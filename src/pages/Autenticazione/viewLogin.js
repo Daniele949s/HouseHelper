@@ -4,10 +4,12 @@ import { auth, db, googleProvider } from "../../firebase";
 import { signInWithEmailAndPassword, signInWithPopup } from "firebase/auth";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { isValidEmail, sanitizeText } from "../../utils/security";
+import { useAuth } from "../../contexts/AuthContext";
 import { useLanguage } from "../../contexts/LanguageContext";
 
 export default function ViewLogin() {
   const navigate = useNavigate();
+  const { setUserData } = useAuth() || {};
   const { t } = useLanguage();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -74,12 +76,14 @@ export default function ViewLogin() {
 
       if (!userDoc.exists()) {
         const cleanedName = sanitizeText(user.displayName, 30) || t("auth.googleUserFallback", {}, "Utente Google");
-        await setDoc(userDocRef, {
+        const profile = {
           username: cleanedName,
           email: user.email ? user.email.toLowerCase() : "",
           casaId: null,
           createdAt: new Date()
-        });
+        };
+        await setDoc(userDocRef, profile);
+        setUserData?.(profile);
         navigate("/scelta-casa");
       } else {
         if (userDoc.data().casaId) {

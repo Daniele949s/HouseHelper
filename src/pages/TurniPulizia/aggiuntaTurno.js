@@ -1,31 +1,37 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { db } from "../../firebase";
-import { collection, addDoc, query, where, getDocs } from "firebase/firestore";
 import { useAuth } from "../../contexts/AuthContext";
+import { useHousehold } from "../../contexts/HouseholdContext";
 import { useLanguage } from "../../contexts/LanguageContext";
-import { sanitizeList, validateDate, sanitizeChecklist } from "../../utils/security";
+import {
+  CHORE_TIME_SLOTS as FASCE_DISPONIBILI,
+  validateAndBuildChorePayload,
+  createChore
+} from "../../services/choreService";
 import { showToast } from "../../utils/feedback";
 import { isUserOnVacation } from "../../utils/choreRotation";
-
-const generaFasceOrarie = () => {
-  const orari = [];
-  for (let i = 7; i < 23; i++) {
-    const start = i.toString().padStart(2, "0") + ":00";
-    const end = (i + 1).toString().padStart(2, "0") + ":00";
-    orari.push(`${start} - ${end}`);
-  }
-  return orari;
-};
-const FASCE_DISPONIBILI = generaFasceOrarie();
 
 export default function AggiuntaTurno() {
   const navigate = useNavigate();
   const { userData, currentUser } = useAuth();
+  const { roommates: householdRoommates } = useHousehold();
   const { t } = useLanguage();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [roommates, setRoommates] = useState([]);
+  const roommates = useMemo(
+    () =>
+      householdRoommates
+        .filter((u) => u.username)
+        .map((u) => ({
+          id: u.id,
+          uid: u.uid,
+          username: u.username,
+          inVacanza: Boolean(u.inVacanza),
+          vacanzaInizio: u.vacanzaInizio || null,
+          vacanzaFine: u.vacanzaFine || null,
+        })),
+    [householdRoommates]
+  );
 
   const [turno, setTurno] = useState({
     nomi: "",
@@ -39,41 +45,16 @@ export default function AggiuntaTurno() {
   const [checklistItems, setChecklistItems] = useState([]);
   const [newChecklistText, setNewChecklistText] = useState("");
 
-  useEffect(() => {
-    const fetchRoommates = async () => {
-      if (!userData?.casaId) return;
-      try {
-        const q = query(collection(db, "utenti"), where("casaId", "==", userData.casaId));
-        const snap = await getDocs(q);
-        const list = [];
-        snap.forEach((d) => {
-          const u = d.data();
-          if (u.username) {
-            list.push({
-              id: d.id,
-              uid: d.id,
-              username: u.username,
-              inVacanza: Boolean(u.inVacanza),
-              vacanzaInizio: u.vacanzaInizio || null,
-              vacanzaFine: u.vacanzaFine || null
-            });
-          }
-        });
-        setRoommates(list);
-      } catch (e) {
-        console.error("Errore fetch coinquilini:", e);
-      }
-    };
-    fetchRoommates();
-  }, [userData]);
-
   const handleChange = (e) => {
     const { name, value } = e.target;
     setTurno((prev) => ({ ...prev, [name]: value }));
   };
 
+  const selectedNames = turno.nomi ? turno.nomi.split(",").map((s) => s.trim()).filter(Boolean) : [];
+  const selectedZones = turno.luoghi ? turno.luoghi.split(",").map((s) => s.trim()).filter(Boolean) : [];
+
   const toggleRoommate = (username) => {
-    const current = turno.nomi ? turno.nomi.split(",").map((n) => n.trim()).filter(Boolean) : [];
+    const current = selectedNames;
     const index = current.indexOf(username);
     let updated;
     if (index >= 0) {
@@ -85,7 +66,7 @@ export default function AggiuntaTurno() {
   };
 
   const addZonePreset = (zone) => {
-    const current = turno.luoghi ? turno.luoghi.split(",").map((z) => z.trim()).filter(Boolean) : [];
+    const current = selectedZones;
     if (!current.includes(zone)) {
       const updated = [...current, zone];
       setTurno((prev) => ({ ...prev, luoghi: updated.join(", ") }));
@@ -140,51 +121,33 @@ export default function AggiuntaTurno() {
       return;
     }
 
-    // Input Validation & Anti-Injection
-    const cleanedNomi = sanitizeList(turno.nomi, 10, 50);
-    const cleanedLuoghi = sanitizeList(turno.luoghi, 10, 80);
-    const cleanedProcedura = sanitizeList(turno.procedura, 10, 150);
-    const dateValidation = validateDate(turno.data);
+    const validation = validateAndBuildChorePayload({
+      nomi: turno.nomi,
+      data: turno.data,
+      luoghi: turno.luoghi,
+      procedura: turno.procedura,
+      fasciaOraria: turno.fasciaOraria,
+      checklist: checklistItems,
+      casaId: userData.casaId,
+      utenteId: currentUser.uid,
+      isEdit: false
+    });
 
-    if (cleanedNomi.length === 0) {
-      setError(t("chores.errorNoAssignee", {}, "Specifica almeno una persona assegnata al turno."));
-      return;
-    }
-
-    if (!dateValidation.isValid) {
-      setError(dateValidation.error || t("chores.errorInvalidDate", {}, "Data del turno non valida."));
-      return;
-    }
-
-    if (cleanedLuoghi.length === 0) {
-      setError(t("chores.errorNoLocation", {}, "Specifica almeno un luogo o mansione da svolgere."));
-      return;
-    }
-
-    if (!FASCE_DISPONIBILI.includes(turno.fasciaOraria)) {
-      setError(t("chores.errorInvalidTimeSlot", {}, "Seleziona una fascia oraria valida dall'elenco."));
+    if (!validation.valid) {
+      const errorMap = {
+        no_assignee: t("chores.errorNoAssignee", {}, "Specifica almeno una persona assegnata al turno."),
+        invalid_date: validation.errorMessage || t("chores.errorInvalidDate", {}, "Data del turno non valida."),
+        no_location: t("chores.errorNoLocation", {}, "Specifica almeno un luogo o mansione da svolgere."),
+        invalid_time_slot: t("chores.errorInvalidTimeSlot", {}, "Seleziona una fascia oraria valida dall'elenco.")
+      };
+      setError(errorMap[validation.errorKey]);
       return;
     }
 
     setLoading(true);
 
-    const sanitizedChecklistItems = sanitizeChecklist(checklistItems, 20, 100);
-
-    const turnoDaInviare = {
-      nomi: cleanedNomi,
-      data: dateValidation.date,
-      luoghi: cleanedLuoghi,
-      procedura: cleanedProcedura,
-      fasciaOraria: [turno.fasciaOraria],
-      casaId: userData.casaId,
-      utenteId: currentUser.uid,
-      mansione: cleanedLuoghi.join(", "),
-      checklist: sanitizedChecklistItems,
-      completato: false
-    };
-
     try {
-      await addDoc(collection(db, "turni"), turnoDaInviare);
+      await createChore(validation.payload);
       showToast(t("chores.createSuccess", {}, "Turno creato con successo!"), "success");
       navigate("/turni");
     } catch (err) {
@@ -218,13 +181,14 @@ export default function AggiuntaTurno() {
           {roommates.length > 0 && (
             <div className="roommate-chips-group" style={{ display: "flex", flexWrap: "wrap", gap: "6px", marginBottom: "8px" }}>
               {roommates.map((r) => {
-                const isSelected = turno.nomi.includes(r.username);
+                const isSelected = selectedNames.includes(r.username);
                 const isAway = isUserOnVacation(r, turno.data);
 
                 return (
                   <button
                     key={r.uid}
                     type="button"
+                    aria-pressed={isSelected}
                     onClick={() => toggleRoommate(r.username)}
                     className={`roommate-select-chip ${isSelected ? "selected" : ""}`}
                     style={{
@@ -236,7 +200,7 @@ export default function AggiuntaTurno() {
                       color: isSelected
                         ? "var(--color-primary)"
                         : isAway
-                        ? "#d97706"
+                        ? "var(--color-warning-text)"
                         : "var(--text-secondary)",
                       border: `1px solid ${
                         isSelected
@@ -282,7 +246,7 @@ export default function AggiuntaTurno() {
                 borderRadius: "var(--radius-sm)",
                 background: "rgba(245, 158, 11, 0.12)",
                 border: "1px solid rgba(245, 158, 11, 0.3)",
-                color: "#b45309",
+                color: "var(--color-warning-text)",
                 fontSize: "0.85rem",
                 marginBottom: "8px",
                 display: "flex",
@@ -358,6 +322,7 @@ export default function AggiuntaTurno() {
               <button
                 key={z}
                 type="button"
+                aria-pressed={selectedZones.includes(z)}
                 onClick={() => addZonePreset(z)}
                 disabled={loading}
                 style={{
@@ -410,6 +375,7 @@ export default function AggiuntaTurno() {
           <div style={{ display: "flex", gap: "8px", marginBottom: "10px" }}>
             <input
               type="text"
+              aria-label={t("chores.addSubtaskLabel", {}, "Nuova mansione")}
               placeholder={t("chores.checklistPlaceholder", {}, "es. Svuotare il cestino, lavare il lavello...")}
               value={newChecklistText}
               onChange={(e) => setNewChecklistText(e.target.value)}

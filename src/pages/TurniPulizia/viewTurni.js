@@ -1,26 +1,19 @@
-import React, { useEffect, useState, useMemo, useCallback } from "react";
+import React, { useEffect, useState, useMemo, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { db } from "../../firebase";
-import {
-  collection,
-  query,
-  where,
-  getDocs,
-  doc,
-  deleteDoc,
-  updateDoc,
-  addDoc,
-  getDoc
-} from "firebase/firestore";
 import { useAuth } from "../../contexts/AuthContext";
 import { useLanguage } from "../../contexts/LanguageContext";
-import { showToast, showConfirm } from "../../utils/feedback";
-import { sanitizeText, sanitizeChecklist } from "../../utils/security";
+import { fetchHouseholdData } from "../../services/householdService";
 import {
-  isUserOnVacation,
-  getAvailableRoommates,
-  rotateChoreAssignee
-} from "../../utils/choreRotation";
+  fetchHouseChores,
+  deleteChore,
+  buildToggledChecklist,
+  toggleChoreSubtask,
+  buildAddedSubtaskChecklist,
+  addChoreSubtask,
+  rotateAndCreateChore
+} from "../../services/choreService";
+import { showToast, showConfirm } from "../../utils/feedback";
+import { isUserOnVacation } from "../../utils/choreRotation";
 
 export default function VisualizzaTurni() {
   const navigate = useNavigate();
@@ -36,52 +29,42 @@ export default function VisualizzaTurni() {
   // New subtask input state per turno: { [turnoId]: string }
   const [newSubTaskMap, setNewSubTaskMap] = useState({});
 
+  const translateRef = useRef(t);
+  useEffect(() => {
+    translateRef.current = t;
+  }, [t]);
+
   const fetchTurni = useCallback(async () => {
     if (!userData?.casaId) return;
     setLoading(true);
     setError(null);
     try {
-      // Concurrently fetch house doc, roommates, and turni
-      const qUtenti = query(collection(db, "utenti"), where("casaId", "==", userData.casaId));
-      const q = query(collection(db, "turni"), where("casaId", "==", userData.casaId));
-
-      const [cSnap, snapUtenti, querySnapshot] = await Promise.all([
-        getDoc(doc(db, "case", userData.casaId)).catch(() => null),
-        getDocs(qUtenti),
-        getDocs(q)
+      const [{ house, roommates: rList }, data] = await Promise.all([
+        fetchHouseholdData(userData.casaId, translateRef.current("chores.defaultRoommate", {}, "Coinquilino")),
+        fetchHouseChores(userData.casaId)
       ]);
 
-      if (cSnap && cSnap.exists && cSnap.exists()) {
-        setCasaDoc(cSnap.data());
+      if (house) {
+        setCasaDoc(house);
       }
 
-      const rList = [];
-      snapUtenti.forEach((d) => {
-        const u = d.data();
-        rList.push({
-          id: d.id,
-          uid: d.id,
-          username: u.username || t("chores.defaultRoommate", {}, "Coinquilino"),
-          inVacanza: Boolean(u.inVacanza),
-          vacanzaInizio: u.vacanzaInizio || null,
-          vacanzaFine: u.vacanzaFine || null
-        });
-      });
-      setRoommates(rList);
+      setRoommates(rList.map((u) => ({
+        id: u.id,
+        uid: u.uid,
+        username: u.username || translateRef.current("chores.defaultRoommate", {}, "Coinquilino"),
+        inVacanza: Boolean(u.inVacanza),
+        vacanzaInizio: u.vacanzaInizio || null,
+        vacanzaFine: u.vacanzaFine || null
+      })));
 
-      const data = querySnapshot.docs.map((docSnap) => ({
-        id: docSnap.id,
-        ...docSnap.data()
-      }));
-      data.sort((a, b) => new Date(a.data) - new Date(b.data));
       setTurni(data);
     } catch (err) {
       console.error(err);
-      setError(t("chores.loadError", {}, "Errore nel caricamento dei turni."));
+      setError(translateRef.current("chores.loadError", {}, "Errore nel caricamento dei turni."));
     } finally {
       setLoading(false);
     }
-  }, [userData?.casaId, t]);
+  }, [userData?.casaId]);
 
   useEffect(() => {
     fetchTurni();
@@ -108,7 +91,7 @@ export default function VisualizzaTurni() {
     if (!confirmed) return;
 
     try {
-      await deleteDoc(doc(db, "turni", id));
+      await deleteChore(turnoTarget, userData?.casaId);
       showToast(t("chores.deleteSuccess", {}, "Turno eliminato con successo"), "success");
       fetchTurni();
     } catch (err) {
@@ -122,46 +105,16 @@ export default function VisualizzaTurni() {
     const turnoTarget = turni.find((t) => t.id === turnoId);
     if (!turnoTarget) return;
 
-    const currentChecklist = Array.isArray(turnoTarget.checklist)
-      ? turnoTarget.checklist
-      : [];
-
-    const updatedChecklist = currentChecklist.map((item) => {
-      if (item.id === subTaskId) {
-        const nextState = !item.completed;
-        return {
-          ...item,
-          completed: nextState,
-          completedBy: nextState ? userData?.username || t("chores.defaultUser", {}, "Utente") : null,
-          completedAt: nextState ? new Date().toISOString() : null
-        };
-      }
-      return item;
-    });
-
-    const isAllDone =
-      updatedChecklist.length > 0 && updatedChecklist.every((i) => i.completed);
+    const actor = userData?.username || t("chores.defaultUser", {}, "Utente");
+    const nextState = buildToggledChecklist(turnoTarget, subTaskId, actor);
 
     // Optimistic UI update
     setTurni((prev) =>
-      prev.map((t) =>
-        t.id === turnoId
-          ? {
-              ...t,
-              checklist: updatedChecklist,
-              completato: isAllDone,
-              completatoIl: isAllDone ? new Date().toISOString() : null
-            }
-          : t
-      )
+      prev.map((t) => (t.id === turnoId ? { ...t, ...nextState } : t))
     );
 
     try {
-      await updateDoc(doc(db, "turni", turnoId), {
-        checklist: updatedChecklist,
-        completato: isAllDone,
-        completatoIl: isAllDone ? new Date().toISOString() : null
-      });
+      await toggleChoreSubtask(turnoTarget, subTaskId, actor);
     } catch (err) {
       console.error("Errore aggiornamento checklist:", err);
       showToast(t("chores.checklistSaveError", {}, "Errore durante il salvataggio della mansione"), "error");
@@ -171,45 +124,25 @@ export default function VisualizzaTurni() {
 
   // Add sub-task directly on chore card
   const handleAddDirectSubTask = async (turnoId) => {
-    const textToAdd = (newSubTaskMap[turnoId] || "").trim();
-    if (!textToAdd) return;
-
-    const cleanedText = sanitizeText(textToAdd, 100);
-    if (!cleanedText) return;
-
     const turnoTarget = turni.find((t) => t.id === turnoId);
     if (!turnoTarget) return;
 
-    const currentChecklist = Array.isArray(turnoTarget.checklist)
-      ? turnoTarget.checklist
-      : [];
-    if (currentChecklist.length >= 20) {
+    const result = buildAddedSubtaskChecklist(turnoTarget, newSubTaskMap[turnoId]);
+    if (result.status === "empty") return;
+    if (result.status === "limit_reached") {
       showToast(t("chores.subtaskLimitError", {}, "Limite massimo di 20 sotto-mansioni raggiunto."), "warning");
       return;
     }
 
-    const newItem = {
-      id: `chk_${Date.now()}_${currentChecklist.length}`,
-      text: cleanedText,
-      completed: false,
-      completedBy: null,
-      completedAt: null
-    };
-
-    const updatedChecklist = sanitizeChecklist([...currentChecklist, newItem]);
-
     setNewSubTaskMap((prev) => ({ ...prev, [turnoId]: "" }));
     setTurni((prev) =>
       prev.map((t) =>
-        t.id === turnoId ? { ...t, checklist: updatedChecklist, completato: false } : t
+        t.id === turnoId ? { ...t, checklist: result.checklist, completato: false } : t
       )
     );
 
     try {
-      await updateDoc(doc(db, "turni", turnoId), {
-        checklist: updatedChecklist,
-        completato: false
-      });
+      await addChoreSubtask(turnoId, result.checklist);
       showToast(t("chores.subtaskAddSuccess", {}, "Sotto-mansione aggiunta!"), "success");
     } catch (err) {
       console.error("Errore aggiunta sotto-mansione:", err);
@@ -247,68 +180,31 @@ export default function VisualizzaTurni() {
 
     setRotating(true);
     try {
-      const activeRoommates = getAvailableRoommates(roommates);
-      if (activeRoommates.length === 0) {
-        showToast(t("chores.rotateAllVacation", {}, "Tutti i coinquilini sono in vacanza: rotazione non possibile."), "warning");
-        setRotating(false);
-        return;
-      }
-
-      // Calculate next date (e.g. 7 days from last chore or tomorrow)
-      let nextDateStr = new Date().toISOString().split("T")[0];
-      if (turni.length > 0) {
-        const lastChore = turni[turni.length - 1];
-        if (lastChore.data) {
-          const d = new Date(lastChore.data);
-          d.setDate(d.getDate() + 7);
-          nextDateStr = d.toISOString().split("T")[0];
-        }
-      }
-
-      // Determine rotation order from house settings or alphabetical
-      const rotationSettings = casaDoc?.impostazioniTurni || {};
-      const explicitOrder = rotationSettings.ordineRotazione || [];
-
-      // Last assignee
-      const lastAssigneeUsername =
-        turni.length > 0 && turni[turni.length - 1].nomi
-          ? turni[turni.length - 1].nomi[0]
-          : null;
-      const lastAssigneeObj = roommates.find((r) => r.username === lastAssigneeUsername);
-
-      const { assignee } = rotateChoreAssignee(
-        lastAssigneeObj?.uid || null,
-        activeRoommates,
-        explicitOrder
-      );
-
-      if (!assignee) {
-        showToast(t("chores.rotateNoAssignee", {}, "Impossibile determinare il prossimo assegnatario."), "error");
-        setRotating(false);
-        return;
-      }
-
-      // Create new rotated chore
-      const defaultLocation = t("chores.rotateDefaultLocation", {}, "Pulizia Generale");
-      const newChore = {
-        nomi: [assignee.username],
-        data: nextDateStr,
-        luoghi: [defaultLocation],
-        procedura: [t("chores.rotateDefaultProcedure", {}, "Rotazione automatica programmata")],
-        fasciaOraria: ["10:00 - 11:00"],
+      const result = await rotateAndCreateChore({
         casaId: userData.casaId,
         utenteId: currentUser.uid,
-        mansione: defaultLocation,
-        checklist: [
-          { id: `chk_${Date.now()}_1`, text: t("chores.rotateDefaultTask1", {}, "Pulire superfici e pavimenti"), completed: false },
-          { id: `chk_${Date.now()}_2`, text: t("chores.rotateDefaultTask2", {}, "Svuotare cestini"), completed: false }
-        ],
-        completato: false
-      };
+        casaDoc,
+        roommates,
+        turni,
+        defaults: {
+          location: t("chores.rotateDefaultLocation", {}, "Pulizia Generale"),
+          procedure: t("chores.rotateDefaultProcedure", {}, "Rotazione automatica programmata"),
+          task1: t("chores.rotateDefaultTask1", {}, "Pulire superfici e pavimenti"),
+          task2: t("chores.rotateDefaultTask2", {}, "Svuotare cestini")
+        }
+      });
 
-      await addDoc(collection(db, "turni"), newChore);
+      if (result.status === "all_vacation") {
+        showToast(t("chores.rotateAllVacation", {}, "Tutti i coinquilini sono in vacanza: rotazione non possibile."), "warning");
+        return;
+      }
+      if (result.status === "no_assignee") {
+        showToast(t("chores.rotateNoAssignee", {}, "Impossibile determinare il prossimo assegnatario."), "error");
+        return;
+      }
+
       showToast(
-        t("chores.rotateSuccess", { name: assignee.username }, `Nuovo turno assegnato con successo a ${assignee.username}!`),
+        t("chores.rotateSuccess", { name: result.assignee.username }, `Nuovo turno assegnato con successo a ${result.assignee.username}!`),
         "success"
       );
       fetchTurni();
@@ -328,6 +224,12 @@ export default function VisualizzaTurni() {
       </div>
     );
   }
+
+  const today = new Date();
+  const localDate = today.toLocaleDateString("en-CA");
+  const oggiStr = /^\d{4}-\d{2}-\d{2}$/.test(localDate)
+    ? localDate
+    : `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
 
   return (
     <div className="card domain-page-card">
@@ -385,7 +287,7 @@ export default function VisualizzaTurni() {
             borderRadius: "var(--radius-md)",
             background: "rgba(245, 158, 11, 0.12)",
             border: "1px solid rgba(245, 158, 11, 0.3)",
-            color: "#b45309",
+            color: "var(--color-warning-text)",
             marginBottom: "24px",
             textAlign: "left",
             display: "flex",
@@ -424,9 +326,8 @@ export default function VisualizzaTurni() {
             {/* 1. SIGNATURE SPOTLIGHT CARD FOR IMMINENT SHIFT (turni[0]) */}
             {(() => {
               const turno = turni[0];
-              const turnoDate = new Date(turno.data);
-              const isPast = !isNaN(turnoDate.getTime()) && turnoDate < new Date().setHours(0, 0, 0, 0);
-              const oggiStr = new Date().toISOString().split("T")[0];
+              const turnoDate = new Date(`${turno.data}T00:00:00`);
+              const isPast = !isNaN(turnoDate.getTime()) && turno.data < oggiStr;
               const isToday = turno.data === oggiStr;
               const checklist = Array.isArray(turno.checklist) ? turno.checklist : [];
               const completedCount = checklist.filter((i) => i.completed).length;
@@ -455,7 +356,7 @@ export default function VisualizzaTurni() {
                           padding: "4px 12px",
                           borderRadius: "var(--radius-full)",
                           background: isToday ? "rgba(245, 158, 11, 0.15)" : "var(--color-primary-light)",
-                          color: isToday ? "#b45309" : "var(--color-primary)",
+                          color: isToday ? "var(--color-warning-text)" : "var(--color-primary)",
                           fontSize: "0.82rem",
                           fontWeight: "700"
                         }}
@@ -634,6 +535,7 @@ export default function VisualizzaTurni() {
                         <div style={{ display: "flex", gap: "6px", marginTop: "6px" }}>
                           <input
                             type="text"
+                            aria-label={t("chores.addSubtaskLabel", {}, "Nuova mansione")}
                             placeholder={t("chores.addSubtaskPlaceholder", {}, "Aggiungi una mansione...")}
                             value={newSubTaskMap[turno.id] || ""}
                             onChange={(e) =>
@@ -704,8 +606,8 @@ export default function VisualizzaTurni() {
                 </h4>
                 <div className="timeline-chores-list">
                 {turni.slice(1).map((turno) => {
-                  const turnoDate = new Date(turno.data);
-                  const isPast = !isNaN(turnoDate.getTime()) && turnoDate < new Date().setHours(0, 0, 0, 0);
+                  const turnoDate = new Date(`${turno.data}T00:00:00`);
+                  const isPast = !isNaN(turnoDate.getTime()) && turno.data < oggiStr;
                   const checklist = Array.isArray(turno.checklist) ? turno.checklist : [];
                   const completedCount = checklist.filter((i) => i.completed).length;
 
@@ -837,6 +739,7 @@ export default function VisualizzaTurni() {
                               <div style={{ display: "flex", gap: "6px", marginTop: "6px" }}>
                                 <input
                                   type="text"
+                                  aria-label={t("chores.addSubtaskLabel", {}, "Nuova mansione")}
                                   placeholder={t("chores.addSubtaskPlaceholder", {}, "Aggiungi una mansione...")}
                                   value={newSubTaskMap[turno.id] || ""}
                                   onChange={(e) =>

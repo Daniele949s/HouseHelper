@@ -18,15 +18,15 @@ export function ToastItem({ toast, onDismiss }) {
 
     const timer = setTimeout(() => {
       setIsExiting(true);
-      setTimeout(onDismiss, 250);
+      setTimeout(() => onDismiss(id), 250);
     }, duration);
 
     return () => clearTimeout(timer);
-  }, [duration, onDismiss, isPaused]);
+  }, [duration, id, onDismiss, isPaused]);
 
   const handleManualClose = () => {
     setIsExiting(true);
-    setTimeout(onDismiss, 250);
+    setTimeout(() => onDismiss(id), 250);
   };
 
   return (
@@ -65,7 +65,7 @@ export function ToastItem({ toast, onDismiss }) {
 export default function ToastContainer() {
   const [toasts, setToasts] = useState([]);
 
-  const removeToast = useCallback((id) => {
+  const dismissToast = useCallback((id) => {
     setToasts((prev) => prev.filter((t) => t.id !== id));
   }, []);
 
@@ -93,7 +93,7 @@ export default function ToastContainer() {
       aria-live="polite"
     >
       {toasts.map((item) => (
-        <ToastItem key={item.id} toast={item} onDismiss={() => removeToast(item.id)} />
+        <ToastItem key={item.id} toast={item} onDismiss={dismissToast} />
       ))}
     </div>
   );

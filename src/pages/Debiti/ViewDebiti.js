@@ -1,20 +1,19 @@
-import React, { useEffect, useState, useMemo, useCallback } from "react";
+import React, { useEffect, useState, useMemo, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { db } from "../../firebase";
-import {
-  collection,
-  query,
-  where,
-  getDocs,
-  doc,
-  deleteDoc,
-  addDoc
-} from "firebase/firestore";
 import { useAuth } from "../../contexts/AuthContext";
 import { useLanguage } from "../../contexts/LanguageContext";
-import { safeFloat } from "../../utils/security";
+import { fetchHouseholdData } from "../../services/householdService";
+import {
+  fetchHouseDebts,
+  getUserNetBalance,
+  deleteLedgerDebt,
+  recordSimplifiedSettlement,
+  simplifyDebts,
+  calculateNetBalances
+} from "../../services/ledgerService";
+import { useModalFocusTrap } from "../../components/ConfirmModal";
 import { showToast, showConfirm } from "../../utils/feedback";
-import { simplifyDebts, calculateNetBalances } from "../../utils/debtSimplification";
+import { safeFloat } from "../../utils/security";
 import { exportExpensesToCsv, printMonthlyReport } from "../../utils/reportExport";
 
 export default function ViewDebiti() {
@@ -26,9 +25,10 @@ export default function ViewDebiti() {
   const [utentiMap, setUtentiMap] = useState({});
   const [roommates, setRoommates] = useState([]);
   const [casaNome, setCasaNome] = useState(() => t("expenses.defaultHouseName", null, "Casa"));
-  const [saldo, setSaldo] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isSettling, setIsSettling] = useState(false);
+  const settlementInFlight = useRef(false);
 
   // Toggle for Debt Simplification Panel
   const [showSimplification, setShowSimplification] = useState(true);
@@ -41,82 +41,58 @@ export default function ViewDebiti() {
   });
   const [exportAll, setExportAll] = useState(false);
 
+  const translateRef = useRef(t);
+  useEffect(() => {
+    translateRef.current = t;
+  }, [t]);
+
   const fetchDati = useCallback(async () => {
     if (!userData?.casaId) return;
     setLoading(true);
     setError(null);
     try {
-      // Concurrently fetch roommates, house doc, and debts
-      const qUtenti = query(collection(db, "utenti"), where("casaId", "==", userData.casaId));
-      const qCasa = query(collection(db, "case"), where("__name__", "==", userData.casaId));
-      const qDebiti = query(collection(db, "debiti"), where("casaId", "==", userData.casaId));
-
-      const [snapUtenti, snapCasa, snapDebiti] = await Promise.all([
-        getDocs(qUtenti),
-        getDocs(qCasa).catch(() => ({ empty: true, docs: [] })),
-        getDocs(qDebiti)
+      const [{ house, roommates: rList, roommateMap: map }, data] = await Promise.all([
+        fetchHouseholdData(userData.casaId, translateRef.current("expenses.unknownUser", null, "Utente Sconosciuto")),
+        fetchHouseDebts(userData.casaId)
       ]);
 
-      const map = {};
-      const list = [];
-      snapUtenti.forEach((d) => {
-        const udata = d.data();
-        map[d.id] = udata.username || t("expenses.unknownUser", null, "Utente Sconosciuto");
-        list.push({ uid: d.id, id: d.id, username: udata.username || t("expenses.unknownUser", null, "Utente Sconosciuto") });
-      });
       setUtentiMap(map);
-      setRoommates(list);
+      setRoommates(rList.map((r) => ({
+        uid: r.uid,
+        id: r.id,
+        username: r.username || translateRef.current("expenses.unknownUser", null, "Utente Sconosciuto"),
+      })));
 
-      if (snapCasa && !snapCasa.empty) {
-        setCasaNome(snapCasa.docs[0].data().nome || t("expenses.defaultHouseName", null, "Casa"));
+      if (house) {
+        setCasaNome(house.nome || translateRef.current("expenses.defaultHouseName", null, "Casa"));
       }
 
-      const data = snapDebiti.docs.map((docSnap) => ({
-        id: docSnap.id,
-        ...docSnap.data()
-      }));
-
-      let totale = 0;
-      data.forEach((d) => {
-        const val = safeFloat(d.importo);
-        if (d.debitoreId === currentUser.uid) totale -= val;
-        if (d.creditoreId === currentUser.uid) totale += val;
-      });
-      setSaldo(totale);
-
-      data.sort(
-        (a, b) =>
-          new Date(b.createdAt?.toMillis ? b.createdAt.toMillis() : 0) -
-          new Date(a.createdAt?.toMillis ? a.createdAt.toMillis() : 0)
-      );
       setDebiti(data);
     } catch (err) {
       console.error(err);
-      setError(t("expenses.loadError", null, "Errore nel caricamento delle spese."));
+      setError(translateRef.current("expenses.loadError", null, "Errore nel caricamento delle spese."));
     } finally {
       setLoading(false);
     }
-  }, [userData?.casaId, currentUser?.uid, t]);
+  }, [userData?.casaId]);
 
   useEffect(() => {
     fetchDati();
   }, [fetchDati]);
 
-  // Modal Escape key dismiss listener
-  useEffect(() => {
-    if (!showExportModal) return;
-    const handleKeyDown = (e) => {
-      if (e.key === "Escape") {
-        setShowExportModal(false);
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [showExportModal]);
+  const exportModalRef = useRef(null);
+  useModalFocusTrap(showExportModal, exportModalRef, () => setShowExportModal(false));
 
   const saldaDebito = async (id, isMyDebt) => {
+    if (settlementInFlight.current) return;
     const debitoTarget = debiti.find((d) => d.id === id);
-    if (!debitoTarget || debitoTarget.casaId !== userData?.casaId) {
+    const uid = currentUser?.uid;
+    if (
+      !debitoTarget ||
+      !uid ||
+      debitoTarget.casaId !== userData?.casaId ||
+      (debitoTarget.debitoreId !== uid && debitoTarget.creditoreId !== uid)
+    ) {
       showToast(
         t("expenses.unauthorizedOp", null, "Operazione non autorizzata: debito non appartenente alla tua abitazione."),
         "error"
@@ -124,30 +100,35 @@ export default function ViewDebiti() {
       return;
     }
 
-    const confirmed = await showConfirm({
-      title: isMyDebt ? t("expenses.settle", null, "Salda Debito") : t("expenses.deleteExpenseTitle", null, "Elimina Spesa"),
-      message: isMyDebt
-        ? t("expenses.settleConfirmMsg", null, "Confermi di aver saldato questo importo?")
-        : t("expenses.deleteConfirmMsg", null, "Sei sicuro di voler eliminare questa spesa?"),
-      confirmText: isMyDebt ? t("expenses.settleBtn", null, "Salda") : t("common.delete", null, "Elimina"),
-      cancelText: t("common.cancel", null, "Annulla"),
-      isDanger: !isMyDebt
-    });
-
-    if (!confirmed) return;
-
+    settlementInFlight.current = true;
+    setIsSettling(true);
     try {
-      await deleteDoc(doc(db, "debiti", id));
+      const confirmed = await showConfirm({
+        title: isMyDebt ? t("expenses.settle", null, "Salda Debito") : t("expenses.deleteExpenseTitle", null, "Elimina Spesa"),
+        message: isMyDebt
+          ? t("expenses.settleConfirmMsg", null, "Confermi di aver saldato questo importo?")
+          : t("expenses.deleteConfirmMsg", null, "Sei sicuro di voler eliminare questa spesa?"),
+        confirmText: isMyDebt ? t("expenses.settleBtn", null, "Salda") : t("common.delete", null, "Elimina"),
+        cancelText: t("common.cancel", null, "Annulla"),
+        isDanger: !isMyDebt
+      });
+
+      if (!confirmed) return;
+
+      await deleteLedgerDebt(debitoTarget, userData?.casaId);
       showToast(
         isMyDebt
           ? t("expenses.settleSuccess", null, "Debito saldato con successo!")
           : t("expenses.deleteSuccess", null, "Spesa eliminata."),
         "success"
       );
-      fetchDati();
+      await fetchDati();
     } catch (err) {
       console.error("Errore eliminazione:", err);
       showToast(t("expenses.deleteError", null, "Errore nell'eliminazione."), "error");
+    } finally {
+      settlementInFlight.current = false;
+      setIsSettling(false);
     }
   };
 
@@ -161,39 +142,47 @@ export default function ViewDebiti() {
     return calculateNetBalances(debiti, roommates);
   }, [debiti, roommates]);
 
+  const saldo = useMemo(
+    () => getUserNetBalance(netBalances, currentUser?.uid),
+    [netBalances, currentUser?.uid]
+  );
+
   // Handle settling a simplified transaction
   const handleSettleSimplified = async (trans) => {
-    const confirmed = await showConfirm({
-      title: t("expenses.settleSimplifiedTitle", null, "Registra Pareggio Quota"),
-      message: t(
-        "expenses.settleSimplifiedMsg",
-        { from: trans.fromName, amount: trans.amount, to: trans.toName },
-        `Confermi che ${trans.fromName} ha versato ${trans.amount} € a ${trans.toName}? Verrà registrata una transazione di compensazione.`
-      ),
-      confirmText: t("expenses.settleSimplifiedConfirm", null, "Registra Pareggio"),
-      cancelText: t("common.cancel", null, "Annulla")
-    });
-
-    if (!confirmed) return;
-
+    if (settlementInFlight.current) return;
+    settlementInFlight.current = true;
+    setIsSettling(true);
     try {
-      await addDoc(collection(db, "debiti"), {
-        importo: trans.amount,
-        descrizione: t(
+      const confirmed = await showConfirm({
+        title: t("expenses.settleSimplifiedTitle", null, "Registra Pareggio Quota"),
+        message: t(
+          "expenses.settleSimplifiedMsg",
+          { from: trans.fromName, amount: trans.amount, to: trans.toName },
+          `Confermi che ${trans.fromName} ha versato ${trans.amount} € a ${trans.toName}? Verrà registrata una transazione di compensazione.`
+        ),
+        confirmText: t("expenses.settleSimplifiedConfirm", null, "Registra Pareggio"),
+        cancelText: t("common.cancel", null, "Annulla")
+      });
+
+      if (!confirmed) return;
+
+      await recordSimplifiedSettlement({
+        trans,
+        casaId: userData.casaId,
+        description: t(
           "expenses.settleSimplifiedDesc",
           { to: trans.toName },
           `Pareggio quota semplificata a favore di ${trans.toName}`
-        ),
-        debitoreId: trans.to,
-        creditoreId: trans.from,
-        casaId: userData.casaId,
-        createdAt: new Date()
+        )
       });
       showToast(t("expenses.settleSimplifiedSuccess", null, "Pareggio registrato con successo!"), "success");
-      fetchDati();
+      await fetchDati();
     } catch (err) {
       console.error("Errore pareggio debito:", err);
       showToast(t("expenses.settleSimplifiedError", null, "Errore durante il salvataggio del pareggio."), "error");
+    } finally {
+      settlementInFlight.current = false;
+      setIsSettling(false);
     }
   };
 
@@ -361,43 +350,49 @@ export default function ViewDebiti() {
           padding: "16px 20px"
         }}
       >
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            cursor: "pointer"
-          }}
-          onClick={() => setShowSimplification((prev) => !prev)}
-        >
-          <div style={{ display: "flex", alignItems: "center", gap: "10px", textAlign: "left" }}>
-            <i className="fas fa-magic text-primary" style={{ fontSize: "1.2rem" }} aria-hidden="true"></i>
-            <div>
-              <h3 style={{ margin: 0, fontSize: "1.05rem", color: "var(--text-main)" }}>
-                {t("expenses.simplificationTitle", null, "Piano di Pareggio Semplificato")}
-              </h3>
-              <p style={{ margin: "2px 0 0 0", fontSize: "0.82rem", color: "var(--text-muted)" }}>
-                {simplifiedTransactions.length === 0
-                  ? t("expenses.allEven", null, "Tutti i conti sono in pari")
-                  : simplifiedTransactions.length === 1
-                  ? t("expenses.minimizeOne", { count: 1 }, "Minimizza a 1 transazione tutti i debiti incrociati")
-                  : t(
-                      "expenses.minimizeMany",
-                      { count: simplifiedTransactions.length },
-                      `Minimizza a ${simplifiedTransactions.length} transazioni tutti i debiti incrociati`
-                    )}
-              </p>
-            </div>
-          </div>
+        <h3 style={{ margin: 0 }}>
           <button
             type="button"
-            className="btn-text"
-            style={{ fontSize: "0.85rem", padding: "8px", minHeight: "44px", minWidth: "44px", display: "inline-flex", alignItems: "center", justifyContent: "center" }}
-            aria-label={showSimplification ? t("expenses.hidePlanAria", null, "Nascondi piano") : t("expenses.showPlanAria", null, "Mostra piano")}
+            aria-expanded={showSimplification}
+            onClick={() => setShowSimplification((prev) => !prev)}
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              gap: "10px",
+              width: "100%",
+              minHeight: "44px",
+              padding: 0,
+              border: 0,
+              background: "transparent",
+              color: "var(--text-main)",
+              font: "inherit",
+              cursor: "pointer",
+              textAlign: "left"
+            }}
           >
-            <i className={`fas ${showSimplification ? "fa-chevron-up" : "fa-chevron-down"}`} aria-hidden="true"></i>
+            <span style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+              <i className="fas fa-magic text-primary" style={{ fontSize: "1.2rem" }} aria-hidden="true"></i>
+              <span>
+                <span style={{ display: "block", fontSize: "1.05rem" }}>
+                  {t("expenses.simplificationTitle", null, "Piano di Pareggio Semplificato")}
+                </span>
+                <span style={{ display: "block", marginTop: "2px", fontSize: "0.82rem", fontWeight: "normal", color: "var(--text-muted)" }}>
+                  {simplifiedTransactions.length === 0
+                    ? t("expenses.allEven", null, "Tutti i conti sono in pari")
+                    : simplifiedTransactions.length === 1
+                    ? t("expenses.minimizeOne", { count: 1 }, "Minimizza a 1 transazione tutti i debiti incrociati")
+                    : t(
+                        "expenses.minimizeMany",
+                        { count: simplifiedTransactions.length },
+                        `Minimizza a ${simplifiedTransactions.length} transazioni tutti i debiti incrociati`
+                      )}
+                </span>
+              </span>
+            </span>
+            <i className={`fas ${showSimplification ? "fa-chevron-up" : "fa-chevron-down"}`} style={{ padding: "8px", fontSize: "0.85rem" }} aria-hidden="true"></i>
           </button>
-        </div>
+        </h3>
 
         {showSimplification && (
           <div style={{ marginTop: "16px", borderTop: "1px solid var(--border-color)", paddingTop: "14px" }}>
@@ -447,6 +442,7 @@ export default function ViewDebiti() {
                         <button
                           type="button"
                           className="btn-primary"
+                          disabled={isSettling}
                           onClick={() => handleSettleSimplified(st)}
                           style={{
                             padding: "8px 16px",
@@ -519,8 +515,9 @@ export default function ViewDebiti() {
           </div>
         ) : (
           debiti.map((debito) => {
-            const sonoDebitore = debito.debitoreId === currentUser.uid;
-            const sonoCreditore = debito.creditoreId === currentUser.uid;
+            const uid = currentUser?.uid;
+            const sonoDebitore = Boolean(uid) && debito.debitoreId === uid;
+            const sonoCreditore = Boolean(uid) && debito.creditoreId === uid;
 
             let badgeColor = "var(--text-muted)";
             let badgeBg = "rgba(100, 116, 139, 0.15)";
@@ -584,9 +581,10 @@ export default function ViewDebiti() {
                     {importoSicuro} €
                   </div>
 
-                  {sonoDebitore || sonoCreditore ? (
+                  {(sonoDebitore || sonoCreditore) && (
                     <button
                       type="button"
+                      disabled={isSettling}
                       onClick={() => saldaDebito(debito.id, sonoDebitore)}
                       className="btn-primary"
                       style={{
@@ -603,17 +601,6 @@ export default function ViewDebiti() {
                     >
                       <i className="fas fa-check" aria-hidden="true"></i> {t("expenses.markAsSettled", null, "Segna come saldato")}
                     </button>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={() => saldaDebito(debito.id, false)}
-                      className="btn-danger-outline"
-                      style={{ padding: "8px 14px", minHeight: "44px", minWidth: "44px", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: "0.82rem", width: "auto" }}
-                      title={t("common.delete", null, "Elimina")}
-                      aria-label={t("expenses.deleteExpenseAria", null, "Elimina spesa")}
-                    >
-                      <i className="fas fa-trash" aria-hidden="true"></i> {t("common.delete", null, "Elimina")}
-                    </button>
                   )}
                 </div>
               </div>
@@ -626,17 +613,20 @@ export default function ViewDebiti() {
       {showExportModal && (
         <div
           className="modal-backdrop"
-          onClick={() => setShowExportModal(false)}
           role="dialog"
           aria-modal="true"
+          aria-labelledby="export-modal-title"
+          onClick={() => setShowExportModal(false)}
         >
           <div
             className="modal-card"
+            ref={exportModalRef}
+            tabIndex={-1}
             onClick={(e) => e.stopPropagation()}
             style={{ maxWidth: "480px" }}
           >
             <div className="modal-header">
-              <h2 className="modal-title">
+              <h2 id="export-modal-title" className="modal-title">
                 <i className="fas fa-file-export" aria-hidden="true"></i> {t("expenses.exportModalTitle", null, "Esporta resoconto spese")}
               </h2>
               <button

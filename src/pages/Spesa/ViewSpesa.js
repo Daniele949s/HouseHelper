@@ -38,7 +38,7 @@ export default function ViewSpesa() {
       }
     };
     fetchSpesa();
-  }, [userData]);
+  }, [userData?.casaId]);
 
   const fetchSpesaReload = async () => {
     if (!userData?.casaId) return;
@@ -104,14 +104,12 @@ export default function ViewSpesa() {
     }
   };
 
-  const toggleCheck = async (id, statoAttuale) => {
-    // Household validation
-    const itemTarget = items.find((i) => i.id === id);
-    if (!itemTarget || itemTarget.casaId !== userData?.casaId) return;
+  const toggleCheck = async (item) => {
+    if (item.casaId !== userData?.casaId) return;
 
     try {
-      await updateDoc(doc(db, "spesa", id), {
-        comprato: !statoAttuale
+      await updateDoc(doc(db, "spesa", item.id), {
+        comprato: !item.comprato
       });
       fetchSpesaReload();
     } catch (error) {
@@ -316,6 +314,7 @@ export default function ViewSpesa() {
         <input
           type="text"
           value={newItem}
+          aria-label={t("groceries.newProductAria", null, "Nuovo prodotto")}
           maxLength={80}
           onChange={(e) => setNewItem(e.target.value)}
           placeholder={t("groceries.addPlaceholder", null, "Aggiungi prodotto da comprare (es. Latte, Detersivo piatti)...")}
@@ -353,13 +352,25 @@ export default function ViewSpesa() {
             <div
               key={item.id}
               className={`sidemenu-entry-item ${item.comprato ? "item-completed" : ""}`}
-              onClick={() => toggleCheck(item.id, item.comprato)}
+              role="button"
+              tabIndex={0}
+              aria-label={item.prodotto || item.nome}
+              aria-pressed={item.comprato}
+              onClick={() => toggleCheck(item)}
+              onKeyDown={(e) => {
+                if (e.target === e.currentTarget && (e.key === "Enter" || e.key === " ")) {
+                  e.preventDefault();
+                  if (!e.repeat) toggleCheck(item);
+                }
+              }}
             >
               <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
                 <input
                   type="checkbox"
                   checked={item.comprato}
-                  onChange={() => {}}
+                  aria-label={item.prodotto || item.nome}
+                  onChange={() => toggleCheck(item)}
+                  onClick={(e) => e.stopPropagation()}
                   style={{ width: "22px", height: "22px", cursor: "pointer", accentColor: "var(--color-success)" }}
                 />
                 <span
@@ -370,7 +381,7 @@ export default function ViewSpesa() {
                     color: item.comprato ? "var(--text-muted)" : "var(--text-main)"
                   }}
                 >
-                  {item.nome}
+                  {item.prodotto || item.nome}
                 </span>
               </div>
 

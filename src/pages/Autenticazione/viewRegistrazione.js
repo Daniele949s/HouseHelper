@@ -10,9 +10,11 @@ import {
   checkRegistrationRateLimit,
   recordRegistrationAttempt
 } from "../../utils/security";
+import { useAuth } from "../../contexts/AuthContext";
 import { useLanguage } from "../../contexts/LanguageContext";
 
 export default function ViewRegistrazione() {
+  const { setUserData } = useAuth() || {};
   const { t } = useLanguage();
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
@@ -108,13 +110,15 @@ export default function ViewRegistrazione() {
         console.warn("Invio verifica email non riuscito:", mailErr);
       }
 
-      await setDoc(doc(db, "utenti", userCredential.user.uid), {
+      const profile = {
         username: cleanedUsername,
         email: trimmedEmail,
         casaId: null,
         emailVerified: false,
         createdAt: new Date()
-      });
+      };
+      await setDoc(doc(db, "utenti", userCredential.user.uid), profile);
+      setUserData?.(profile);
 
       recordRegistrationAttempt();
 
@@ -148,12 +152,14 @@ export default function ViewRegistrazione() {
 
       if (!userDoc.exists()) {
         const cleanedName = sanitizeText(user.displayName, 30) || t("auth.googleUserFallback", {}, "Utente Google");
-        await setDoc(userDocRef, {
+        const profile = {
           username: cleanedName,
           email: user.email ? user.email.toLowerCase() : "",
           casaId: null,
           createdAt: new Date()
-        });
+        };
+        await setDoc(userDocRef, profile);
+        setUserData?.(profile);
         navigate("/scelta-casa");
       } else {
         if (userDoc.data().casaId) {
