@@ -5256,10 +5256,64 @@ a:focus-visible,
 .members-management-card {
   grid-column: 1 / -1;
   min-width: 0;
-  padding: clamp(16px, 3vw, 24px);
+  margin-top: 20px;
+  margin-bottom: 20px;
+  padding: clamp(18px, 3vw, 24px);
   background: var(--bg-card);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
+  text-align: left;
+}
+
+.members-management-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 14px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.members-management-title-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.members-management-icon {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: 10px;
+  background: var(--color-primary-light);
+  color: var(--color-primary-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+}
+
+.members-management-header h2 {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-main);
+  line-height: 1.3;
+}
+
+.members-management-header .text-muted {
+  margin: 2px 0 0 0;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.member-count-badge {
+  min-width: 28px;
+  height: 28px;
+  justify-content: center;
+  font-variant-numeric: tabular-nums;
 }
 
 .members-list {
@@ -5275,12 +5329,13 @@ a:focus-visible,
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 12px;
-  padding: 12px 0;
+  padding: 14px 0;
   border-bottom: 1px solid var(--border-color);
 }
 
 .member-row:last-child {
   border-bottom: none;
+  padding-bottom: 2px;
 }
 
 .member-info {

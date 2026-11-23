@@ -1,6 +1,11 @@
 import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
+import {
+  getFirestore,
+  initializeFirestore,
+  persistentLocalCache,
+  persistentMultipleTabManager,
+} from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 
 const firebaseConfig = {
@@ -16,6 +21,31 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider();
-export const db = getFirestore(app);
+
+function createFirestoreInstance(firebaseApp) {
+  if (
+    process.env.NODE_ENV !== "test" &&
+    typeof window !== "undefined" &&
+    typeof window.indexedDB !== "undefined" &&
+    typeof initializeFirestore === "function" &&
+    typeof persistentLocalCache === "function"
+  ) {
+    try {
+      return initializeFirestore(firebaseApp, {
+        localCache: persistentLocalCache({
+          tabManager:
+            typeof persistentMultipleTabManager === "function"
+              ? persistentMultipleTabManager()
+              : undefined,
+        }),
+      });
+    } catch (_err) {
+      // Fallback if Firestore was already initialized or IndexedDB is restricted
+    }
+  }
+  return getFirestore(firebaseApp);
+}
+
+export const db = createFirestoreInstance(app);
 export const storage = getStorage(app);
 export default app;

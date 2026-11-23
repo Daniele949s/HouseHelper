@@ -20,6 +20,7 @@ export default function HomeUtente() {
   const {
     house: ctxHouse,
     roommates: ctxRoommates,
+    roommateMap: ctxRoommateMap,
     isAdmin: ctxIsAdmin,
     adminUid: ctxAdminUid,
     acceptMember,
@@ -73,8 +74,19 @@ export default function HomeUtente() {
     dashboardInputs.current = {
       username: userData?.username,
       fallbackName: t("dashboard.roommateFallback", {}, "Coinquilino"),
+      ctxHouse,
+      ctxRoommateMap,
     };
-  }, [userData?.username, t]);
+  }, [userData?.username, t, ctxHouse, ctxRoommateMap]);
+
+  useEffect(() => {
+    if (ctxHouse && ctxHouse.id === userData?.casaId) {
+      setCasa((prev) => prev || ctxHouse);
+    }
+    if (ctxRoommateMap && Object.keys(ctxRoommateMap).length > 0) {
+      setUtentiMap((prev) => (Object.keys(prev).length > 0 ? prev : ctxRoommateMap));
+    }
+  }, [ctxHouse, ctxRoommateMap, userData?.casaId]);
 
   useEffect(() => {
     const uid = currentUser?.uid;
@@ -110,9 +122,17 @@ export default function HomeUtente() {
         const spesaQuery = query(collection(db, "spesa"), where("casaId", "==", casaId));
         const noteQuery = query(collection(db, "note"), where("casaId", "==", casaId));
 
-        // Concurrently fetch household + all independent domain queries via Promise.all
+        // Concurrently fetch household (reusing HouseholdContext when already loaded) + all independent domain queries via Promise.all
+        const currentCtxHouse = dashboardInputs.current?.ctxHouse;
+        const currentCtxMap = dashboardInputs.current?.ctxRoommateMap;
+        const hasContextHousehold =
+          Boolean(currentCtxHouse && currentCtxHouse.id === casaId) &&
+          Boolean(currentCtxMap && Object.keys(currentCtxMap).length > 0);
+
         const [{ house: casaData, roommateMap: uMap }, turniSnap, debitiSnap, spesaSnap, noteSnap] = await Promise.all([
-          fetchHouseholdData(casaId, fallbackName),
+          hasContextHousehold
+            ? Promise.resolve({ house: currentCtxHouse, roommateMap: currentCtxMap })
+            : fetchHouseholdData(casaId, fallbackName),
           getDocs(turniQuery),
           getDocs(debitiQuery),
           getDocs(spesaQuery),
@@ -633,17 +653,21 @@ export default function HomeUtente() {
       </section>
 
       <section className="card members-management-card" aria-labelledby="members-section-title">
-        <header style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "12px" }}>
-          <div>
-            <h2 id="members-section-title">
-              <i className="fas fa-users-cog" aria-hidden="true"></i>{" "}
-              {t("dashboard.membersSectionTitle", {}, "Membri della Casa")}
-            </h2>
-            <p className="text-muted">
-              {t("dashboard.membersSectionSubtitle", {}, "Ruoli e gestione dei coinquilini della casa")}
-            </p>
+        <header className="members-management-header">
+          <div className="members-management-title-group">
+            <div className="members-management-icon" aria-hidden="true">
+              <i className="fas fa-users-cog"></i>
+            </div>
+            <div>
+              <h2 id="members-section-title">
+                {t("dashboard.membersSectionTitle", {}, "Membri della Casa")}
+              </h2>
+              <p className="text-muted">
+                {t("dashboard.membersSectionSubtitle", {}, "Ruoli e gestione dei coinquilini della casa")}
+              </p>
+            </div>
           </div>
-          <span className="member-role-badge">{membersForSection.length}</span>
+          <span className="member-role-badge member-count-badge">{membersForSection.length}</span>
         </header>
         <ul className="members-list">
           {membersForSection.map((member) => (
@@ -710,10 +734,11 @@ export default function HomeUtente() {
 
       {/* ================= VACATION / AWAY MODE CONTROLS ================= */}
       <div
-        className="card"
+        className="card vacation-mode-card"
         style={{
-          marginBottom: "16px",
-          padding: "16px 20px",
+          marginTop: "20px",
+          marginBottom: "24px",
+          padding: "18px 20px",
           textAlign: "left",
           background: inVacanza ? "rgba(245, 158, 11, 0.04)" : "var(--bg-card)",
           border: inVacanza ? "1px solid rgba(245, 158, 11, 0.3)" : "1px solid var(--border-color)"
