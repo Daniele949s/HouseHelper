@@ -81,7 +81,7 @@ export default function HomeUtente() {
 
   useEffect(() => {
     if (ctxHouse && ctxHouse.id === userData?.casaId) {
-      setCasa((prev) => prev || ctxHouse);
+      setCasa((prev) => (prev?.codiceUnivoco ? prev : { ...(prev || {}), ...ctxHouse }));
     }
     if (ctxRoommateMap && Object.keys(ctxRoommateMap).length > 0) {
       setUtentiMap((prev) => (Object.keys(prev).length > 0 ? prev : ctxRoommateMap));
@@ -122,17 +122,29 @@ export default function HomeUtente() {
         const spesaQuery = query(collection(db, "spesa"), where("casaId", "==", casaId));
         const noteQuery = query(collection(db, "note"), where("casaId", "==", casaId));
 
-        // Concurrently fetch household (reusing HouseholdContext when already loaded) + all independent domain queries via Promise.all
+        // Concurrently fetch household (reusing HouseholdContext when already loaded with invite code) + all independent domain queries via Promise.all
         const currentCtxHouse = dashboardInputs.current?.ctxHouse;
         const currentCtxMap = dashboardInputs.current?.ctxRoommateMap;
         const hasContextHousehold =
-          Boolean(currentCtxHouse && currentCtxHouse.id === casaId) &&
+          Boolean(currentCtxHouse && currentCtxHouse.id === casaId && currentCtxHouse.codiceUnivoco) &&
           Boolean(currentCtxMap && Object.keys(currentCtxMap).length > 0);
 
-        const [{ house: casaData, roommateMap: uMap }, turniSnap, debitiSnap, spesaSnap, noteSnap] = await Promise.all([
+        const householdPromise = (
           hasContextHousehold
             ? Promise.resolve({ house: currentCtxHouse, roommateMap: currentCtxMap })
-            : fetchHouseholdData(casaId, fallbackName),
+            : fetchHouseholdData(casaId, fallbackName)
+        ).then((res) => {
+          if (!cancelled && res) {
+            if (res.house) setCasa(res.house);
+            if (res.roommateMap && Object.keys(res.roommateMap).length > 0) {
+              setUtentiMap(res.roommateMap);
+            }
+          }
+          return res;
+        });
+
+        const [{ house: casaData, roommateMap: uMap }, turniSnap, debitiSnap, spesaSnap, noteSnap] = await Promise.all([
+          householdPromise,
           getDocs(turniQuery),
           getDocs(debitiQuery),
           getDocs(spesaQuery),
@@ -198,8 +210,9 @@ export default function HomeUtente() {
         setUltimoAvviso(nextNotice);
 
         // Save refreshed data to tenant-scoped offline storage
+        const effectiveCasaForCache = casaData || cached?.casa || currentCtxHouse || null;
         saveDashboardSnapshot(casaId, {
-          casa: casaData,
+          casa: effectiveCasaForCache,
           prossimoTurno: nextTurno,
           saldo: totale,
           ultimoAvviso: nextNotice,
@@ -355,7 +368,7 @@ export default function HomeUtente() {
   const activeGroceriesCount = useMemo(() => spesaList.filter((s) => !s.comprato).length, [spesaList]);
   const userCurrentlyAway = isUserOnVacation(userData);
 
-  const activeHouse = ctxHouse || casa;
+  const activeHouse = (casa?.codiceUnivoco ? casa : ctxHouse) || casa || ctxHouse;
   const effectiveAdminUid = ctxAdminUid || activeHouse?.adminUid || activeHouse?.creatoreId || null;
   const isHouseAdmin = Boolean(ctxIsAdmin || (currentUser?.uid && effectiveAdminUid && currentUser.uid === effectiveAdminUid));
 
@@ -623,7 +636,7 @@ export default function HomeUtente() {
         )}
 
         {/* HouseholdStatus Presence Card */}
-        {loading && !casa ? (
+        {loading && !activeHouse ? (
           <div className="card dashboard-loading-skeleton" style={{ padding: "24px", textAlign: "center", marginBottom: "16px" }}>
             <p style={{ color: "var(--color-primary)", marginBottom: "8px" }}>
               <i className="fas fa-sync-alt fa-spin fa-2x" aria-hidden="true"></i>
@@ -636,9 +649,9 @@ export default function HomeUtente() {
           <div
             onClickCapture={(e) => {
               const btn = e.target.closest('button.invite-code-card-btn, button[title*="codice invito"]');
-              if (btn && casa?.codiceUnivoco) {
+              if (btn && activeHouse?.codiceUnivoco) {
                 if (navigator.clipboard && navigator.clipboard.writeText) {
-                  navigator.clipboard.writeText(casa.codiceUnivoco);
+                  navigator.clipboard.writeText(activeHouse.codiceUnivoco);
                 }
                 setCopiedCode(true);
                 setTimeout(() => setCopiedCode(false), 2000);
@@ -646,7 +659,7 @@ export default function HomeUtente() {
             }}
           >
             <HouseholdStatus
-              casa={casa}
+              casa={activeHouse}
               roommateCount={Object.keys(utentiMap).length || 1}
               prossimoTurno={prossimoTurno}
               variant="full"

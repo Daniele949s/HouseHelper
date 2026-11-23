@@ -50,7 +50,17 @@ export async function fetchHouseholdData(casaId, fallbackUsername = "Coinquilino
 
   let house = null;
   if (casaSnap && typeof casaSnap.exists === "function" && casaSnap.exists()) {
-    house = { id: casaSnap.id, ...casaSnap.data() };
+    const rawHouse = casaSnap.data() || {};
+    const inviteCode =
+      rawHouse.codiceUnivoco ||
+      rawHouse.codice ||
+      rawHouse.codiceInvito ||
+      rawHouse.inviteCode;
+    house = {
+      id: casaSnap.id,
+      ...rawHouse,
+      ...(inviteCode ? { codiceUnivoco: inviteCode } : {}),
+    };
   }
 
   const roommates = [];
@@ -62,6 +72,14 @@ export async function fetchHouseholdData(casaId, fallbackUsername = "Coinquilino
       roommates.push(profile);
       roommateMap[docSnap.id] = data.username || fallbackUsername;
     });
+  }
+
+  if (house && !house.adminUid && !house.creatoreId && roommates.length > 0) {
+    const explicitAdmin = roommates.find((r) => r.ruoloCasa === "admin");
+    const inferredUid = explicitAdmin?.uid || (roommates.length === 1 ? roommates[0].uid : null);
+    if (inferredUid) {
+      house = { ...house, adminUid: inferredUid, creatoreId: inferredUid };
+    }
   }
 
   return { house, roommates, roommateMap };
