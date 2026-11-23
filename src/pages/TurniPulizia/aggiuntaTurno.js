@@ -21,7 +21,7 @@ export default function AggiuntaTurno() {
   const roommates = useMemo(
     () =>
       householdRoommates
-        .filter((u) => u.username)
+        .filter((u) => u && u.username && u.statoMembro !== 'pending')
         .map((u) => ({
           id: u.id,
           uid: u.uid,

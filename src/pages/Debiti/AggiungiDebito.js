@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { useHousehold } from "../../contexts/HouseholdContext";
@@ -10,7 +10,11 @@ import { calculateSplitAllocations, createLedgerDebts } from "../../services/led
 export default function AggiungiDebito() {
   const navigate = useNavigate();
   const { userData, currentUser } = useAuth();
-  const { roommates: coinquilini } = useHousehold();
+  const { roommates: rawCoinquilini } = useHousehold();
+  const coinquilini = useMemo(
+    () => (Array.isArray(rawCoinquilini) ? rawCoinquilini.filter(Boolean) : []),
+    [rawCoinquilini]
+  );
   const { t } = useLanguage();
 
   const [loading, setLoading] = useState(false);

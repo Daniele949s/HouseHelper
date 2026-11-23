@@ -18,6 +18,7 @@ import {
   createHousehold,
   joinHousehold,
   leaveHousehold,
+  deleteHousehold,
   updateRoommateVacation,
 } from "../services/householdService";
 import {
@@ -40,6 +41,7 @@ const defaultHouseholdContext = {
   createHouse: async () => null,
   joinHouse: async () => null,
   leaveHouse: async () => {},
+  deleteHouse: async () => {},
   updateVacation: async () => {},
 };
 
@@ -331,10 +333,44 @@ export function HouseholdProvider({ children }) {
     const previousCasaId = casaId || lastCasaIdRef.current;
     requestIdRef.current += 1;
     skipLoadCasaIdRef.current = null;
+    const current = membershipRef.current;
+    if (previousCasaId && current?.house && current.house.id === previousCasaId
+      && isUserHouseAdmin(current.house, currentUser.uid)) {
+      const otherMembers = (current.roommates || []).filter((m) => (m.uid || m.id) && (m.uid || m.id) !== currentUser.uid);
+      if (otherMembers.length > 0) {
+        const successor = otherMembers.find((m) => m.statoMembro !== "pending") || otherMembers[0];
+        const successorUid = successor.uid || successor.id;
+        if (successorUid) {
+          await transferHouseholdAdmin({
+            casaId: previousCasaId,
+            currentAdminUid: currentUser.uid,
+            newAdminUid: successorUid,
+          });
+        }
+      }
+    }
     await leaveHousehold(currentUser.uid);
     if (previousCasaId) {
       purgeTenantStorage(previousCasaId);
     }
+    lastCasaIdRef.current = null;
+    setUserData((prev) => (prev ? { ...prev, casaId: null, ruoloCasa: null, statoMembro: null } : null));
+    if (mountedRef.current) {
+      setHouse(null);
+      setRoommates([]);
+      setRoommateMap({});
+      setLoading(false);
+    }
+  }, [currentUser, casaId, setUserData]);
+
+  const deleteHouse = useCallback(async () => {
+    if (!currentUser) return;
+    const targetCasaId = casaId || lastCasaIdRef.current;
+    if (!targetCasaId) return;
+    requestIdRef.current += 1;
+    skipLoadCasaIdRef.current = null;
+    await deleteHousehold({ casaId: targetCasaId, adminUid: currentUser.uid });
+    purgeTenantStorage(targetCasaId);
     lastCasaIdRef.current = null;
     setUserData((prev) => (prev ? { ...prev, casaId: null, ruoloCasa: null, statoMembro: null } : null));
     if (mountedRef.current) {
@@ -462,11 +498,12 @@ export function HouseholdProvider({ children }) {
       createHouse,
       joinHouse,
       leaveHouse,
+      deleteHouse,
       updateVacation,
     }),
     [
       house, roommates, roommateMap, loading, isAdmin, adminUid, acceptMember, kickMember,
-      transferAdminRole, loadHousehold, createHouse, joinHouse, leaveHouse, updateVacation,
+      transferAdminRole, loadHousehold, createHouse, joinHouse, leaveHouse, deleteHouse, updateVacation,
     ]
   );
 

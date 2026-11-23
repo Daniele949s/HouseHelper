@@ -185,7 +185,7 @@ service cloud.firestore {
             && isAdminTransfer(casaId))
         );
 
-      allow delete: if false;
+      allow delete: if isHouseAdmin(casaId);
     }
 
     // ==========================================
@@ -237,9 +237,9 @@ service cloud.firestore {
         && isValidImporto(request.resource.data.importo)
         && isNonEmptyString(request.resource.data.descrizione, 255);
 
-      // Delete: Debt settlement or deletion permitted ONLY to the debtor or creditor
+      // The debtor, creditor, or house admin may delete the debt.
       allow delete: if belongsToSameHouse(resource.data.casaId)
-        && (request.auth.uid == resource.data.debitoreId || request.auth.uid == resource.data.creditoreId);
+        && (request.auth.uid == resource.data.debitoreId || request.auth.uid == resource.data.creditoreId || isHouseAdmin(resource.data.casaId));
     }
 
     // ==========================================

@@ -3,7 +3,9 @@ import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import ConfirmModal from "../components/ConfirmModal";
 import ToastContainer from "../components/Toast";
 import { useHousehold } from "../contexts/HouseholdContext";
+import AggiuntaTurno from "../pages/TurniPulizia/aggiuntaTurno";
 import HomeUtente from "../pages/homeUtente";
+import { getAvailableRoommates } from "../utils/choreRotation";
 import { mockStore, renderWithProviders, seedHousehold } from "./testUtils";
 
 const creator = { uid: "creator", username: "Elena", ruoloCasa: "admin", statoMembro: "active" };
@@ -99,6 +101,42 @@ describe("Dashboard household members and roles", () => {
     expect(await screen.findByText("Sofia è ora un membro effettivo della casa!")).toBeInTheDocument();
   });
 
+  test("pending members join chore rotation and assignee chips only after approval", async () => {
+    renderWithProviders(
+      <>
+        <HomeUtente />
+        <section aria-label="Chore form"><AggiuntaTurno /></section>
+        <ConfirmModal />
+        <ToastContainer />
+      </>,
+      { user: creator, userData: { ...creator, casaId: houseId }, route: "/home" }
+    );
+
+    const members = await screen.findByRole("region", { name: "Membri della Casa" });
+    const choreForm = within(screen.getByRole("region", { name: "Chore form" }));
+    const rotationUids = () => getAvailableRoommates(
+      [creator, activeMember, mockStore.getDocData("utenti", pendingMember.uid)],
+      "2026-11-15"
+    ).map((member) => member.uid);
+
+    await choreForm.findByRole("button", { name: activeMember.username });
+
+    expect({
+      rotation: rotationUids(),
+      assigneeChip: Boolean(choreForm.queryByRole("button", { name: pendingMember.username })),
+    }).toEqual({
+      rotation: [creator.uid, activeMember.uid],
+      assigneeChip: false,
+    });
+
+    const row = memberRow(members, pendingMember.username);
+    fireEvent.click(row.getByRole("button", { name: accept }));
+    await row.findByRole("button", { name: promote });
+
+    expect(rotationUids()).toEqual([creator.uid, activeMember.uid, pendingMember.uid]);
+    expect(choreForm.getByRole("button", { name: pendingMember.username })).toBeInTheDocument();
+  });
+
   test("removing a member requires confirmation and clears their household membership", async () => {
     const section = await openDashboard();
     const removeButton = memberRow(section, "Marco").getByRole("button", { name: remove });
@@ -144,5 +182,54 @@ describe("Dashboard household members and roles", () => {
     expect(screen.getByTestId("household-admin-state")).toHaveTextContent("false");
     expect(within(section).queryAllByRole("button")).toHaveLength(0);
     expect(await screen.findByText("Ruolo di Amministratore ceduto a Marco.")).toBeInTheDocument();
+  });
+
+  test("confirming house deletion removes the house, its data, and all memberships", async () => {
+    const collections = ["turni", "debiti", "spesa", "note", "documenti", "contatti"];
+    for (const collection of collections) {
+      mockStore.seed(collection, { [`seeded-${collection}`]: { casaId: houseId } });
+    }
+
+    await openDashboard();
+    fireEvent.click(screen.getByRole("button", { name: "Elimina Casa" }));
+    const dialog = within(await screen.findByRole("dialog", { name: "Elimina Casa" }));
+    expect(mockStore.getDocData("case", houseId)).toBeDefined();
+    fireEvent.click(dialog.getByRole("button", { name: "Elimina Casa" }));
+
+    await screen.findByText("Casa e tutti i dati associati eliminati con successo.");
+    expect(mockStore.getDocData("case", houseId)).toBeUndefined();
+    for (const collection of collections) {
+      expect(mockStore.getDocData(collection, `seeded-${collection}`)).toBeUndefined();
+    }
+    for (const { uid } of [creator, activeMember, pendingMember]) {
+      expect(mockStore.getDocData("utenti", uid)).toMatchObject({
+        casaId: null,
+        ruoloCasa: null,
+        statoMembro: null,
+      });
+    }
+  });
+
+  test("an admin leaving the house transfers ownership to the remaining active member", async () => {
+    await openDashboard();
+    fireEvent.click(screen.getByRole("button", { name: "Lascia Casa" }));
+    const dialog = within(await screen.findByRole("dialog", { name: "Lascia Casa" }));
+    fireEvent.click(dialog.getByRole("button", { name: "Lascia Casa" }));
+
+    await screen.findByText("Hai lasciato la casa.");
+    expect(mockStore.getDocData("case", houseId)).toMatchObject({
+      adminUid: activeMember.uid,
+      creatoreId: activeMember.uid,
+    });
+    expect(mockStore.getDocData("utenti", activeMember.uid)).toMatchObject({
+      casaId: houseId,
+      ruoloCasa: "admin",
+      statoMembro: "active",
+    });
+    expect(mockStore.getDocData("utenti", creator.uid)).toMatchObject({
+      casaId: null,
+      ruoloCasa: null,
+      statoMembro: null,
+    });
   });
 });

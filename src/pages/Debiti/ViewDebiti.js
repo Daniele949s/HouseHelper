@@ -72,11 +72,15 @@ export default function ViewDebiti() {
       ]);
 
       setUtentiMap(map);
-      setRoommates(rList.map((r) => ({
-        uid: r.uid,
-        id: r.id,
-        username: r.username || translateRef.current("expenses.unknownUser", null, "Utente Sconosciuto"),
-      })));
+      setRoommates(
+        rList
+          .filter((r) => r && r.statoMembro !== "pending")
+          .map((r) => ({
+            uid: r.uid,
+            id: r.id,
+            username: r.username || translateRef.current("expenses.unknownUser", null, "Utente Sconosciuto"),
+          }))
+      );
 
       if (house) {
         setCasaNome(house.nome || translateRef.current("expenses.defaultHouseName", null, "Casa"));
@@ -206,8 +210,15 @@ export default function ViewDebiti() {
     if (exportAll) return debiti;
     return debiti.filter((d) => {
       if (!d.createdAt) return false;
-      const date = d.createdAt.toDate ? d.createdAt.toDate() : new Date(d.createdAt);
-      const ym = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+      const rawDate = typeof d.createdAt.toDate === "function"
+        ? d.createdAt.toDate()
+        : typeof d.createdAt.toMillis === "function"
+        ? new Date(d.createdAt.toMillis())
+        : typeof d.createdAt.seconds === "number"
+        ? new Date(d.createdAt.seconds * 1000)
+        : new Date(d.createdAt);
+      if (Number.isNaN(rawDate.getTime())) return false;
+      const ym = `${rawDate.getFullYear()}-${String(rawDate.getMonth() + 1).padStart(2, "0")}`;
       return ym === exportMonth;
     });
   }, [debiti, exportMonth, exportAll]);
@@ -219,7 +230,8 @@ export default function ViewDebiti() {
       simplifiedTransactions,
       roommates,
       casaNome,
-      periodLabel
+      periodLabel,
+      { lang: language, t }
     );
     showToast(t("expenses.csvDownloaded", null, "Resoconto CSV scaricato!"), "success");
     setShowExportModal(false);
@@ -232,7 +244,8 @@ export default function ViewDebiti() {
       simplifiedTransactions,
       roommates,
       casaNome,
-      periodLabel
+      periodLabel,
+      { lang: language, t }
     );
     setShowExportModal(false);
   };

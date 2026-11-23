@@ -66,7 +66,7 @@ export function isUserOnVacation(userData, checkDate = new Date()) {
  */
 export function getAvailableRoommates(roommates = [], checkDate = new Date()) {
   if (!Array.isArray(roommates)) return [];
-  return roommates.filter((r) => !isUserOnVacation(r, checkDate));
+  return roommates.filter((r) => r && r.statoMembro !== 'pending' && !isUserOnVacation(r, checkDate));
 }
 
 /**

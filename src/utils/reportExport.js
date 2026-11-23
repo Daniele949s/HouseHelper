@@ -137,6 +137,10 @@ function formatReportDate(createdAt, locale) {
   let dateObj = null;
   if (typeof createdAt.toDate === "function") {
     dateObj = createdAt.toDate();
+  } else if (typeof createdAt.toMillis === "function") {
+    dateObj = new Date(createdAt.toMillis());
+  } else if (typeof createdAt.seconds === "number") {
+    dateObj = new Date(createdAt.seconds * 1000);
   } else {
     dateObj = new Date(createdAt);
   }

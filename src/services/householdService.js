@@ -4,13 +4,15 @@ import {
   getDoc,
   getDocs,
   addDoc,
+  deleteDoc,
   updateDoc,
   writeBatch,
   query,
   where,
   limit,
 } from "firebase/firestore";
-import { db } from "../firebase";
+import { ref, deleteObject } from "firebase/storage";
+import { db, storage } from "../firebase";
 
 const INVITE_CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 const INVITE_CODE_LENGTH = 6;
@@ -187,6 +189,43 @@ export async function transferHouseholdAdmin({ casaId, currentAdminUid, newAdmin
  */
 export async function leaveHousehold(userUid) {
   await updateDoc(doc(db, "utenti", userUid), { casaId: null, ruoloCasa: null, statoMembro: null });
+}
+
+export async function deleteHousehold({ casaId, adminUid }) {
+  if (!casaId || !adminUid) {
+    throw new Error("Household ID and admin UID are required.");
+  }
+
+  const domainCollections = ["turni", "debiti", "spesa", "note", "documenti", "contatti"];
+  const collectionNames = [...domainCollections, "utenti"];
+  const snapshots = await Promise.all(collectionNames.map((name) =>
+    getDocs(query(collection(db, name), where("casaId", "==", casaId)))
+  ));
+  const membership = { casaId: null, ruoloCasa: null, statoMembro: null };
+  const cleanup = [];
+
+  collectionNames.forEach((name, index) => {
+    snapshots[index].forEach((docSnap) => {
+      if (name === "utenti") {
+        if (docSnap.id !== adminUid) {
+          cleanup.push(updateDoc(doc(db, name, docSnap.id), membership));
+        }
+        return;
+      }
+
+      if (name === "documenti") {
+        const data = docSnap.data();
+        if (data?.storagePath && !data.isFirestoreInline) {
+          cleanup.push(deleteObject(ref(storage, data.storagePath)).catch(() => {}));
+        }
+      }
+      cleanup.push(deleteDoc(doc(db, name, docSnap.id)));
+    });
+  });
+
+  await Promise.all(cleanup);
+  await deleteDoc(doc(db, "case", casaId));
+  await updateDoc(doc(db, "utenti", adminUid), membership);
 }
 
 /**

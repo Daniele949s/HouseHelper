@@ -27,6 +27,7 @@ export default function HomeUtente() {
     kickMember,
     transferAdminRole,
     leaveHouse,
+    deleteHouse,
     updateVacation,
   } = useHousehold();
   const { t, language } = useLanguage();
@@ -81,10 +82,10 @@ export default function HomeUtente() {
 
   useEffect(() => {
     if (ctxHouse && ctxHouse.id === userData?.casaId) {
-      setCasa((prev) => (prev?.codiceUnivoco ? prev : { ...(prev || {}), ...ctxHouse }));
+      setCasa((prev) => ({ ...(prev || {}), ...ctxHouse }));
     }
     if (ctxRoommateMap && Object.keys(ctxRoommateMap).length > 0) {
-      setUtentiMap((prev) => (Object.keys(prev).length > 0 ? prev : ctxRoommateMap));
+      setUtentiMap(ctxRoommateMap);
     }
   }, [ctxHouse, ctxRoommateMap, userData?.casaId]);
 
@@ -351,12 +352,37 @@ export default function HomeUtente() {
     if (!confirmed) return;
 
     try {
-      await leaveHouse();
+      if (isHouseAdmin && membersForSection.length <= 1 && typeof deleteHouse === "function") {
+        await deleteHouse();
+      } else {
+        await leaveHouse();
+      }
       showToast(t("dashboard.leftHouseToast", {}, "Hai lasciato la casa."), "info");
       navigate("/scelta-casa");
     } catch (e) {
       console.error(e);
       showToast(t("dashboard.leaveHouseError", {}, "Errore durante l'uscita."), "error");
+    }
+  };
+
+  const eliminaCasa = async () => {
+    const confirmed = await showConfirm({
+      title: t("dashboard.deleteHouseTitle", {}, "Elimina Casa"),
+      message: t("dashboard.deleteHouseConfirm", {}, "Sei sicuro di voler eliminare definitivamente questa casa? Verranno eliminati per sempre tutti i turni, le spese, la lista della spesa, le note, i documenti e i contatti, e tutti i coinquilini verranno rimossi."),
+      confirmText: t("dashboard.deleteHouseBtn", {}, "Elimina Casa"),
+      cancelText: t("common.cancel", {}, "Annulla"),
+      isDanger: true
+    });
+
+    if (!confirmed) return;
+
+    try {
+      await deleteHouse();
+      showToast(t("dashboard.deletedHouseToast", {}, "Casa e tutti i dati associati eliminati con successo."), "info");
+      navigate("/scelta-casa");
+    } catch (e) {
+      console.error(e);
+      showToast(t("dashboard.deleteHouseError", {}, "Errore durante l'eliminazione della casa."), "error");
     }
   };
 
@@ -1157,6 +1183,17 @@ export default function HomeUtente() {
               <i className="fas fa-door-open" aria-hidden="true"></i>
               <span>{t("dashboard.leaveHouseBtn", {}, "Lascia Casa")}</span>
             </button>
+            {isHouseAdmin && (
+              <button
+                type="button"
+                onClick={eliminaCasa}
+                className="btn-danger-outline"
+                style={{ fontSize: "0.88rem", minHeight: "44px", display: "inline-flex", alignItems: "center", gap: "6px", padding: "10px 16px" }}
+              >
+                <i className="fas fa-trash-alt" aria-hidden="true"></i>
+                <span>{t("dashboard.deleteHouseBtn", {}, "Elimina Casa")}</span>
+              </button>
+            )}
             <button
               type="button"
               onClick={handleLogout}

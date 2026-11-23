@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { useLanguage } from "../../contexts/LanguageContext";
@@ -15,6 +15,11 @@ export default function ModificaTurno() {
   const navigate = useNavigate();
   const { userData } = useAuth();
   const { t } = useLanguage();
+  const translateRef = useRef(t);
+
+  useEffect(() => {
+    translateRef.current = t;
+  }, [t]);
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -35,12 +40,12 @@ export default function ModificaTurno() {
       try {
         const res = await fetchChoreById(id, userData.casaId);
         if (res.status === "not_found") {
-          showToast(t("chores.notFoundError", {}, "Turno non trovato o precedentemente rimosso."), "error");
+          showToast(translateRef.current("chores.notFoundError", {}, "Turno non trovato o precedentemente rimosso."), "error");
           navigate("/turni");
           return;
         }
         if (res.status === "unauthorized") {
-          showToast(t("chores.unauthorizedHouseError", {}, "Accesso non consentito: questo turno appartiene a un'altra abitazione."), "error");
+          showToast(translateRef.current("chores.unauthorizedHouseError", {}, "Accesso non consentito: questo turno appartiene a un'altra abitazione."), "error");
           navigate("/turni");
           return;
         }
@@ -55,14 +60,14 @@ export default function ModificaTurno() {
         });
       } catch (err) {
         console.error("Errore fetch turno:", err);
-        setError(t("chores.loadOneError", {}, "Impossibile caricare il turno."));
+        setError(translateRef.current("chores.loadOneError", {}, "Impossibile caricare il turno."));
       } finally {
         setLoading(false);
       }
     };
 
     fetchTurno();
-  }, [id, userData, navigate, t]);
+  }, [id, userData?.casaId, navigate]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;

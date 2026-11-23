@@ -31,13 +31,22 @@ export default function AggiungiEvento() {
   useEffect(() => {
     if (location.state?.dataPreimpostata) {
       try {
-        const dataObj = new Date(location.state.dataPreimpostata);
-        if (!isNaN(dataObj.getTime())) {
-          const dataString = dataObj.toLocaleDateString("en-CA");
-          const validation = validateDate(dataString);
-          if (validation.isValid) {
-            setDataEvento(validation.date);
-          }
+        const raw = location.state.dataPreimpostata;
+        let validation;
+        if (typeof raw === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(raw.trim())) {
+          validation = validateDate(raw.trim());
+        } else {
+          const dataObj = raw instanceof Date ? raw : new Date(raw);
+          if (isNaN(dataObj.getTime())) return;
+
+          const yyyy = dataObj.getFullYear();
+          const mm = String(dataObj.getMonth() + 1).padStart(2, '0');
+          const dd = String(dataObj.getDate()).padStart(2, '0');
+          const dataString = `${yyyy}-${mm}-${dd}`;
+          validation = validateDate(dataString);
+        }
+        if (validation.isValid) {
+          setDataEvento(validation.date);
         }
       } catch (err) {
         console.error("Data non valida:", err);

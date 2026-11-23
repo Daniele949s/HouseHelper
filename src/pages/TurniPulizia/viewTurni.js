@@ -46,7 +46,9 @@ export default function VisualizzaTurni() {
 
     setCasaDoc((current) => current ?? ctxHouse);
     if (ctxRoommates?.length > 0) {
-      setRoommates((current) => current.length === 0 ? ctxRoommates : current);
+      setRoommates((current) => current.length === 0
+        ? ctxRoommates.filter((u) => u && u.statoMembro !== 'pending')
+        : current);
     }
   }, [ctxHouse, ctxRoommates, userData?.casaId]);
 
@@ -71,7 +73,7 @@ export default function VisualizzaTurni() {
         setCasaDoc(house);
       }
 
-      setRoommates(rList.map((u) => ({
+      setRoommates(rList.filter((u) => u && u.statoMembro !== 'pending').map((u) => ({
         id: u.id,
         uid: u.uid,
         username: u.username || translateRef.current("chores.defaultRoommate", {}, "Coinquilino"),

@@ -209,9 +209,7 @@ export class SecurityRulesValidator {
             getAfter('utenti', auth.uid)?.ruoloCasa === 'member';
           return { allowed: Boolean(((admin || member) && changedOnly(resource, req, settings)) || transfer) };
         }
-        if (operation === 'delete') {
-          return { allowed: false, reason: 'Houses cannot be deleted directly' };
-        }
+        if (operation === 'delete') return { allowed: isHouseAdmin(id) };
         return { allowed: false };
       }
 
@@ -291,7 +289,7 @@ export class SecurityRulesValidator {
           const allowed = Boolean(
             resource &&
             belongsToSameHouse(resource.casaId) &&
-            (auth.uid === resource.debitoreId || auth.uid === resource.creditoreId)
+            (auth.uid === resource.debitoreId || auth.uid === resource.creditoreId || isHouseAdmin(resource.casaId))
           );
           return { allowed };
         }
@@ -1078,6 +1076,27 @@ describe('Milestone 5: Application Security Hardening & Firestore Rules', () => 
     beforeEach(() => {
       validator.setDocData('case', casaId, house);
       validator.setDocData('utenti', member, pending);
+    });
+
+    test('house admin can delete their house document and a regular member cannot', () => {
+      validator.setDocData('utenti', member, accepted);
+      const deleteHouse = (uid) => validator.evaluate({
+        auth: { uid }, collection: 'case', operation: 'delete', id: casaId, resource: house
+      }).allowed;
+
+      expect(deleteHouse(admin)).toBe(true);
+      expect(deleteHouse(member)).toBe(false);
+    });
+
+    test('house admin can delete a debt between other roommates during cascade deletion', () => {
+      validator.setDocData('utenti', member, accepted);
+      const resource = { casaId, debitoreId: 'user_alpha_3', creditoreId: 'user_alpha_4' };
+      const deleteDebt = (uid) => validator.evaluate({
+        auth: { uid }, collection: 'debiti', operation: 'delete', id: 'debt_roommates', resource
+      }).allowed;
+
+      expect(deleteDebt(admin)).toBe(true);
+      expect(deleteDebt(member)).toBe(false);
     });
 
     test('admin can accept or kick a pending member within the household', () => {
