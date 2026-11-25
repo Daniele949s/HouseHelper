@@ -1,6 +1,15 @@
 {
   "headers": [
     {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "X-Frame-Options", "value": "DENY" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+        { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=()" }
+      ]
+    },
+    {
       "source": "/sw.js",
       "headers": [
         { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }
@@ -33,7 +42,7 @@
   ],
   "rewrites": [
     {
-      "source": "/((?!static/|sw\\.js|manifest\\.json|favicon\\.ico|logo.*\\.png|bg_images/|webfonts/).*)",
+      "source": "/((?!static/|sw\\.js|manifest\\.json|HouseHelper\\.svg|favicon\\.ico|logo.*\\.png|bg_images/|webfonts/).*)",
       "destination": "/index.html"
     }
   ]

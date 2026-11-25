@@ -1,0 +1,646 @@
+/* ==========================================================================
+   HOUSEHELPER RESPONSIVE DESIGN SYSTEM
+   Palette: #F7F6F2 (bg), #192820 (ink), #1D4435 (green), #DDF3A6 (accent)
+   ========================================================================== */
+
+:root {
+  --hh-bg: #F7F6F2;
+  --hh-ink: #192820;
+  --hh-green: #1D4435;
+  --hh-green-hover: #255341;
+  --hh-accent: #DDF3A6;
+  --hh-accent-hover: #d1ec8f;
+  --hh-surface: #FFFFFF;
+  --hh-muted: #4A5D52;
+  --hh-border: rgba(25, 40, 32, 0.10);
+  --hh-sidebar-width: 240px;
+  --hh-radius-card: 18px;
+  --hh-radius-row: 14px;
+  --hh-radius-pill: 10px;
+}
+
+/* Flush full-bleed viewport when authenticated HouseholdShell is active */
+body:has(.hh-shell) {
+  background: var(--hh-bg) !important;
+  background-image: none !important;
+  color: var(--hh-ink) !important;
+  overflow-x: clip;
+}
+
+body:has(.hh-shell) .background-slideshow {
+  display: none !important;
+}
+
+body:has(.hh-shell) .app-topbar {
+  display: none !important;
+}
+
+body:has(.hh-shell) .app-container {
+  padding: 0 !important;
+  margin: 0 !important;
+  align-items: stretch !important;
+  width: 100% !important;
+  max-width: none !important;
+  min-height: 100vh;
+}
+
+body:has(.hh-shell) .app-footer {
+  background: var(--hh-bg);
+  color: var(--hh-muted);
+  border-top: 1px solid var(--hh-border);
+  width: auto;
+  margin-top: 0;
+}
+
+@media (min-width: 769px) {
+  body:has(.hh-shell) .app-footer {
+    margin-left: var(--hh-sidebar-width);
+  }
+}
+
+@media (max-width: 768px) {
+  body:has(.hh-shell) .app-footer {
+    padding-bottom: calc(88px + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+/* Scoped botanical light palette tokens inside .hh-shell (overrides dark-mode defaults) */
+body .hh-shell,
+html.dark-theme .hh-shell,
+body.dark-mode .hh-shell {
+  --bg-primary: #F7F6F2;
+  --bg-main: #F7F6F2;
+  --bg-secondary: #EFECE4;
+  --bg-surface: #EFECE4;
+  --bg-card: #FFFFFF;
+  --bg-card-glass: #FFFFFF;
+  --bg-card-hover: #FCFDF9;
+  --bg-input: #FFFFFF;
+  --bg-subtle: rgba(25, 40, 32, 0.04);
+  --bg-glass: rgba(255, 255, 255, 0.94);
+  --bg-overlay: rgba(25, 40, 32, 0.48);
+
+  --border-color: rgba(25, 40, 32, 0.11);
+  --border-subtle: rgba(25, 40, 32, 0.06);
+  --border-medium: rgba(25, 40, 32, 0.20);
+  --border-highlight: rgba(25, 40, 32, 0.20);
+  --border-focus: #1D4435;
+  --glass-border: 1px solid rgba(25, 40, 32, 0.10);
+
+  --text-primary: #192820;
+  --text-main: #192820;
+  --text-secondary: #43574C;
+  --text-muted: #4A5D52;
+  --text-caption: #4A5D52;
+  --text-disabled: #7D8E84;
+
+  --color-primary: #1D4435;
+  --color-primary-hover: #255341;
+  --color-primary-text: #1D4435;
+  --color-primary-light: rgba(29, 68, 53, 0.10);
+  --color-primary-border: rgba(29, 68, 53, 0.24);
+  --color-primary-glow: rgba(29, 68, 53, 0.18);
+
+  --color-accent: #1D4435;
+  --color-accent-hover: #255341;
+  --color-accent-light: rgba(221, 243, 166, 0.45);
+  --color-accent-glow: rgba(29, 68, 53, 0.16);
+  --color-secondary: rgba(25, 40, 32, 0.05);
+
+  --color-success: #157347;
+  --color-success-hover: #115c39;
+  --color-success-text: #146c43;
+  --color-success-light: rgba(21, 115, 71, 0.10);
+  --color-success-border: rgba(21, 115, 71, 0.24);
+
+  --color-danger: #C81E3A;
+  --color-danger-hover: #A61730;
+  --color-danger-text: #B41731;
+  --color-danger-light: rgba(200, 30, 58, 0.09);
+  --color-danger-border: rgba(200, 30, 58, 0.24);
+
+  --color-warning: #A15C07;
+  --color-warning-hover: #854D0E;
+  --color-warning-text: #854D0E;
+  --color-warning-light: #FEF3C7;
+  --color-warning-border: rgba(161, 92, 7, 0.28);
+
+  --color-info: #1D4435;
+  --color-info-light: rgba(29, 68, 53, 0.10);
+
+  --shadow-xs: 0 1px 2px rgba(25, 40, 32, 0.04);
+  --shadow-sm: 0 2px 6px rgba(25, 40, 32, 0.05);
+  --shadow-md: 0 4px 12px rgba(25, 40, 32, 0.06);
+  --shadow-lg: 0 10px 24px rgba(25, 40, 32, 0.08);
+  --shadow-card: 0 2px 10px rgba(25, 40, 32, 0.05);
+  --shadow-card-hover: 0 6px 18px rgba(25, 40, 32, 0.08);
+  --shadow-glass: 0 2px 10px rgba(25, 40, 32, 0.05);
+
+  min-height: 100vh;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: clip;
+  background-color: var(--hh-bg);
+  color: var(--hh-ink);
+  display: flex;
+  flex-direction: column;
+}
+
+/* Desktop Sidebar */
+.hh-sidebar {
+  display: none;
+}
+
+@media (min-width: 769px) {
+  .hh-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: var(--hh-sidebar-width);
+    background-color: var(--hh-green);
+    color: #FFFFFF;
+    display: flex;
+    flex-direction: column;
+    padding: 24px 16px;
+    z-index: 950;
+    overflow-y: auto;
+  }
+
+  .hh-sidebar-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 4px 12px 24px;
+    background: transparent;
+    border: none;
+    color: var(--hh-accent);
+    font-size: 1.35rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    cursor: pointer;
+    text-align: left;
+  }
+
+  .hh-sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .hh-sidebar-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 44px;
+    padding: 10px 14px;
+    border-radius: var(--hh-radius-pill);
+    color: rgba(255, 255, 255, 0.88);
+    text-decoration: none;
+    font-size: 0.95rem;
+    font-weight: 500;
+    transition: background-color 150ms ease, color 150ms ease;
+  }
+
+  .hh-sidebar-link:hover {
+    background-color: rgba(255, 255, 255, 0.12);
+    color: #FFFFFF;
+  }
+
+  .hh-sidebar-link.active,
+  .hh-sidebar-link[aria-current="page"] {
+    background-color: rgba(255, 255, 255, 0.20);
+    color: #FFFFFF;
+    font-weight: 700;
+  }
+
+  .hh-main-wrap {
+    margin-left: var(--hh-sidebar-width);
+    flex: 1;
+    min-width: 0;
+    width: calc(100% - var(--hh-sidebar-width));
+    max-width: 1180px;
+    padding: 24px 40px 48px;
+  }
+}
+
+@media (max-width: 768px) {
+  .hh-main-wrap {
+    flex: 1;
+    min-width: 0;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: clip;
+    padding: 14px 16px calc(92px + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+/* Top house selector bar */
+.hh-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+  min-height: 44px;
+}
+
+.hh-house-selector {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 6px 12px 6px 4px;
+  background: transparent;
+  border: none;
+  border-radius: var(--hh-radius-pill);
+  color: var(--hh-ink);
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.hh-house-selector:hover {
+  background-color: rgba(25, 40, 32, 0.06);
+}
+
+/* Page Title */
+.hh-page-title {
+  margin: 0 0 20px;
+  font-size: clamp(1.65rem, 2.5vw, 2.15rem);
+  font-weight: 800;
+  color: var(--hh-ink);
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+
+/* Hero Card */
+.hh-hero-card {
+  background-color: var(--hh-green);
+  color: #FFFFFF;
+  border-radius: var(--hh-radius-card);
+  padding: 24px;
+  margin-bottom: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.hh-hero-eyebrow {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--hh-accent);
+  margin: 0;
+}
+
+.hh-hero-title {
+  font-size: clamp(1.35rem, 2.2vw, 1.85rem);
+  font-weight: 800;
+  color: #FFFFFF;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.hh-hero-subtitle {
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.88);
+  margin: 0;
+}
+
+.hh-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.hh-btn-accent {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 10px 18px;
+  border-radius: var(--hh-radius-pill);
+  border: none;
+  background-color: var(--hh-accent);
+  color: var(--hh-ink);
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background-color 150ms ease;
+}
+
+.hh-btn-accent:hover:not(:disabled) {
+  background-color: var(--hh-accent-hover);
+}
+
+.hh-btn-accent:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* 2-Column Responsive Grid */
+.hh-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+}
+
+@media (min-width: 1024px) {
+  .hh-grid-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+  }
+}
+
+.hh-section-heading {
+  font-size: 1.125rem;
+  font-weight: 800;
+  color: var(--hh-ink);
+  margin: 0 0 12px;
+}
+
+.hh-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.hh-row-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 56px;
+  padding: 14px 16px;
+  background-color: var(--hh-surface);
+  border: 1px solid var(--hh-border);
+  border-radius: var(--hh-radius-row);
+  color: var(--hh-ink);
+  text-decoration: none;
+  text-align: left;
+  width: 100%;
+  cursor: pointer;
+  transition: border-color 150ms ease, background-color 150ms ease;
+}
+
+.hh-row-card:hover {
+  border-color: rgba(29, 68, 53, 0.28);
+  background-color: #FCFDF9;
+}
+
+.hh-row-main {
+  min-width: 0;
+  flex: 1;
+}
+
+.hh-row-title {
+  font-size: 0.975rem;
+  font-weight: 700;
+  color: var(--hh-ink);
+  margin: 0 0 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hh-row-sub {
+  font-size: 0.85rem;
+  color: var(--hh-muted);
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hh-row-chevron {
+  color: var(--hh-green);
+  flex-shrink: 0;
+  font-size: 0.9rem;
+}
+
+/* Mobile Bottom Bar overrides for HouseHelper Responsive */
+.mobile-bottom-bar.hh-mobile-bar {
+  background-color: var(--hh-surface) !important;
+  border-top: 1px solid var(--hh-border) !important;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.mobile-bottom-bar.hh-mobile-bar .mobile-bottom-tab {
+  min-height: 44px;
+  color: var(--hh-ink) !important;
+  border-radius: var(--hh-radius-pill);
+}
+
+.mobile-bottom-bar.hh-mobile-bar .mobile-bottom-tab.active {
+  background-color: var(--hh-accent) !important;
+  color: var(--hh-ink) !important;
+  font-weight: 700;
+}
+
+/* Seamless integration of existing domain containers inside HouseholdShell */
+.hh-shell .domain-page-card,
+.hh-shell .dashboard-container,
+.hh-shell .documents-container,
+.hh-shell .contatti-page,
+.hh-shell .settings-container {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  max-width: 100% !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  color: var(--hh-ink);
+}
+
+.hh-shell h1,
+.hh-shell h2,
+.hh-shell h3,
+.hh-shell .dashboard-title {
+  color: var(--hh-ink) !important;
+}
+
+/* Primary & Secondary Button Harmony */
+.hh-shell .btn-primary {
+  background: var(--hh-green) !important;
+  color: #FFFFFF !important;
+  border: none !important;
+  min-height: 44px;
+  box-shadow: none !important;
+}
+
+.hh-shell .btn-primary:hover:not(:disabled) {
+  background: var(--hh-green-hover) !important;
+}
+
+.hh-shell .btn-secondary {
+  background: #FFFFFF !important;
+  color: var(--hh-ink) !important;
+  border: 1px solid rgba(25, 40, 32, 0.20) !important;
+  min-height: 44px;
+}
+
+.hh-shell .btn-secondary:hover:not(:disabled) {
+  background: #EFECE4 !important;
+  border-color: rgba(29, 68, 53, 0.35) !important;
+}
+
+.hh-shell .btn-text {
+  color: var(--hh-green) !important;
+  min-height: 44px;
+}
+
+/* Botanical Hero Banner treatment for key summary headers */
+.hh-shell .household-status-card,
+.hh-shell .documents-header {
+  background: var(--hh-green) !important;
+  border: none !important;
+  border-radius: var(--hh-radius-card) !important;
+  color: #FFFFFF !important;
+  box-shadow: var(--shadow-md) !important;
+}
+
+.hh-shell .household-status-card h1,
+.hh-shell .household-status-card h2,
+.hh-shell .household-status-card h3,
+.hh-shell .household-status-card .house-name-title,
+.hh-shell .documents-header h1,
+.hh-shell .documents-header h2 {
+  color: #FFFFFF !important;
+}
+
+.hh-shell .household-status-card p,
+.hh-shell .household-status-card .house-status-subtitle,
+.hh-shell .documents-header .documents-subtitle {
+  color: rgba(255, 255, 255, 0.86) !important;
+}
+
+.hh-shell .household-status-card .household-security-tag {
+  color: var(--hh-accent) !important;
+}
+
+.hh-shell .household-status-card .household-icon-wrap {
+  background: rgba(221, 243, 166, 0.18) !important;
+  color: var(--hh-accent) !important;
+  box-shadow: none !important;
+}
+
+.hh-shell .household-status-card .household-metric-box,
+.hh-shell .household-status-card .invite-code-card-btn {
+  background: rgba(255, 255, 255, 0.11) !important;
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
+  color: #FFFFFF !important;
+}
+
+.hh-shell .household-status-card .invite-code-card-btn:hover {
+  background: rgba(255, 255, 255, 0.18) !important;
+}
+
+.hh-shell .household-status-card .metric-label,
+.hh-shell .household-status-card .invite-label {
+  color: var(--hh-accent) !important;
+}
+
+.hh-shell .household-status-card .metric-val,
+.hh-shell .household-status-card .metric-val-empty,
+.hh-shell .household-status-card .invite-code-val,
+.hh-shell .household-status-card .invite-code-val code {
+  color: #FFFFFF !important;
+}
+
+.hh-shell .household-status-card .metric-icon-wrap {
+  background: rgba(255, 255, 255, 0.14) !important;
+  color: var(--hh-accent) !important;
+}
+
+.hh-shell .documents-header .btn-primary,
+.hh-shell .documents-header .documents-upload-btn {
+  background: var(--hh-accent) !important;
+  color: var(--hh-ink) !important;
+  font-weight: 700 !important;
+}
+
+.hh-shell .documents-header .btn-primary:hover,
+.hh-shell .documents-header .documents-upload-btn:hover {
+  background: var(--hh-accent-hover) !important;
+}
+
+/* Fix mobile horizontal overflow on Documenti, Contatti, and filter bars */
+.hh-shell .documents-filters,
+.hh-shell .documents-controls,
+.hh-shell .documents-toolbar,
+.hh-shell .contacts-filters,
+.hh-shell .filter-pills {
+  max-width: 100%;
+  flex-wrap: wrap;
+}
+
+.hh-shell .documents-search-wrapper,
+.hh-shell .documents-search-input,
+.hh-shell .search-input-wrapper,
+.hh-shell .contacts-search-bar {
+  max-width: 100%;
+  min-width: 0;
+}
+
+@media (max-width: 768px) {
+  .hh-shell .documents-grid,
+  .hh-shell .contacts-grid,
+  .hh-shell .bento-grid,
+  .hh-shell .calendar-split-layout {
+    grid-template-columns: minmax(0, 1fr) !important;
+    max-width: 100% !important;
+  }
+
+  .hh-shell .document-card,
+  .hh-shell .contact-card,
+  .hh-shell .documents-header {
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  .hh-shell .document-card-title,
+  .hh-shell .contact-name {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+}
+
+/* Focus visibility */
+.hh-shell a:focus-visible,
+.hh-shell button:focus-visible,
+.hh-shell input:focus-visible,
+.hh-shell select:focus-visible,
+.hh-shell textarea:focus-visible {
+  outline: 3px solid var(--hh-green);
+  outline-offset: 2px;
+}
+
+.hh-sidebar a:focus-visible,
+.hh-sidebar button:focus-visible,
+.hh-hero-card a:focus-visible,
+.hh-hero-card button:focus-visible,
+.hh-shell .household-status-card button:focus-visible,
+.hh-shell .documents-header button:focus-visible {
+  outline: 3px solid var(--hh-accent);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hh-shell *,
+  .hh-shell *::before,
+  .hh-shell *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}

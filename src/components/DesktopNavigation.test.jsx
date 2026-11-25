@@ -43,7 +43,7 @@ describe("DesktopNavigation Component", () => {
     const links = screen.getAllByRole("link");
     expect(links).toHaveLength(9);
 
-    expect(screen.getByText("Dashboard")).toBeInTheDocument();
+    expect(screen.getByText("Home")).toBeInTheDocument();
     expect(screen.getByText("Turni")).toBeInTheDocument();
     expect(screen.getByText("Debiti")).toBeInTheDocument();
     expect(screen.getByText("Spesa")).toBeInTheDocument();
@@ -70,7 +70,7 @@ describe("DesktopNavigation Component", () => {
     const links = screen.getAllByRole("link");
     expect(links).toHaveLength(9);
 
-    expect(screen.getByText("Dashboard")).toBeInTheDocument();
+    expect(screen.getByText("Home")).toBeInTheDocument();
     expect(screen.getByText("Chores")).toBeInTheDocument();
     expect(screen.getByText("Balances")).toBeInTheDocument();
     expect(screen.getByText("Groceries")).toBeInTheDocument();

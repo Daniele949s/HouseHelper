@@ -70,10 +70,10 @@ describe("MobileBottomBar Component", () => {
     expect(links).toHaveLength(4);
 
     const expectedTabs = [
-      { label: "Home", href: "/home", iconClass: "fa-home" },
-      { label: "Turni", href: "/turni", iconClass: "fa-broom" },
-      { label: "Spese", href: "/debiti", iconClass: "fa-wallet" },
-      { label: "Spesa", href: "/spesa", iconClass: "fa-shopping-cart" },
+      { href: "/home", label: "Home", iconClass: "fa-home" },
+      { href: "/debiti", label: "Debiti", iconClass: "fa-wallet" },
+      { href: "/turni", label: "Turni", iconClass: "fa-broom" },
+      { href: "/calendario", label: "Calendario", iconClass: "fa-calendar-alt" },
     ];
 
     expectedTabs.forEach((tab, index) => {
@@ -132,11 +132,11 @@ describe("MobileBottomBar Component", () => {
       expect(screen.getByRole("link", { name: /turni/i })).not.toHaveClass("active");
       expect(screen.getByRole("link", { name: /turni/i })).not.toHaveAttribute("aria-current");
 
-      expect(screen.getByRole("link", { name: /spese/i })).not.toHaveClass("active");
-      expect(screen.getByRole("link", { name: /spese/i })).not.toHaveAttribute("aria-current");
+      expect(screen.getByRole("link", { name: /debiti/i })).not.toHaveClass("active");
+      expect(screen.getByRole("link", { name: /debiti/i })).not.toHaveAttribute("aria-current");
 
-      expect(screen.getByRole("link", { name: /spesa/i })).not.toHaveClass("active");
-      expect(screen.getByRole("link", { name: /spesa/i })).not.toHaveAttribute("aria-current");
+      expect(screen.getByRole("link", { name: /calendario/i })).not.toHaveClass("active");
+      expect(screen.getByRole("link", { name: /calendario/i })).not.toHaveAttribute("aria-current");
     });
   });
 
@@ -153,8 +153,8 @@ describe("MobileBottomBar Component", () => {
       expect(turniLink).toHaveAttribute("aria-current", "page");
 
       expect(screen.getByRole("link", { name: /home/i })).not.toHaveClass("active");
-      expect(screen.getByRole("link", { name: /spese/i })).not.toHaveClass("active");
-      expect(screen.getByRole("link", { name: /spesa/i })).not.toHaveClass("active");
+      expect(screen.getByRole("link", { name: /debiti/i })).not.toHaveClass("active");
+      expect(screen.getByRole("link", { name: /calendario/i })).not.toHaveClass("active");
     });
   });
 
@@ -166,7 +166,7 @@ describe("MobileBottomBar Component", () => {
     });
 
     await waitFor(() => {
-      const speseLink = screen.getByRole("link", { name: /spese/i });
+      const speseLink = screen.getByRole("link", { name: /debiti/i });
       expect(speseLink).toHaveClass("active");
       expect(speseLink).toHaveAttribute("aria-current", "page");
 
@@ -174,9 +174,9 @@ describe("MobileBottomBar Component", () => {
     });
   });
 
-  test("leaves all bottom navigation tabs inactive on unmapped routes (/calendario)", async () => {
+  test("leaves all bottom navigation tabs inactive on unmapped routes (/bacheca)", async () => {
     renderWithProviders(<MobileBottomBar />, {
-      route: "/calendario",
+      route: "/bacheca",
       user: mockUser,
       userData: mockUserData,
     });

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import HouseholdShell from "../../components/HouseholdShell";
 import { useNavigate } from "react-router-dom";
 import { db } from "../../firebase";
 import { collection, query, where, getDocs, addDoc, doc, updateDoc, deleteDoc } from "firebase/firestore";
@@ -144,6 +145,7 @@ export default function ViewSpesa() {
   const daComprare = items.length - comprati;
 
   return (
+    <HouseholdShell>
     <div className="card domain-page-card">
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem", flexWrap: "wrap", gap: "10px" }}>
         <div>
@@ -416,5 +418,6 @@ export default function ViewSpesa() {
         <i className="fas fa-arrow-left" style={{ marginRight: "6px" }}></i> {t("groceries.backToDashboard", null, "Torna alla Dashboard")}
       </button>
     </div>
+    </HouseholdShell>
   );
 }

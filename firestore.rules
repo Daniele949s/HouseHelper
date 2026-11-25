@@ -34,12 +34,14 @@ service cloud.firestore {
     }
 
     // Strict multi-tenant household barrier: prevents null == null exploit
+    // and blocks unapproved pending members from accessing household data.
     function belongsToSameHouse(casaId) {
       return hasValidCasa() 
         && casaId != null 
         && casaId is string 
         && casaId.size() > 0 
-        && getUserCasaId() == casaId;
+        && getUserCasaId() == casaId
+        && getUserDoc().data.get('statoMembro', 'active') != 'pending';
     }
 
     function housePath(casaId) {
@@ -159,12 +161,17 @@ service cloud.firestore {
     // 2. CASE (Nuclei Abitativi)
     // ==========================================
     match /case/{casaId} {
-      // Get: Members can fetch their household; unassigned users can read individual house doc during invite code lookup
-      allow get: if isSignedIn() && (belongsToSameHouse(casaId) || !hasValidCasa());
+      // Get: Members (including pending members awaiting approval) can fetch their household;
+      // unassigned users can read individual house doc during invite code lookup.
+      allow get: if isSignedIn() && (
+        belongsToSameHouse(casaId)
+        || (hasValidCasa() && getUserCasaId() == casaId)
+        || !hasValidCasa()
+      );
 
-      // List: Household members can list their home; unassigned users can only query with a strict query limit (<= 5)
-      // to prevent unbounded database enumeration of all households and invite codes.
-      allow list: if isSignedIn() && (belongsToSameHouse(casaId) || (!hasValidCasa() && request.query.limit <= 5));
+      // List: Active members can list their home; unassigned users are strictly limited to 1 result
+      // during invite code lookup to minimize enumeration.
+      allow list: if isSignedIn() && (belongsToSameHouse(casaId) || (!hasValidCasa() && request.query.limit <= 1));
 
       // Create: Authenticated users can create a new household with required fields
       allow create: if isSignedIn()
@@ -194,8 +201,7 @@ service cloud.firestore {
     match /turni/{turnoId} {
       allow read: if belongsToSameHouse(resource.data.casaId);
 
-      allow create: if hasValidCasa()
-        && request.resource.data.casaId == getUserCasaId()
+      allow create: if belongsToSameHouse(request.resource.data.casaId)
         && request.resource.data.utenteId == request.auth.uid
         && request.resource.data.nomi is list && request.resource.data.nomi.size() > 0 && request.resource.data.nomi.size() <= 15
         && request.resource.data.luoghi is list && request.resource.data.luoghi.size() > 0 && request.resource.data.luoghi.size() <= 15
@@ -220,22 +226,26 @@ service cloud.firestore {
     match /debiti/{debitoId} {
       allow read: if belongsToSameHouse(resource.data.casaId);
 
-      // Create: Enforce positive amount <= 50,000 EUR, non-empty description, no self-debts
-      allow create: if hasValidCasa()
-        && request.resource.data.casaId == getUserCasaId()
+      // Create: Enforce positive amount <= 50,000 EUR, non-empty description, no self-debts,
+      // active membership, and both creditor/debtor belonging to the same household.
+      allow create: if belongsToSameHouse(request.resource.data.casaId)
         && isValidImporto(request.resource.data.importo)
         && isNonEmptyString(request.resource.data.descrizione, 255)
         && isNonEmptyString(request.resource.data.creditoreId, 64)
         && isNonEmptyString(request.resource.data.debitoreId, 64)
-        && request.resource.data.creditoreId != request.resource.data.debitoreId;
+        && request.resource.data.creditoreId != request.resource.data.debitoreId
+        && get(/databases/$(database)/documents/utenti/$(request.resource.data.creditoreId)).data.casaId == request.resource.data.casaId
+        && get(/databases/$(database)/documents/utenti/$(request.resource.data.debitoreId)).data.casaId == request.resource.data.casaId;
 
-      // Update: Full anti-tamper on update. Immutability on casaId, creditoreId, debitoreId; bounds on importo
+      // Update: Only debtor, creditor, or house admin may modify/settle. Immutability on casaId, creditoreId, debitoreId.
       allow update: if belongsToSameHouse(resource.data.casaId)
+        && (request.auth.uid == resource.data.debitoreId || request.auth.uid == resource.data.creditoreId || isHouseAdmin(resource.data.casaId))
         && request.resource.data.casaId == resource.data.casaId
         && request.resource.data.creditoreId == resource.data.creditoreId
         && request.resource.data.debitoreId == resource.data.debitoreId
         && isValidImporto(request.resource.data.importo)
-        && isNonEmptyString(request.resource.data.descrizione, 255);
+        && isNonEmptyString(request.resource.data.descrizione, 255)
+        && (!('saldato' in request.resource.data) || request.resource.data.saldato is bool);
 
       // The debtor, creditor, or house admin may delete the debt.
       allow delete: if belongsToSameHouse(resource.data.casaId)
@@ -248,8 +258,7 @@ service cloud.firestore {
     match /spesa/{spesaId} {
       allow read: if belongsToSameHouse(resource.data.casaId);
 
-      allow create: if hasValidCasa()
-        && request.resource.data.casaId == getUserCasaId()
+      allow create: if belongsToSameHouse(request.resource.data.casaId)
         && isNonEmptyString(request.resource.data.nome, 100)
         && request.resource.data.comprato is bool;
 
@@ -267,8 +276,7 @@ service cloud.firestore {
     match /note/{notaId} {
       allow read: if belongsToSameHouse(resource.data.casaId);
 
-      allow create: if hasValidCasa()
-        && request.resource.data.casaId == getUserCasaId()
+      allow create: if belongsToSameHouse(request.resource.data.casaId)
         && request.resource.data.autoreId == request.auth.uid
         && isNonEmptyString(request.resource.data.titolo, 100)
         && isNonEmptyString(request.resource.data.contenuto, 1500);
@@ -280,7 +288,7 @@ service cloud.firestore {
         && isNonEmptyString(request.resource.data.contenuto, 1500);
 
       allow delete: if belongsToSameHouse(resource.data.casaId)
-        && (request.auth.uid == resource.data.autoreId || belongsToSameHouse(resource.data.casaId));
+        && (request.auth.uid == resource.data.autoreId || isHouseAdmin(resource.data.casaId));
     }
 
     // ==========================================
@@ -289,12 +297,12 @@ service cloud.firestore {
     match /documenti/{docId} {
       allow read: if belongsToSameHouse(resource.data.casaId);
 
-      allow create: if hasValidCasa()
-        && request.resource.data.casaId == getUserCasaId()
+      allow create: if belongsToSameHouse(request.resource.data.casaId)
         && request.resource.data.caricatoDa == request.auth.uid
         && isNonEmptyString(request.resource.data.nome, 120)
         && isNonEmptyString(request.resource.data.categoria, 50)
         && isNonEmptyString(request.resource.data.fileUrl, 1000)
+        && request.resource.data.fileUrl.matches('^https://.*')
         && request.resource.data.dimensioneBytes is int
         && request.resource.data.dimensioneBytes > 0
         && request.resource.data.dimensioneBytes <= 26214400; // Max 25 MB
@@ -302,6 +310,7 @@ service cloud.firestore {
       allow update: if belongsToSameHouse(resource.data.casaId)
         && request.resource.data.casaId == resource.data.casaId
         && request.resource.data.caricatoDa == resource.data.caricatoDa
+        && request.resource.data.fileUrl == resource.data.fileUrl
         && isNonEmptyString(request.resource.data.nome, 120)
         && isNonEmptyString(request.resource.data.categoria, 50);
 
@@ -314,8 +323,7 @@ service cloud.firestore {
     match /contatti/{contattoId} {
       allow read: if belongsToSameHouse(resource.data.casaId);
 
-      allow create: if hasValidCasa()
-        && request.resource.data.casaId == getUserCasaId()
+      allow create: if belongsToSameHouse(request.resource.data.casaId)
         && isNonEmptyString(request.resource.data.nome, 100)
         && isNonEmptyString(request.resource.data.categoria, 50)
         && (!('telefono' in request.resource.data) || request.resource.data.telefono == null || request.resource.data.telefono is string)

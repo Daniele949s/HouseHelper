@@ -1,6 +1,7 @@
 import React, { Suspense, lazy } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import "./App.css";
+import "./styles/househelper-responsive.css";
 
 // Import Providers
 import { LanguageProvider } from "./contexts/LanguageContext";

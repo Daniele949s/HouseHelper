@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
+import HouseholdShell from "../../components/HouseholdShell";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { useHousehold } from "../../contexts/HouseholdContext";
@@ -164,6 +165,7 @@ export default function ViewImpostazioni() {
     : t("settings.household.roleMember", null, "Coinquilino");
 
   return (
+    <HouseholdShell>
     <div className="container dashboard-container settings-container domain-page-card" role="main">
       {/* Page Header */}
       <header className="settings-header">
@@ -605,5 +607,6 @@ export default function ViewImpostazioni() {
         </div>
       </section>
     </div>
+    </HouseholdShell>
   );
 }

@@ -25,12 +25,14 @@ service firebase.storage {
     }
 
     // Strict multi-tenant barrier: ensures user's active casaId exactly matches path casaId
+    // and blocks unapproved pending members.
     function belongsToSameHouse(casaId) {
       return hasValidCasa()
         && casaId != null
         && casaId is string
         && casaId.size() > 0
-        && getUserDoc().data.casaId == casaId;
+        && getUserDoc().data.casaId == casaId
+        && getUserDoc().data.get('statoMembro', 'active') != 'pending';
     }
 
     // File size constraint: positive and strictly <= 15 MB (15,728,640 bytes)

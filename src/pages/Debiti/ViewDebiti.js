@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useMemo, useCallback, useRef } from "react";
+import HouseholdShell from "../../components/HouseholdShell";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { useHousehold } from "../../contexts/HouseholdContext";
@@ -273,6 +274,7 @@ export default function ViewDebiti() {
   }
 
   return (
+    <HouseholdShell>
     <div className="card domain-page-card">
       {/* Header */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2rem", flexWrap: "wrap", gap: "12px" }}>
@@ -741,5 +743,6 @@ export default function ViewDebiti() {
         <i className="fas fa-arrow-left" style={{ marginRight: "6px" }} aria-hidden="true"></i> {t("expenses.backToDashboard", null, "Torna alla Dashboard")}
       </button>
     </div>
+    </HouseholdShell>
   );
 }

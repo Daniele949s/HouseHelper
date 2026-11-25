@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import HouseholdShell from '../../components/HouseholdShell';
 import { useNavigate } from 'react-router-dom';
 import Calendar from 'react-calendar';
 import "react-calendar/dist/Calendar.css";
@@ -109,6 +110,7 @@ export default function ViewCalendario() {
   }
 
   return (
+    <HouseholdShell>
     <div className="card domain-page-card">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '12px' }}>
         <div>
@@ -217,5 +219,6 @@ export default function ViewCalendario() {
         <i className="fas fa-arrow-left" style={{ marginRight: '6px' }}></i> {t("calendar.backToDashboard", null, "Torna alla Dashboard")}
       </button>
     </div>
+    </HouseholdShell>
   );
 }

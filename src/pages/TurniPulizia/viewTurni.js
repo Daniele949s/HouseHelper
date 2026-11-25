@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useMemo, useCallback, useRef } from "react";
+import HouseholdShell from "../../components/HouseholdShell";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { useHousehold } from "../../contexts/HouseholdContext";
@@ -257,6 +258,7 @@ export default function VisualizzaTurni() {
     : `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
 
   return (
+    <HouseholdShell>
     <div className="card domain-page-card">
       {/* Header */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2rem", flexWrap: "wrap", gap: "12px" }}>
@@ -837,5 +839,6 @@ export default function VisualizzaTurni() {
         <i className="fas fa-arrow-left" style={{ marginRight: "6px" }} aria-hidden="true"></i> {t("chores.backToDashboard", {}, "Torna alla dashboard")}
       </button>
     </div>
+    </HouseholdShell>
   );
 }

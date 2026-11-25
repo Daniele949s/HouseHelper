@@ -43,7 +43,7 @@ describe("MobileNavigation Component", () => {
   });
 
   describe("Authenticated Mode with Active Household", () => {
-    test("renders header greeting, badge, 9 items including Settings, and logout button in Italian", async () => {
+    test("renders header greeting, badge, 5 items including Settings, and logout button in Italian", async () => {
       renderWithProviders(<MobileNavigation />, {
         user: mockUser,
         userData: mockUserData,
@@ -57,11 +57,7 @@ describe("MobileNavigation Component", () => {
       expect(screen.getByText(/Ciao, Marco/i)).toBeInTheDocument();
 
       const expectedItems = [
-        { label: "Dashboard", icon: "fa-home" },
-        { label: "Turni Pulizia", icon: "fa-broom" },
-        { label: "Spese & Debiti", icon: "fa-wallet" },
         { label: "Lista Spesa", icon: "fa-shopping-cart" },
-        { label: "Calendario Casa", icon: "fa-calendar-alt" },
         { label: "Bacheca", icon: "fa-thumbtack" },
         { label: "Documenti & Contratti", icon: "fa-folder-open" },
         { label: "Contatti Utili", icon: "fa-address-book" },
@@ -79,7 +75,7 @@ describe("MobileNavigation Component", () => {
       expect(screen.getByText(/Esci dall'account/i)).toBeInTheDocument();
     });
 
-    test("renders all 9 drawer items and logout button in English when language is 'en'", async () => {
+    test("renders all 5 drawer items and logout button in English when language is 'en'", async () => {
       renderWithProviders(<MobileNavigation />, {
         user: mockUser,
         userData: mockUserData,
@@ -92,11 +88,7 @@ describe("MobileNavigation Component", () => {
       expect(screen.getByText(/Hello, Marco/i)).toBeInTheDocument();
 
       const expectedEnglish = [
-        "Dashboard",
-        "Cleaning Chores",
-        "Expenses & Balances",
         "Grocery List",
-        "House Calendar",
         "Notice Board",
         "Documents & Leases",
         "Useful Contacts",

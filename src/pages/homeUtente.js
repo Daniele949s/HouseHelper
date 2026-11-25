@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useMemo, useRef } from "react";
+import HouseholdShell from "../components/HouseholdShell";
 import { useNavigate } from "react-router-dom";
 import { auth, db } from "../firebase";
 import { collection, query, where, getDocs } from "firebase/firestore";
@@ -494,6 +495,7 @@ export default function HomeUtente() {
   }, [prossimoTurno, userData?.username, currentUser?.uid, t, language]);
 
   return (
+    <HouseholdShell>
     <div className="dashboard-container">
       {/* ================= COMMAND CENTER HERO: PRESENCE & HOUSE IDENTITY ================= */}
       <section className="household-command-center-hero" aria-label={t("dashboard.commandCenterAria", {}, "Centro di Controllo Casa")}>
@@ -1207,5 +1209,6 @@ export default function HomeUtente() {
         </div>
       </div>
     </div>
+    </HouseholdShell>
   );
 }

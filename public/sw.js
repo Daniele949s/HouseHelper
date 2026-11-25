@@ -13,9 +13,7 @@ const PRECACHE_ASSETS = [
   '/',
   '/index.html',
   '/manifest.json',
-  '/favicon.ico',
-  '/logo192.png',
-  '/logo512.png',
+  '/HouseHelper.svg',
   '/fontawesome.min.css'
 ];
 

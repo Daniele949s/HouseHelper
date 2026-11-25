@@ -1,26 +1,22 @@
 import React, { createContext, useCallback, useContext, useMemo, useState, useEffect } from "react";
 
 export const DESKTOP_NAV_ITEMS = [
-  { key: "nav.dashboard", fallback: "Dashboard", icon: "fa-home", path: "/home", end: true },
-  { key: "nav.chores", fallback: "Turni", icon: "fa-broom", path: "/turni", end: false },
+  { key: "nav.home", fallback: "Home", icon: "fa-home", path: "/home", end: true },
   { key: "nav.debts", fallback: "Debiti", icon: "fa-wallet", path: "/debiti", end: false },
   { key: "nav.groceries", fallback: "Spesa", icon: "fa-shopping-cart", path: "/spesa", end: false },
-  { key: "nav.board", fallback: "Bacheca", icon: "fa-thumbtack", path: "/bacheca", end: false },
+  { key: "nav.chores", fallback: "Turni", icon: "fa-broom", path: "/turni", end: false },
   { key: "nav.calendar", fallback: "Calendario", icon: "fa-calendar-alt", path: "/calendario", end: false },
+  { key: "nav.board", fallback: "Bacheca", icon: "fa-thumbtack", path: "/bacheca", end: false },
   { key: "nav.documents", fallback: "Documenti", icon: "fa-folder-open", path: "/documenti", end: false },
   { key: "nav.contacts", fallback: "Contatti", icon: "fa-address-book", path: "/contatti", end: false },
   { key: "nav.settings", fallback: "Impostazioni", icon: "fa-sliders-h", path: "/impostazioni", end: false, aliases: ["/settings"] },
 ];
 
 export const MOBILE_DRAWER_HOUSEHOLD_ITEMS = [
-  { key: "nav.dashboard", fallback: "Dashboard", icon: "fa-home", path: "/home", end: true },
-  { key: "nav.choresFull", fallback: "Turni Pulizia", icon: "fa-broom", path: "/turni", end: false },
-  { key: "nav.debtsFull", fallback: "Spese & Debiti", icon: "fa-wallet", path: "/debiti", end: false },
-  { key: "nav.groceriesFull", fallback: "Lista Spesa", icon: "fa-shopping-cart", path: "/spesa", end: false },
-  { key: "nav.calendarFull", fallback: "Calendario Casa", icon: "fa-calendar-alt", path: "/calendario", end: false },
+  { key: "nav.groceriesFull", fallback: "Lista della spesa", icon: "fa-shopping-cart", path: "/spesa", end: false },
   { key: "nav.board", fallback: "Bacheca", icon: "fa-thumbtack", path: "/bacheca", end: false },
-  { key: "nav.documentsFull", fallback: "Documenti & Contratti", icon: "fa-folder-open", path: "/documenti", end: false },
-  { key: "nav.contactsFull", fallback: "Contatti Utili", icon: "fa-address-book", path: "/contatti", end: false },
+  { key: "nav.documentsFull", fallback: "Documenti", icon: "fa-folder-open", path: "/documenti", end: false },
+  { key: "nav.contactsFull", fallback: "Contatti", icon: "fa-address-book", path: "/contatti", end: false },
   { key: "nav.settings", fallback: "Impostazioni", icon: "fa-sliders-h", path: "/impostazioni", end: false, aliases: ["/settings"] },
 ];
 
@@ -32,9 +28,9 @@ export const MOBILE_DRAWER_PUBLIC_ITEMS = [
 
 export const MOBILE_BOTTOM_TABS = [
   { key: "nav.home", fallback: "Home", icon: "fa-home", path: "/home", end: true },
+  { key: "nav.debts", fallback: "Debiti", icon: "fa-wallet", path: "/debiti", end: false },
   { key: "nav.chores", fallback: "Turni", icon: "fa-broom", path: "/turni", end: false },
-  { key: "nav.expenses", fallback: "Spese", icon: "fa-wallet", path: "/debiti", end: false },
-  { key: "nav.groceries", fallback: "Spesa", icon: "fa-shopping-cart", path: "/spesa", end: false },
+  { key: "nav.calendar", fallback: "Calendario", icon: "fa-calendar-alt", path: "/calendario", end: false },
 ];
 
 /**

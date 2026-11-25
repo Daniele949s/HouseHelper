@@ -35,6 +35,7 @@ export default function DesktopNavigation() {
               <NavLink
                 to={item.path}
                 className={`desktop-nav-link ${isActive ? "active" : ""}`}
+                aria-current={isActive ? "page" : undefined}
                 title={label}
               >
                 <i className={`fas ${item.icon} desktop-nav-icon`} aria-hidden="true"></i>

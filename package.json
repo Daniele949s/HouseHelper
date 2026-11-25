@@ -22,7 +22,8 @@
     "eject": "react-scripts eject",
     "check:circular": "node scripts/check-circular.js",
     "check:emojis": "node scripts/verify-zero-emojis.js",
-    "audit:secrets": "node scripts/audit-secrets.js"
+    "audit:secrets": "node scripts/audit-secrets.js",
+    "test:rules": "firebase emulators:exec --only auth,firestore --project househelper-12050 \"node scripts/test-firestore-rules-emulator.mjs\""
   },
   "eslintConfig": {
     "extends": [

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import HouseholdShell from "../../components/HouseholdShell";
 import { useNavigate } from "react-router-dom";
 import { db } from "../../firebase";
 import { collection, query, where, getDocs, doc, deleteDoc } from "firebase/firestore";
@@ -222,6 +223,7 @@ export default function ViewBacheca() {
   const routineNotes = note.filter((n) => !isUrgent(n));
 
   return (
+    <HouseholdShell>
     <div className="card domain-page-card">
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2rem", flexWrap: "wrap", gap: "12px" }}>
         <div>
@@ -283,5 +285,6 @@ export default function ViewBacheca() {
         <i className="fas fa-arrow-left" style={{ marginRight: "6px" }} aria-hidden="true"></i> {t("board.backToDashboard", null, "Torna alla Dashboard")}
       </button>
     </div>
+    </HouseholdShell>
   );
 }

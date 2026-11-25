@@ -1,12 +1,13 @@
 import { initializeApp } from "firebase/app";
-import { getAuth, GoogleAuthProvider } from "firebase/auth";
+import { getAuth, GoogleAuthProvider, connectAuthEmulator } from "firebase/auth";
 import {
   getFirestore,
   initializeFirestore,
   persistentLocalCache,
   persistentMultipleTabManager,
+  connectFirestoreEmulator,
 } from "firebase/firestore";
-import { getStorage } from "firebase/storage";
+import { getStorage, connectStorageEmulator } from "firebase/storage";
 
 const firebaseConfig = {
   apiKey: process.env.REACT_APP_FIREBASE_API_KEY || "AIzaSyDVp02Ili_bgUUCK-RsB5knIj8qFdP7QFQ",
@@ -48,4 +49,19 @@ function createFirestoreInstance(firebaseApp) {
 
 export const db = createFirestoreInstance(app);
 export const storage = getStorage(app);
+
+if (
+  process.env.NODE_ENV !== "test" &&
+  process.env.REACT_APP_USE_FIREBASE_EMULATOR === "true" &&
+  typeof window !== "undefined"
+) {
+  try {
+    connectAuthEmulator(auth, "http://127.0.0.1:9099", { disableWarnings: true });
+    connectFirestoreEmulator(db, "127.0.0.1", 8080);
+    connectStorageEmulator(storage, "127.0.0.1", 9199);
+  } catch (_err) {
+    // Emulators already connected during HMR
+  }
+}
+
 export default app;

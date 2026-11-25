@@ -4,6 +4,7 @@ import { useAuth } from "../contexts/AuthContext";
 import { useLanguage } from "../contexts/LanguageContext";
 import {
   MOBILE_BOTTOM_TABS,
+  MOBILE_DRAWER_HOUSEHOLD_ITEMS,
   hasHouseholdAccess,
   isRouteActive,
   useNavigation
@@ -18,15 +19,19 @@ export default function MobileBottomBar() {
   const { currentUser, userData } = useAuth();
   const location = useLocation();
   const { t } = useLanguage();
-  const { toggleMobileMenu } = useNavigation();
+  const { isMobileMenuOpen, toggleMobileMenu } = useNavigation();
 
   // Guard: Only render when authenticated with an active household
   if (!hasHouseholdAccess(currentUser, userData)) {
     return null;
   }
 
+  const isMoreActive = MOBILE_DRAWER_HOUSEHOLD_ITEMS.some((item) =>
+    isRouteActive(location.pathname, item)
+  );
+
   return (
-    <nav className="mobile-bottom-bar" aria-label={t("nav.ariaMobileNav", {}, "Navigazione rapida mobile")}>
+    <nav className="mobile-bottom-bar hh-mobile-bar" aria-label={t("nav.ariaMobileNav", {}, "Navigazione rapida mobile")}>
       {MOBILE_BOTTOM_TABS.map((tab) => {
         const isActive = isRouteActive(location.pathname, tab);
         const label = t(tab.key, {}, tab.fallback);
@@ -48,8 +53,9 @@ export default function MobileBottomBar() {
 
       <button
         type="button"
-        className="mobile-bottom-tab"
+        className={`mobile-bottom-tab ${isMoreActive ? "active" : ""}`}
         onClick={toggleMobileMenu}
+        aria-expanded={isMobileMenuOpen}
         aria-label={t("nav.ariaMoreTab", {}, "Apri menu altro")}
       >
         <span className="mobile-bottom-tab-icon">
