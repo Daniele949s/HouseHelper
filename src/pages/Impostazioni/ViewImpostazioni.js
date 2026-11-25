@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { useHousehold } from "../../contexts/HouseholdContext";
 import { useLanguage } from "../../contexts/LanguageContext";
-import { useTheme } from "../../contexts/ThemeContext";
 import { auth } from "../../firebase";
 import { signOut, sendEmailVerification, sendPasswordResetEmail } from "firebase/auth";
 import { showToast, showConfirm } from "../../utils/feedback";
@@ -23,7 +22,6 @@ export default function ViewImpostazioni() {
   const { currentUser, userData } = useAuth();
   const { house: liveHouse, roommates: liveRoommates, loading: loadingHousehold, isAdmin: householdIsAdmin } = useHousehold();
   const { language, setLanguage, t } = useLanguage();
-  const { theme, setTheme } = useTheme();
 
   const cachedHousehold = useMemo(
     () => (userData?.casaId ? getHouseholdSnapshot(userData.casaId) : null),
@@ -239,11 +237,11 @@ export default function ViewImpostazioni() {
         </div>
       </section>
 
-      {/* Section 1: Appearance & Language Grouped Table Card */}
+      {/* Section 1: Language Grouped Table Card */}
       <section className="card settings-group-card" aria-labelledby="settings-appearance-heading">
         <h2 id="settings-appearance-heading" className="settings-section-title">
-          <i className="fas fa-palette" aria-hidden="true"></i>
-          {t("settings.theme.title")}
+          <i className="fas fa-globe" aria-hidden="true"></i>
+          {t("settings.language.title")}
         </h2>
 
         {/* Language Row */}
@@ -281,57 +279,6 @@ export default function ViewImpostazioni() {
               <i className="fas fa-globe" aria-hidden="true"></i>
               <span>{t("settings.language.english")}</span>
               <span className="ios-segmented-badge">EN</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Theme 3-Way Mode Row */}
-        <div className="settings-row">
-          <div className="settings-row-leading">
-            <div className="settings-squircle theme" aria-hidden="true">
-              <i className="fas fa-paint-brush"></i>
-            </div>
-            <div className="settings-row-info">
-              <div className="settings-row-title">{t("settings.theme.title")}</div>
-              <div className="settings-row-desc">{t("settings.theme.description")}</div>
-            </div>
-          </div>
-          <div className="ios-segmented-control" role="group" aria-label={t("settings.theme.title")}>
-            <button
-              type="button"
-              aria-pressed={theme === "light"}
-              className={`ios-segmented-item ${theme === "light" ? "active" : ""}`}
-              onClick={() => setTheme("light")}
-              aria-label={t("settings.theme.light")}
-              title={t("settings.theme.lightDesc")}
-              style={{ minHeight: "44px", minWidth: "44px" }}
-            >
-              <i className="fas fa-sun" aria-hidden="true"></i>
-              <span>{t("settings.theme.light", null, "Chiaro")}</span>
-            </button>
-            <button
-              type="button"
-              aria-pressed={theme === "dark"}
-              className={`ios-segmented-item ${theme === "dark" ? "active" : ""}`}
-              onClick={() => setTheme("dark")}
-              aria-label={t("settings.theme.dark")}
-              title={t("settings.theme.darkDesc")}
-              style={{ minHeight: "44px", minWidth: "44px" }}
-            >
-              <i className="fas fa-moon" aria-hidden="true"></i>
-              <span>{t("settings.theme.dark", null, "Scuro")}</span>
-            </button>
-            <button
-              type="button"
-              aria-pressed={theme === "system"}
-              className={`ios-segmented-item ${theme === "system" ? "active" : ""}`}
-              onClick={() => setTheme("system")}
-              aria-label={t("settings.theme.system")}
-              title={t("settings.theme.systemDesc")}
-              style={{ minHeight: "44px", minWidth: "44px" }}
-            >
-              <i className="fas fa-desktop" aria-hidden="true"></i>
-              <span>{t("settings.theme.system", null, "Sistema")}</span>
             </button>
           </div>
         </div>

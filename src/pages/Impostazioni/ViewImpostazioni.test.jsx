@@ -170,27 +170,9 @@ describe("ViewImpostazioni Component Suite (Apple HIG & Frontend Design)", () =>
 
     await screen.findByRole("heading", { level: 1, name: /Impostazioni/i });
 
-    const lightBtn = screen.getByRole("button", { name: /Tema Chiaro/i });
-    const darkBtn = screen.getByRole("button", { name: /Tema Scuro/i });
-    const systemBtn = screen.getByRole("button", { name: /Automatico \(Sistema\)/i });
-
-    expect(lightBtn).toBeInTheDocument();
-    expect(darkBtn).toBeInTheDocument();
-    expect(systemBtn).toBeInTheDocument();
-
-    // Select Light
-    fireEvent.click(lightBtn);
-    expect(localStorage.getItem("househelper_theme")).toBe("light");
-    expect(document.documentElement.getAttribute("data-theme")).toBe("light");
-
-    // Select Dark
-    fireEvent.click(darkBtn);
-    expect(localStorage.getItem("househelper_theme")).toBe("dark");
-    expect(document.documentElement.getAttribute("data-theme")).toBe("dark");
-
-    // Select System
-    fireEvent.click(systemBtn);
-    expect(localStorage.getItem("househelper_theme")).toBe("system");
+    expect(screen.queryByRole("button", { name: /Tema Chiaro/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Tema Scuro/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Automatico \(Sistema\)/i })).not.toBeInTheDocument();
   });
 
   test("6. Notification preferences toggle switches update state and persist to localStorage via utility", async () => {
