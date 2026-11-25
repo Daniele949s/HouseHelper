@@ -62,6 +62,20 @@ export default function HouseholdShell({ title, children }) {
             })}
           </ul>
         </nav>
+
+        <div className="hh-sidebar-footer">
+          <a
+            href="https://github.com/Daniele949s"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hh-sidebar-github"
+            aria-label={t("footer.githubAria", {}, "GitHub di Daniele")}
+            title={t("footer.githubTitle", {}, "Profilo GitHub (Daniele949s)")}
+          >
+            <i className="fab fa-github" aria-hidden="true" />
+            <span>GitHub</span>
+          </a>
+        </div>
       </aside>
 
       <main className="hh-main-wrap">

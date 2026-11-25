@@ -15,16 +15,7 @@ export default function AppFooter() {
             aria-label={t("footer.githubAria", {}, "GitHub di Daniele")}
             title={t("footer.githubTitle", {}, "Profilo GitHub (Daniele949s)")}
           >
-            <i className="fab fa-github"></i>
-          </a>
-        </li>
-        <li>
-          <a
-            href="mailto:mproietti2003@gmail.com"
-            aria-label={t("footer.emailAria", {}, "Contattami via Email")}
-            title={t("footer.emailTitle", {}, "Invia una mail a mproietti2003@gmail.com")}
-          >
-            <i className="fas fa-envelope"></i>
+            <i className="fab fa-github" aria-hidden="true"></i>
           </a>
         </li>
       </ul>

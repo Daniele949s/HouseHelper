@@ -31,7 +31,8 @@ body:has(.hh-shell) .background-slideshow {
   display: none !important;
 }
 
-body:has(.hh-shell) .app-topbar {
+body:has(.hh-shell) .app-topbar,
+body:has(.hh-shell) .template-footer {
   display: none !important;
 }
 
@@ -215,6 +216,31 @@ body.dark-mode .hh-shell {
     background-color: rgba(255, 255, 255, 0.20);
     color: #FFFFFF;
     font-weight: 700;
+  }
+
+  .hh-sidebar-footer {
+    margin-top: auto;
+    padding-top: 16px;
+    border-top: 1px solid rgba(255, 255, 255, 0.14);
+  }
+
+  .hh-sidebar-github {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 44px;
+    padding: 10px 14px;
+    border-radius: var(--hh-radius-pill);
+    color: rgba(255, 255, 255, 0.78);
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: background-color 150ms ease, color 150ms ease;
+  }
+
+  .hh-sidebar-github:hover {
+    background-color: rgba(255, 255, 255, 0.10);
+    color: var(--hh-accent);
   }
 
   .hh-main-wrap {
