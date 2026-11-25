@@ -807,3 +807,107 @@ body.dark-mode .hh-shell {
     padding: 18px 16px !important;
   }
 }
+
+/* ==========================================================================
+   MOBILE "ALTRO" DRAWER & PORTALED OVERLAYS (BOTANICAL PALETTE)
+   Portal renders directly on document.body (outside .hh-shell)
+   ========================================================================== */
+body:has(.hh-shell) .mobile-menu-overlay {
+  background: rgba(25, 40, 32, 0.48) !important;
+  backdrop-filter: blur(6px) !important;
+  -webkit-backdrop-filter: blur(6px) !important;
+}
+
+body:has(.hh-shell) .mobile-menu-inner {
+  background: var(--hh-bg) !important;
+  color: var(--hh-ink) !important;
+  border-left: 1px solid var(--hh-border) !important;
+  box-shadow: -8px 0 32px rgba(25, 40, 32, 0.16) !important;
+}
+
+body:has(.hh-shell) .mobile-menu-header {
+  border-bottom: 1px solid var(--hh-border) !important;
+}
+
+body:has(.hh-shell) .mobile-menu-badge {
+  color: var(--hh-green) !important;
+  font-weight: 800 !important;
+}
+
+body:has(.hh-shell) .mobile-user-greeting {
+  color: var(--hh-muted) !important;
+}
+
+body:has(.hh-shell) .mobile-close-btn {
+  background: #FFFFFF !important;
+  color: var(--hh-ink) !important;
+  border: 1px solid var(--hh-border) !important;
+  min-width: 44px;
+  min-height: 44px;
+}
+
+body:has(.hh-shell) .mobile-close-btn:hover {
+  background: #EFECE4 !important;
+}
+
+body:has(.hh-shell) .mobile-menu-link {
+  background: #FFFFFF !important;
+  color: var(--hh-ink) !important;
+  border: 1px solid var(--hh-border) !important;
+  border-radius: 14px !important;
+  min-height: 48px;
+}
+
+body:has(.hh-shell) .mobile-menu-link:hover {
+  background: #FCFDF9 !important;
+  border-color: rgba(29, 68, 53, 0.28) !important;
+}
+
+body:has(.hh-shell) .mobile-menu-item.active-item .mobile-menu-link {
+  background: var(--hh-accent) !important;
+  color: var(--hh-ink) !important;
+  border-color: rgba(29, 68, 53, 0.25) !important;
+  font-weight: 700 !important;
+}
+
+body:has(.hh-shell) .menu-icon-wrapper {
+  background: rgba(29, 68, 53, 0.10) !important;
+  color: var(--hh-green) !important;
+}
+
+body:has(.hh-shell) .mobile-menu-item.active-item .menu-icon-wrapper {
+  background: var(--hh-green) !important;
+  color: var(--hh-accent) !important;
+}
+
+body:has(.hh-shell) .mobile-menu-footer {
+  border-top: 1px solid var(--hh-border) !important;
+}
+
+body:has(.hh-shell) .mobile-logout-btn {
+  background: rgba(200, 30, 58, 0.08) !important;
+  color: #B41731 !important;
+  border: 1px solid rgba(200, 30, 58, 0.22) !important;
+  border-radius: 12px !important;
+  min-height: 46px;
+}
+
+body:has(.hh-shell) .mobile-logout-btn:hover {
+  background: rgba(200, 30, 58, 0.14) !important;
+}
+
+/* Harmonize portaled ConfirmModal inside authenticated shell */
+body:has(.hh-shell) .confirm-modal-card {
+  background: #FFFFFF !important;
+  color: var(--hh-ink) !important;
+  border: 1px solid var(--hh-border) !important;
+  box-shadow: 0 20px 44px rgba(25, 40, 32, 0.18) !important;
+}
+
+body:has(.hh-shell) .confirm-modal-title {
+  color: var(--hh-ink) !important;
+}
+
+body:has(.hh-shell) .confirm-modal-message {
+  color: var(--hh-muted) !important;
+}
