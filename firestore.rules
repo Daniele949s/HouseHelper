@@ -178,8 +178,12 @@ service cloud.firestore {
         || (hasValidCasa() && getUserCasaId() == casaId)
       );
 
-      // List: Only active members of the house; zero enumeration for unassigned users.
-      allow list: if isSignedIn() && belongsToSameHouse(casaId);
+      // List: Active members of the house. Transitional fallback (limit <= 1) preserved for
+      // unassigned users while legacy houses created before /inviti/{codice} are backfilled.
+      allow list: if isSignedIn() && (
+        belongsToSameHouse(casaId)
+        || (!hasValidCasa() && request.query.limit <= 1)
+      );
 
       // Create: Authenticated users can create a new household with required fields
       allow create: if isSignedIn()
