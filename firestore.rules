@@ -33,15 +33,23 @@ service cloud.firestore {
       return getUserDoc().data.casaId;
     }
 
+    // Strict allowlist for active membership:
+    // Allows 'active' and legacy profiles where 'statoMembro' key is absent.
+    // Explicitly denies 'pending', null, and any unexpected value.
+    function isActiveMember() {
+      return !('statoMembro' in getUserDoc().data)
+        || getUserDoc().data.statoMembro == 'active';
+    }
+
     // Strict multi-tenant household barrier: prevents null == null exploit
-    // and blocks unapproved pending members from accessing household data.
+    // and blocks pending, null, or unexpected member states from accessing household data.
     function belongsToSameHouse(casaId) {
       return hasValidCasa() 
         && casaId != null 
         && casaId is string 
         && casaId.size() > 0 
         && getUserCasaId() == casaId
-        && getUserDoc().data.get('statoMembro', 'active') != 'pending';
+        && isActiveMember();
     }
 
     function housePath(casaId) {
@@ -82,11 +90,13 @@ service cloud.firestore {
       return !after.diff(resource.data).affectedKeys().hasAny(['casaId', 'ruoloCasa', 'statoMembro'])
         || (after.casaId == null && after.get('ruoloCasa', null) == null
           && after.get('statoMembro', null) == null)
-        || (after.casaId != resource.data.casaId && (
-          (after.get('ruoloCasa', null) == 'member' && after.get('statoMembro', null) == 'pending')
-          || (after.get('ruoloCasa', null) == 'admin' && after.get('statoMembro', null) == 'active'
-            && isHouseAdmin(after.casaId))
-        ));
+        || (resource.data.get('casaId', null) == null
+          && after.casaId is string && after.casaId.size() > 0
+          && exists(housePath(after.casaId)) && (
+            (after.get('ruoloCasa', null) == 'member' && after.get('statoMembro', null) == 'pending')
+            || (after.get('ruoloCasa', null) == 'admin' && after.get('statoMembro', null) == 'active'
+              && isHouseAdmin(after.casaId))
+          ));
     }
 
     function isAdminTransfer(casaId) {
@@ -161,17 +171,15 @@ service cloud.firestore {
     // 2. CASE (Nuclei Abitativi)
     // ==========================================
     match /case/{casaId} {
-      // Get: Members (including pending members awaiting approval) can fetch their household;
-      // unassigned users can read individual house doc during invite code lookup.
+      // Get: Active members and pending members awaiting approval for THEIR house only.
+      // Unassigned users must resolve invite codes via /inviti/{codice} instead of reading /case.
       allow get: if isSignedIn() && (
         belongsToSameHouse(casaId)
         || (hasValidCasa() && getUserCasaId() == casaId)
-        || !hasValidCasa()
       );
 
-      // List: Active members can list their home; unassigned users are strictly limited to 1 result
-      // during invite code lookup to minimize enumeration.
-      allow list: if isSignedIn() && (belongsToSameHouse(casaId) || (!hasValidCasa() && request.query.limit <= 1));
+      // List: Only active members of the house; zero enumeration for unassigned users.
+      allow list: if isSignedIn() && belongsToSameHouse(casaId);
 
       // Create: Authenticated users can create a new household with required fields
       allow create: if isSignedIn()
@@ -193,6 +201,26 @@ service cloud.firestore {
         );
 
       allow delete: if isHouseAdmin(casaId);
+    }
+
+    // ==========================================
+    // 2B. INVITI (Exact-Code Invite Lookup, Zero Enumeration)
+    // ==========================================
+    match /inviti/{codice} {
+      // Proves exact possession of the invite code; listing all invites is strictly denied.
+      allow get: if isSignedIn();
+      allow list: if false;
+
+      allow create: if isSignedIn()
+        && isNonEmptyString(codice, 12)
+        && codice.size() >= 4
+        && isNonEmptyString(request.resource.data.casaId, 64)
+        && isNonEmptyString(request.resource.data.nomeCasa, 60)
+        && request.resource.data.creatoreId == request.auth.uid
+        && isHouseAdmin(request.resource.data.casaId);
+
+      allow update: if false;
+      allow delete: if isSignedIn() && isHouseAdmin(resource.data.casaId);
     }
 
     // ==========================================
@@ -281,7 +309,9 @@ service cloud.firestore {
         && isNonEmptyString(request.resource.data.titolo, 100)
         && isNonEmptyString(request.resource.data.contenuto, 1500);
 
+      // Update: Only original author or house admin may edit a notice (prevents author impersonation).
       allow update: if belongsToSameHouse(resource.data.casaId)
+        && (request.auth.uid == resource.data.autoreId || isHouseAdmin(resource.data.casaId))
         && request.resource.data.casaId == resource.data.casaId
         && request.resource.data.autoreId == resource.data.autoreId
         && isNonEmptyString(request.resource.data.titolo, 100)
@@ -303,6 +333,7 @@ service cloud.firestore {
         && isNonEmptyString(request.resource.data.categoria, 50)
         && isNonEmptyString(request.resource.data.fileUrl, 1000)
         && request.resource.data.fileUrl.matches('^https://.*')
+        && (!('url' in request.resource.data) || (request.resource.data.url is string && request.resource.data.url.matches('^https://.*')))
         && request.resource.data.dimensioneBytes is int
         && request.resource.data.dimensioneBytes > 0
         && request.resource.data.dimensioneBytes <= 26214400; // Max 25 MB
@@ -311,6 +342,7 @@ service cloud.firestore {
         && request.resource.data.casaId == resource.data.casaId
         && request.resource.data.caricatoDa == resource.data.caricatoDa
         && request.resource.data.fileUrl == resource.data.fileUrl
+        && (!('url' in resource.data) || request.resource.data.url == resource.data.url)
         && isNonEmptyString(request.resource.data.nome, 120)
         && isNonEmptyString(request.resource.data.categoria, 50);
 

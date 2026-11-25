@@ -4,6 +4,7 @@ import {
   getDoc,
   getDocs,
   addDoc,
+  setDoc,
   deleteDoc,
   updateDoc,
   writeBatch,
@@ -103,6 +104,13 @@ export async function createHousehold({ name, creatorUid }) {
     creatoreId: creatorUid,
   });
 
+  await setDoc(doc(db, "inviti", inviteCode), {
+    casaId: casaRef.id,
+    nomeCasa: name,
+    creatoreId: creatorUid,
+    createdAt: new Date(),
+  });
+
   await updateDoc(doc(db, "utenti", creatorUid), {
     casaId: casaRef.id,
     ruoloCasa: "admin",
@@ -128,22 +136,58 @@ export async function createHousehold({ name, creatorUid }) {
  * @returns {Promise<{ house: object }|null>} Null when no Household matches code
  */
 export async function joinHousehold({ code, userUid }) {
-  const q = query(collection(db, "case"), where("codiceUnivoco", "==", code), limit(1));
-  const querySnapshot = await getDocs(q);
-
-  if (querySnapshot.empty) {
+  const normalizedCode = String(code || "").trim().toUpperCase();
+  if (!normalizedCode) {
     return null;
   }
 
-  const casaDoc = querySnapshot.docs[0];
+  // Primary secure lookup: exact document get on /inviti/{codice} (zero enumeration on /case).
+  let targetCasaId = null;
+  let targetHouseData = null;
+
+  try {
+    const inviteSnap = await getDoc(doc(db, "inviti", normalizedCode));
+    if (inviteSnap && typeof inviteSnap.exists === "function" && inviteSnap.exists()) {
+      const inviteData = inviteSnap.data() || {};
+      targetCasaId = inviteData.casaId;
+      targetHouseData = {
+        id: inviteData.casaId,
+        nome: inviteData.nomeCasa,
+        codiceUnivoco: normalizedCode,
+      };
+    }
+  } catch {
+    // Ignore and fall through
+  }
+
+  // Fallback for legacy/test environments where /inviti has not been backfilled yet.
+  if (!targetCasaId) {
+    try {
+      const q = query(collection(db, "case"), where("codiceUnivoco", "==", normalizedCode), limit(1));
+      const querySnapshot = await getDocs(q);
+      if (!querySnapshot.empty) {
+        const casaDoc = querySnapshot.docs[0];
+        targetCasaId = casaDoc.id;
+        targetHouseData = { id: casaDoc.id, ...casaDoc.data() };
+      }
+    } catch {
+      // Blocked by hardened Firestore rules on /case list when invite does not exist in /inviti
+      return null;
+    }
+  }
+
+  if (!targetCasaId) {
+    return null;
+  }
+
   await updateDoc(doc(db, "utenti", userUid), {
-    casaId: casaDoc.id,
+    casaId: targetCasaId,
     ruoloCasa: "member",
     statoMembro: "pending",
   });
 
   return {
-    house: { id: casaDoc.id, ...casaDoc.data() },
+    house: targetHouseData,
   };
 }
 
@@ -224,6 +268,17 @@ export async function deleteHousehold({ casaId, adminUid }) {
   });
 
   await Promise.all(cleanup);
+  try {
+    const casaSnap = await getDoc(doc(db, "case", casaId));
+    const inviteCode = casaSnap && typeof casaSnap.exists === "function" && casaSnap.exists()
+      ? casaSnap.data()?.codiceUnivoco
+      : null;
+    if (inviteCode) {
+      await deleteDoc(doc(db, "inviti", String(inviteCode).trim().toUpperCase())).catch(() => {});
+    }
+  } catch {
+    // Ignore invite cleanup failure if invite doc did not exist
+  }
   await deleteDoc(doc(db, "case", casaId));
   await updateDoc(doc(db, "utenti", adminUid), membership);
 }
