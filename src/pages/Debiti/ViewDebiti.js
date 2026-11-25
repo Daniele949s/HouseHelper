@@ -297,7 +297,7 @@ export default function ViewDebiti() {
             onClick={() => navigate("/debiti/aggiungi")}
             style={{ width: "auto", padding: "12px 24px" }}
           >
-            <i className="fas fa-plus" aria-hidden="true"></i> {t("expenses.newExpenseTitle", null, "Nuova Spesa")}
+            <i className="fas fa-plus" aria-hidden="true"></i> {t("expenses.newExpenseTitle", null, "Aggiungi spesa")}
           </button>
         </div>
       </div>

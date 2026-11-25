@@ -275,7 +275,7 @@ describe("Milestone M9 Empirical Challenger Suite: Visual System, Liquid Glass B
         route: "/home"
       });
 
-      await screen.findByText(/Panoramica della casa/i);
+      await screen.findByText(/Bentornato/i);
       const homeHtml = document.body.innerHTML;
 
       // Bureaucratic term check on HomeUtente
@@ -319,7 +319,7 @@ describe("Milestone M9 Empirical Challenger Suite: Visual System, Liquid Glass B
         route: "/spesa"
       });
 
-      await screen.findByText(/Aggiungi alla lista/i);
+      await screen.findByText(/Aggiungi prodotto/i);
       const spesaHtml = document.body.innerHTML;
       expect(spesaHtml).not.toMatch(/approvvigionamento/i);
       expect(spesaHtml).not.toMatch(/Dispensa/i);

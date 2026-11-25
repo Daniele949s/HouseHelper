@@ -341,7 +341,7 @@ describe("Milestone M8 Adversarial Challenger Suite: Mobile Navigation, Ergonomi
         user: alice,
         userData: { username: "Alice", casaId: houseId },
       });
-      await waitFor(() => expect(screen.getByRole("heading", { name: /Nuova Spesa/i })).toBeInTheDocument());
+      await waitFor(() => expect(screen.getByRole("heading", { name: /Aggiungi spesa/i })).toBeInTheDocument());
 
       ["+5 €", "+10 €", "+20 €", "+50 €"].forEach((amt) => {
         const btn = screen.getByRole("button", { name: amt });
