@@ -220,13 +220,10 @@ export default function AggiungiDebito() {
   };
 
   return (
-    <div className="card" style={{ maxWidth: "680px", margin: "2rem auto" }}>
-      <h1 style={{ marginBottom: "6px" }}>
-        {t("expenses.newExpenseTitle", null, "Nuova Spesa")}
+    <div className="card" style={{ maxWidth: "680px", margin: "0" }}>
+      <h1 style={{ marginBottom: "18px" }}>
+        {t("expenses.newExpenseTitle", null, "Aggiungi spesa")}
       </h1>
-      <p className="subtitle" style={{ marginBottom: "24px" }}>
-        {t("expenses.newExpenseSubtitle", null, "Inserisci una spesa e dividila con i coinquilini")}
-      </p>
 
       {error && (
         <div className="error-alert" role="alert" style={{ marginBottom: "20px" }}>

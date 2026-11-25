@@ -644,3 +644,140 @@ body.dark-mode .hh-shell {
     animation-duration: 0.01ms !important;
   }
 }
+
+/* ==========================================================================
+   INLINE ROUTE LOADING SKELETON (ZERO FULL-SCREEN FLASH)
+   ========================================================================== */
+.hh-inline-loading {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-height: 320px;
+  padding: 8px 0;
+  opacity: 0;
+  animation: hhSkeletonReveal 180ms ease 120ms forwards;
+}
+
+@keyframes hhSkeletonReveal {
+  to {
+    opacity: 1;
+  }
+}
+
+.hh-skeleton-bar {
+  border-radius: 14px;
+  background: linear-gradient(90deg, rgba(25, 40, 32, 0.05) 25%, rgba(25, 40, 32, 0.09) 50%, rgba(25, 40, 32, 0.05) 75%);
+  background-size: 200% 100%;
+  animation: hhShimmer 1.3s ease-in-out infinite;
+}
+
+@keyframes hhShimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.hh-skeleton-title {
+  height: 32px;
+  width: 220px;
+  max-width: 65%;
+}
+
+.hh-skeleton-hero {
+  height: 128px;
+  width: 100%;
+  border-radius: 18px;
+}
+
+.hh-skeleton-row {
+  height: 60px;
+  width: 100%;
+}
+
+/* ==========================================================================
+   UNIFIED SECONDARY FORM CARDS (Aggiungi spesa, Turni, Bacheca, Calendario)
+   ========================================================================== */
+.hh-shell .card:not(.domain-page-card) {
+  background: var(--hh-surface) !important;
+  border: 1px solid var(--hh-border) !important;
+  border-radius: var(--hh-radius-card) !important;
+  box-shadow: var(--shadow-card) !important;
+  color: var(--hh-ink) !important;
+  margin: 0 !important;
+  padding: 24px !important;
+  width: 100% !important;
+  max-width: 680px !important;
+  text-align: left !important;
+}
+
+.hh-shell .card:not(.domain-page-card) h1 {
+  font-size: clamp(1.5rem, 2.2vw, 1.85rem);
+  margin: 0 0 18px !important;
+  text-align: left !important;
+}
+
+.hh-shell .auth-form label,
+.hh-shell .input-group label {
+  color: var(--hh-ink) !important;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.hh-shell .auth-form input:not([type="checkbox"]):not([type="radio"]),
+.hh-shell .auth-form select,
+.hh-shell .auth-form textarea,
+.hh-shell .input-group input:not([type="checkbox"]):not([type="radio"]),
+.hh-shell .input-group select,
+.hh-shell .input-group textarea {
+  background: #FFFFFF !important;
+  color: var(--hh-ink) !important;
+  border: 1.5px solid rgba(25, 40, 32, 0.16) !important;
+  border-radius: 12px !important;
+  min-height: 44px;
+  font-size: 1rem;
+}
+
+.hh-shell .auth-form input:focus,
+.hh-shell .auth-form select:focus,
+.hh-shell .auth-form textarea:focus {
+  border-color: var(--hh-green) !important;
+  box-shadow: 0 0 0 3px rgba(29, 68, 53, 0.14) !important;
+}
+
+/* Responsive Grocery Add Form (Lista della spesa) */
+.hh-shell .grocery-add-form {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 24px;
+  flex-wrap: nowrap;
+}
+
+.hh-shell .grocery-add-form input {
+  flex: 1 1 220px;
+  min-width: 0;
+  min-height: 46px;
+}
+
+.hh-shell .grocery-add-form button[type="submit"] {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+@media (max-width: 560px) {
+  .hh-shell .grocery-add-form {
+    flex-direction: column;
+  }
+
+  .hh-shell .grocery-add-form input {
+    flex: 0 0 auto !important;
+    width: 100% !important;
+    height: 48px !important;
+  }
+
+  .hh-shell .grocery-add-form button[type="submit"] {
+    width: 100% !important;
+  }
+
+  .hh-shell .card:not(.domain-page-card) {
+    padding: 18px 16px !important;
+  }
+}

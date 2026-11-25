@@ -1,5 +1,4 @@
 import React, { useEffect, useState, useMemo, useRef } from "react";
-import HouseholdShell from "../components/HouseholdShell";
 import { useNavigate } from "react-router-dom";
 import { auth, db } from "../firebase";
 import { collection, query, where, getDocs } from "firebase/firestore";
@@ -495,7 +494,6 @@ export default function HomeUtente() {
   }, [prossimoTurno, userData?.username, currentUser?.uid, t, language]);
 
   return (
-    <HouseholdShell>
     <div className="dashboard-container">
       {/* ================= COMMAND CENTER HERO: PRESENCE & HOUSE IDENTITY ================= */}
       <section className="household-command-center-hero" aria-label={t("dashboard.commandCenterAria", {}, "Centro di Controllo Casa")}>
@@ -505,10 +503,7 @@ export default function HomeUtente() {
             <i className="fas fa-user-circle" aria-hidden="true"></i>
           </div>
           <div className="welcome-text" style={{ flex: 1, minWidth: "180px", textAlign: "left" }}>
-            <span className="welcome-greeting" style={{ fontSize: "0.85rem", color: "var(--text-muted)", letterSpacing: "0.02em" }}>
-              {t("dashboard.overviewLabel", {}, "Panoramica della casa")}
-            </span>
-            <h1 className="welcome-username" style={{ margin: "2px 0 0 0", fontSize: "1.6rem" }}>
+            <h1 className="welcome-username" style={{ margin: 0, fontSize: "1.6rem" }}>
               {t("dashboard.welcomePrefix", {}, "Bentornato,")}{" "}
               <strong style={{ color: "var(--text-main)" }}>{userData?.username || t("dashboard.userFallback", {}, "Utente")}</strong>
             </h1>
@@ -1209,6 +1204,5 @@ export default function HomeUtente() {
         </div>
       </div>
     </div>
-    </HouseholdShell>
   );
 }

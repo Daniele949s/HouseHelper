@@ -1,11 +1,24 @@
-import React from "react";
+import React, { Suspense } from "react";
 import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { hasHouseholdAccess } from "../navigation/navigationRegistry";
+import HouseholdShell from "./HouseholdShell";
+
+function InlineRouteLoading() {
+  return (
+    <div className="hh-inline-loading" role="status" aria-busy="true" aria-live="polite">
+      <div className="hh-skeleton-bar hh-skeleton-title" />
+      <div className="hh-skeleton-bar hh-skeleton-hero" />
+      <div className="hh-skeleton-bar hh-skeleton-row" />
+      <div className="hh-skeleton-bar hh-skeleton-row" />
+    </div>
+  );
+}
 
 /**
  * Guard for routes requiring both authentication and an active household (casaId).
- * Redirects unauthenticated users to /login and homeless users to /scelta-casa.
+ * Keeps HouseholdShell persistently mounted across all internal route transitions
+ * so navigation never unmounts the shell or flashes the full-screen loader.
  */
 export function HouseProtectedRoute() {
   const { currentUser, userData } = useAuth();
@@ -18,7 +31,13 @@ export function HouseProtectedRoute() {
     return <Navigate to="/scelta-casa" replace />;
   }
 
-  return <Outlet />;
+  return (
+    <HouseholdShell>
+      <Suspense fallback={<InlineRouteLoading />}>
+        <Outlet />
+      </Suspense>
+    </HouseholdShell>
+  );
 }
 
 /**

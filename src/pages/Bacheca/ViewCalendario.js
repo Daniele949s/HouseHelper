@@ -1,5 +1,4 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import HouseholdShell from '../../components/HouseholdShell';
 import { useNavigate } from 'react-router-dom';
 import Calendar from 'react-calendar';
 import "react-calendar/dist/Calendar.css";
@@ -110,15 +109,9 @@ export default function ViewCalendario() {
   }
 
   return (
-    <HouseholdShell>
     <div className="card domain-page-card">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '12px' }}>
-        <div>
-          <h1 style={{ margin: 0, textAlign: 'left' }}>{t("calendar.title", null, "Calendario Casa")}</h1>
-          <p style={{ margin: '4px 0 0 0', color: 'var(--text-secondary)', textAlign: 'left', fontSize: '0.92rem' }}>
-            {t("calendar.pageSubtitle", null, "Visualizza tutti gli eventi, le scadenze e i turni pulizia")}
-          </p>
-        </div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '12px' }}>
+        <h1 style={{ margin: 0, textAlign: 'left' }}>{t("calendar.title", null, "Calendario Casa")}</h1>
       </div>
 
       <div className="calendar-split-layout">
@@ -219,6 +212,5 @@ export default function ViewCalendario() {
         <i className="fas fa-arrow-left" style={{ marginRight: '6px' }}></i> {t("calendar.backToDashboard", null, "Torna alla Dashboard")}
       </button>
     </div>
-    </HouseholdShell>
   );
 }

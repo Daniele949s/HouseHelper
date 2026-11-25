@@ -1,4 +1,4 @@
-import React, { Suspense, lazy } from "react";
+import React, { lazy } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import "./App.css";
 import "./styles/househelper-responsive.css";
@@ -120,30 +120,6 @@ class AppErrorBoundary extends React.Component {
   }
 }
 
-function LoadingFallback() {
-  return (
-    <div
-      className="container text-center py-5"
-      style={{
-        minHeight: "50vh",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center"
-      }}
-    >
-      <i
-        className="fas fa-spinner fa-spin fa-2x"
-        style={{ color: "var(--color-primary, #2563eb)", marginBottom: "12px" }}
-        aria-hidden="true"
-      ></i>
-      <p style={{ color: "var(--text-muted, #6b7280)", fontSize: "14px", margin: 0 }}>
-        Caricamento in corso...
-      </p>
-    </div>
-  );
-}
-
 function App() {
   return (
     <AppErrorBoundary>
@@ -180,132 +156,34 @@ function App() {
                 <Route path="/home" element={<HomeUtente />} />
 
                 {/* Turni Pulizia */}
-                <Route
-                  path="/turni"
-                  element={
-                    <Suspense fallback={<LoadingFallback />}>
-                      <ViewTurni />
-                    </Suspense>
-                  }
-                />
-                <Route
-                  path="/turni/aggiungi"
-                  element={
-                    <Suspense fallback={<LoadingFallback />}>
-                      <AggiuntaTurno />
-                    </Suspense>
-                  }
-                />
-                <Route
-                  path="/turni/modifica/:id"
-                  element={
-                    <Suspense fallback={<LoadingFallback />}>
-                      <ModificaTurno />
-                    </Suspense>
-                  }
-                />
+                <Route path="/turni" element={<ViewTurni />} />
+                <Route path="/turni/aggiungi" element={<AggiuntaTurno />} />
+                <Route path="/turni/modifica/:id" element={<ModificaTurno />} />
 
                 {/* Spese e Debiti */}
-                <Route
-                  path="/debiti"
-                  element={
-                    <Suspense fallback={<LoadingFallback />}>
-                      <ViewDebiti />
-                    </Suspense>
-                  }
-                />
-                <Route
-                  path="/debiti/aggiungi"
-                  element={
-                    <Suspense fallback={<LoadingFallback />}>
-                      <AggiungiDebito />
-                    </Suspense>
-                  }
-                />
+                <Route path="/debiti" element={<ViewDebiti />} />
+                <Route path="/debiti/aggiungi" element={<AggiungiDebito />} />
 
                 {/* Lista Spesa */}
-                <Route
-                  path="/spesa"
-                  element={
-                    <Suspense fallback={<LoadingFallback />}>
-                      <ViewSpesa />
-                    </Suspense>
-                  }
-                />
+                <Route path="/spesa" element={<ViewSpesa />} />
 
                 {/* Bacheca */}
-                <Route
-                  path="/bacheca"
-                  element={
-                    <Suspense fallback={<LoadingFallback />}>
-                      <ViewBacheca />
-                    </Suspense>
-                  }
-                />
-                <Route
-                  path="/bacheca/aggiungi"
-                  element={
-                    <Suspense fallback={<LoadingFallback />}>
-                      <AggiungiNota />
-                    </Suspense>
-                  }
-                />
-                <Route
-                  path="/bacheca/modifica/:id"
-                  element={
-                    <Suspense fallback={<LoadingFallback />}>
-                      <ModificaNota />
-                    </Suspense>
-                  }
-                />
+                <Route path="/bacheca" element={<ViewBacheca />} />
+                <Route path="/bacheca/aggiungi" element={<AggiungiNota />} />
+                <Route path="/bacheca/modifica/:id" element={<ModificaNota />} />
 
                 {/* Calendario */}
-                <Route
-                  path="/calendario"
-                  element={
-                    <Suspense fallback={<LoadingFallback />}>
-                      <ViewCalendario />
-                    </Suspense>
-                  }
-                />
-                <Route
-                  path="/calendario/aggiungi"
-                  element={
-                    <Suspense fallback={<LoadingFallback />}>
-                      <AggiungiEvento />
-                    </Suspense>
-                  }
-                />
+                <Route path="/calendario" element={<ViewCalendario />} />
+                <Route path="/calendario/aggiungi" element={<AggiungiEvento />} />
 
                 {/* Gestione Documenti */}
-                <Route
-                  path="/documenti"
-                  element={
-                    <Suspense fallback={<LoadingFallback />}>
-                      <ViewDocumenti />
-                    </Suspense>
-                  }
-                />
+                <Route path="/documenti" element={<ViewDocumenti />} />
 
                 {/* Rubrica Contatti Utili */}
-                <Route
-                  path="/contatti"
-                  element={
-                    <Suspense fallback={<LoadingFallback />}>
-                      <ViewContatti />
-                    </Suspense>
-                  }
-                />
+                <Route path="/contatti" element={<ViewContatti />} />
 
                 {/* Impostazioni / Settings */}
-                <Route
-                  path="/impostazioni"
-                  element={
-                    <Suspense fallback={<LoadingFallback />}>
-                      <ViewImpostazioni />
-                    </Suspense>
-                  }
-                />
+                <Route path="/impostazioni" element={<ViewImpostazioni />} />
                 <Route
                   path="/settings"
                   element={<Navigate to="/impostazioni" replace />}

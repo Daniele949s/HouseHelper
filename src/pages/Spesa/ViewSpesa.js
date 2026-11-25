@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import HouseholdShell from "../../components/HouseholdShell";
 import { useNavigate } from "react-router-dom";
 import { db } from "../../firebase";
 import { collection, query, where, getDocs, addDoc, doc, updateDoc, deleteDoc } from "firebase/firestore";
@@ -145,15 +144,9 @@ export default function ViewSpesa() {
   const daComprare = items.length - comprati;
 
   return (
-    <HouseholdShell>
     <div className="card domain-page-card">
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem", flexWrap: "wrap", gap: "10px" }}>
-        <div>
-          <h1 style={{ margin: 0, textAlign: "left" }}>{t("groceries.title", null, "Lista della Spesa")}</h1>
-          <p style={{ margin: "4px 0 0 0", color: "var(--text-secondary)", textAlign: "left", fontSize: "0.92rem" }}>
-            {t("groceries.viewSubtitle", null, "Aggiungi e spunta gli articoli da comprare per la casa")}
-          </p>
-        </div>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.25rem", flexWrap: "wrap", gap: "10px" }}>
+        <h1 style={{ margin: 0, textAlign: "left" }}>{t("groceries.title", null, "Lista della Spesa")}</h1>
       </div>
 
       {/* Signature Anchor: Live Progress & Frequent Staples Hub */}
@@ -312,17 +305,17 @@ export default function ViewSpesa() {
       </div>
 
       {/* Add item bar */}
-      <form onSubmit={handleAdd} style={{ display: "flex", gap: "10px", marginBottom: "28px" }}>
+      <form onSubmit={handleAdd} className="grocery-add-form">
         <input
           type="text"
           value={newItem}
           aria-label={t("groceries.newProductAria", null, "Nuovo prodotto")}
           maxLength={80}
           onChange={(e) => setNewItem(e.target.value)}
-          placeholder={t("groceries.addPlaceholder", null, "Aggiungi prodotto da comprare (es. Latte, Detersivo piatti)...")}
+          placeholder={t("groceries.addPlaceholder", null, "Es. Latte, Detersivo piatti...")}
           style={{
             flex: 1,
-            padding: "14px 20px",
+            padding: "12px 18px",
             borderRadius: "var(--radius-full)",
             border: "1.5px solid var(--border-color)",
             background: "var(--bg-input)",
@@ -334,9 +327,9 @@ export default function ViewSpesa() {
         <button
           type="submit"
           className="btn-primary"
-          style={{ width: "auto", padding: "0 26px", borderRadius: "var(--radius-full)", minHeight: "44px" }}
+          style={{ width: "auto", padding: "0 22px", borderRadius: "var(--radius-full)", minHeight: "46px" }}
         >
-          <i className="fas fa-plus"></i> {t("groceries.addToListBtn", null, "Aggiungi alla lista")}
+          <i className="fas fa-plus" aria-hidden="true"></i> {t("groceries.addToListBtn", null, "Aggiungi prodotto")}
         </button>
       </form>
 
@@ -418,6 +411,5 @@ export default function ViewSpesa() {
         <i className="fas fa-arrow-left" style={{ marginRight: "6px" }}></i> {t("groceries.backToDashboard", null, "Torna alla Dashboard")}
       </button>
     </div>
-    </HouseholdShell>
   );
 }

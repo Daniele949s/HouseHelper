@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
-import HouseholdShell from "../../components/HouseholdShell";
 import { useAuth } from "../../contexts/AuthContext";
 import { useLanguage } from "../../contexts/LanguageContext";
 import { db } from "../../firebase";
@@ -320,7 +319,6 @@ export default function ViewContatti() {
   };
 
   return (
-    <HouseholdShell>
     <div className="container dashboard-container contatti-page">
       {/* Page Header */}
       <div className="section-header">
@@ -601,6 +599,5 @@ export default function ViewContatti() {
         </div>
       )}
     </div>
-    </HouseholdShell>
   );
 }

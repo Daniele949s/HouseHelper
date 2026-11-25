@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
-import HouseholdShell from "../../components/HouseholdShell";
 import { useAuth } from "../../contexts/AuthContext";
 import { useLanguage } from "../../contexts/LanguageContext";
 import { showToast, showConfirm } from "../../utils/feedback";
@@ -312,7 +311,6 @@ export default function ViewDocumenti() {
   }, [documents, selectedCategory, searchQuery, sortBy]);
 
   return (
-    <HouseholdShell>
     <div className="documents-container" data-testid="documents-page">
       {/* Page Header */}
       <div className="documents-header">
@@ -777,6 +775,5 @@ export default function ViewDocumenti() {
         </div>
       )}
     </div>
-    </HouseholdShell>
   );
 }
