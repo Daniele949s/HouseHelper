@@ -1130,3 +1130,9 @@ body.dark-mode .hh-shell {
 .hero-brand-badge i {
   color: var(--hh-accent) !important;
 }
+
+/* Prevent vertical layout shift when route content hydrates asynchronously */
+.hh-shell,
+.hh-main {
+  min-height: 78vh;
+}

@@ -11,7 +11,12 @@ import HouseholdStatus from "../components/HouseholdStatus";
 import { safeFloat, validateDate } from "../utils/security";
 import { showToast, showConfirm } from "../utils/feedback";
 import { isUserOnVacation } from "../utils/choreRotation";
-import { getDashboardSnapshot, saveDashboardSnapshot } from "../utils/offlineStorage";
+import {
+  getDashboardSnapshot,
+  saveDashboardSnapshot,
+  isTenantFresh,
+  markTenantFresh,
+} from "../utils/offlineStorage";
 import { useLanguage } from "../contexts/LanguageContext";
 
 export default function HomeUtente() {
@@ -114,6 +119,11 @@ export default function HomeUtente() {
         if (cached.spesaList) setSpesaList(cached.spesaList);
         if (cached.utentiMap) setUtentiMap(cached.utentiMap);
         setLoading(false);
+
+        // Skip redundant 4-collection Firestore reads when navigating back within freshness window
+        if (isTenantFresh(casaId, "dashboard", 20000)) {
+          return;
+        }
       }
 
       setIsSyncing(true);
@@ -222,6 +232,9 @@ export default function HomeUtente() {
           spesaList: allSpesa,
           utentiMap: uMap
         });
+        markTenantFresh(casaId, "dashboard");
+        markTenantFresh(casaId, "debiti");
+        markTenantFresh(casaId, "spesa");
       } catch (error) {
         console.error("Errore caricamento dashboard:", error);
       } finally {

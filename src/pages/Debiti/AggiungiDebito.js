@@ -5,6 +5,7 @@ import { useHousehold } from "../../contexts/HouseholdContext";
 import { useLanguage } from "../../contexts/LanguageContext";
 import { validateNumber, sanitizeText, safeFloat } from "../../utils/security";
 import { showToast } from "../../utils/feedback";
+import { invalidateTenantFreshness } from "../../utils/offlineStorage";
 import { calculateSplitAllocations, createLedgerDebts } from "../../services/ledgerService";
 
 export default function AggiungiDebito() {
@@ -209,6 +210,7 @@ export default function AggiungiDebito() {
         });
       }
 
+      invalidateTenantFreshness(userData.casaId);
       showToast(t("expenses.saveSuccess", null, "Spesa registrata con successo!"), "success");
       navigate("/debiti");
     } catch (err) {

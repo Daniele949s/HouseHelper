@@ -8,7 +8,7 @@
  * 4. Automatic cache eviction for old versions
  */
 
-const CACHE_NAME = 'househelper-shell-v2';
+const CACHE_NAME = 'househelper-shell-v3';
 const PRECACHE_ASSETS = [
   '/',
   '/index.html',
@@ -95,25 +95,46 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // 2. Static assets (JS, CSS, images, fonts) -> Cache first only when Content-Type is valid
+  // 2. Content-hashed /static/ and immutable /webfonts/ -> Cache first
+  const isImmutablePath = url.pathname.startsWith('/static/') || url.pathname.startsWith('/webfonts/');
   if (
     request.destination === 'style' ||
     request.destination === 'script' ||
     request.destination === 'image' ||
     request.destination === 'font'
   ) {
+    if (isImmutablePath) {
+      event.respondWith(
+        caches.match(request).then((cached) => {
+          if (cached && isValidAssetResponse(request, cached)) {
+            return cached;
+          }
+          return fetch(request).then((response) => {
+            if (isValidAssetResponse(request, response)) {
+              const clone = response.clone();
+              caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
+            }
+            return response;
+          });
+        })
+      );
+      return;
+    }
+
+    // Unhashed static assets (e.g. fontawesome.min.css, HouseHelper.svg) -> Stale-while-revalidate
+    // so new releases propagate automatically without blocking paint.
     event.respondWith(
       caches.match(request).then((cached) => {
-        if (cached && isValidAssetResponse(request, cached)) {
-          return cached;
-        }
-        return fetch(request).then((response) => {
-          if (isValidAssetResponse(request, response)) {
-            const clone = response.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
-          }
-          return response;
-        });
+        const networkPromise = fetch(request)
+          .then((response) => {
+            if (isValidAssetResponse(request, response)) {
+              const clone = response.clone();
+              caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
+            }
+            return response;
+          })
+          .catch(() => cached);
+        return cached && isValidAssetResponse(request, cached) ? cached : networkPromise;
       })
     );
   }

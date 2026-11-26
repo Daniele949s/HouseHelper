@@ -101,6 +101,7 @@ export function purgeTenantStorage(casaId) {
   }
 
   keysToRemove.forEach((k) => window.localStorage.removeItem(k));
+  invalidateTenantFreshness(casaId);
 }
 
 /**
@@ -108,6 +109,7 @@ export function purgeTenantStorage(casaId) {
  * Must be executed upon user logout to prevent cross-session / cross-household data residue.
  */
 export function purgeAllOfflineStorage() {
+  tenantFreshnessMap.clear();
   if (typeof window === "undefined" || !window.localStorage) {
     return;
   }
@@ -122,6 +124,38 @@ export function purgeAllOfflineStorage() {
   }
 
   keysToRemove.forEach((k) => window.localStorage.removeItem(k));
+}
+
+// In-memory freshness timestamps per (casaId, scope) to avoid redundant Firestore reads
+// on rapid tab navigation while always clearing on logout, house switch, or mutation.
+const tenantFreshnessMap = new Map();
+
+export function markTenantFresh(casaId, scope = "dashboard") {
+  if (!casaId) return;
+  tenantFreshnessMap.set(`${casaId}:${scope}`, Date.now());
+}
+
+export function isTenantFresh(casaId, scope = "dashboard", ttlMs = 20000) {
+  if (!casaId) return false;
+  const ts = tenantFreshnessMap.get(`${casaId}:${scope}`);
+  return typeof ts === "number" && Date.now() - ts < ttlMs;
+}
+
+export function invalidateTenantFreshness(casaId, scope = null) {
+  if (!casaId) {
+    tenantFreshnessMap.clear();
+    return;
+  }
+  if (scope) {
+    tenantFreshnessMap.delete(`${casaId}:${scope}`);
+    return;
+  }
+  const prefix = `${casaId}:`;
+  for (const key of tenantFreshnessMap.keys()) {
+    if (key.startsWith(prefix)) {
+      tenantFreshnessMap.delete(key);
+    }
+  }
 }
 
 const CACHE_KEYS = {

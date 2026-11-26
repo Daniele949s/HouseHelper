@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { db } from "../../firebase";
 import { collection, query, where, getDocs, addDoc, doc, updateDoc, deleteDoc } from "firebase/firestore";
@@ -6,134 +6,237 @@ import { useAuth } from "../../contexts/AuthContext";
 import { useLanguage } from "../../contexts/LanguageContext";
 import { showToast } from "../../utils/feedback";
 import { sanitizeText } from "../../utils/security";
+import {
+  getDashboardSnapshot,
+  saveDashboardSnapshot,
+  isTenantFresh,
+  markTenantFresh,
+  invalidateTenantFreshness,
+} from "../../utils/offlineStorage";
+
+const GROCERIES_PAGE_SIZE = 30;
+
+function sortGroceries(list) {
+  return [...list].sort((a, b) => {
+    const aDone = Boolean(a.comprato);
+    const bDone = Boolean(b.comprato);
+    if (aDone === bDone) {
+      const aTs = a.createdAt?.toMillis ? a.createdAt.toMillis() : new Date(a.createdAt || 0).getTime() || 0;
+      const bTs = b.createdAt?.toMillis ? b.createdAt.toMillis() : new Date(b.createdAt || 0).getTime() || 0;
+      return bTs - aTs;
+    }
+    return aDone ? 1 : -1;
+  });
+}
 
 export default function ViewSpesa() {
   const navigate = useNavigate();
   const { userData, currentUser } = useAuth();
   const { t } = useLanguage();
 
-  const [items, setItems] = useState([]);
+  const cachedSnap = useMemo(
+    () => (userData?.casaId ? getDashboardSnapshot(userData.casaId) : null),
+    [userData?.casaId]
+  );
+  const initialItems = useMemo(
+    () => (Array.isArray(cachedSnap?.spesaList) ? sortGroceries(cachedSnap.spesaList) : []),
+    [cachedSnap]
+  );
+
+  const [items, setItems] = useState(initialItems);
+  const [visibleCount, setVisibleCount] = useState(GROCERIES_PAGE_SIZE);
   const [newItem, setNewItem] = useState("");
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(() => initialItems.length === 0 && !cachedSnap);
+  const [savingItem, setSavingItem] = useState(false);
+  const submittingRef = useRef(false);
+
+  const syncSnapshot = (casaId, nextItems) => {
+    if (!casaId) return;
+    const snap = getDashboardSnapshot(casaId);
+    if (snap) {
+      saveDashboardSnapshot(casaId, { ...snap, spesaList: nextItems });
+    }
+    invalidateTenantFreshness(casaId, "dashboard");
+    markTenantFresh(casaId, "spesa");
+  };
 
   useEffect(() => {
+    let cancelled = false;
     const fetchSpesa = async () => {
       if (!userData?.casaId) return;
-      setLoading(true);
+      const casaId = userData.casaId;
+      const snap = getDashboardSnapshot(casaId);
+      if (snap && Array.isArray(snap.spesaList) && isTenantFresh(casaId, "spesa", 20000)) {
+        setItems(sortGroceries(snap.spesaList));
+        setLoading(false);
+        return;
+      }
+      if (!snap) setLoading(true);
       try {
-        const q = query(collection(db, "spesa"), where("casaId", "==", userData.casaId));
-        const snap = await getDocs(q);
-        const data = snap.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() }));
-        data.sort((a, b) => {
-          if (a.comprato === b.comprato) {
-            return (b.createdAt?.toMillis ? b.createdAt.toMillis() : 0) - (a.createdAt?.toMillis ? a.createdAt.toMillis() : 0);
-          }
-          return a.comprato ? 1 : -1;
-        });
+        const q = query(collection(db, "spesa"), where("casaId", "==", casaId));
+        const snapDocs = await getDocs(q);
+        if (cancelled) return;
+        const data = sortGroceries(snapDocs.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() })));
         setItems(data);
+        if (snap) {
+          saveDashboardSnapshot(casaId, { ...snap, spesaList: data });
+        }
+        markTenantFresh(casaId, "spesa");
       } catch (error) {
         console.error("Errore fetch spesa:", error);
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     };
     fetchSpesa();
+    return () => {
+      cancelled = true;
+    };
   }, [userData?.casaId]);
-
-  const fetchSpesaReload = async () => {
-    if (!userData?.casaId) return;
-    try {
-      const q = query(collection(db, "spesa"), where("casaId", "==", userData.casaId));
-      const snap = await getDocs(q);
-      const data = snap.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() }));
-      data.sort((a, b) => {
-        if (a.comprato === b.comprato) {
-          return (b.createdAt?.toMillis ? b.createdAt.toMillis() : 0) - (a.createdAt?.toMillis ? a.createdAt.toMillis() : 0);
-        }
-        return a.comprato ? 1 : -1;
-      });
-      setItems(data);
-    } catch (error) {
-      console.error(error);
-    }
-  };
 
   const handleAdd = async (e) => {
     e.preventDefault();
+    if (submittingRef.current) return;
 
     // Anti-Injection & input length boundary
     const cleanedItem = sanitizeText(newItem, 80);
-    if (!cleanedItem) return;
+    if (!cleanedItem || !userData?.casaId) return;
+
+    submittingRef.current = true;
+    setSavingItem(true);
+    const tempId = `temp_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+    const nowDate = new Date();
+    const optimisticEntry = {
+      id: tempId,
+      nome: cleanedItem,
+      comprato: false,
+      casaId: userData.casaId,
+      autoreId: currentUser?.uid || "anonymous",
+      createdAt: nowDate
+    };
+    const prevItems = items;
+    const optimisticList = sortGroceries([optimisticEntry, ...prevItems]);
+    setItems(optimisticList);
+    setNewItem("");
 
     try {
-      await addDoc(collection(db, "spesa"), {
+      const docRef = await addDoc(collection(db, "spesa"), {
         nome: cleanedItem,
         comprato: false,
         casaId: userData.casaId,
         autoreId: currentUser.uid,
-        createdAt: new Date()
+        createdAt: nowDate
       });
-      setNewItem("");
+      const finalizedList = optimisticList.map((it) =>
+        it.id === tempId ? { ...it, id: docRef?.id || tempId } : it
+      );
+      setItems(finalizedList);
+      syncSnapshot(userData.casaId, finalizedList);
       showToast(t("groceries.itemAdded", null, "Prodotto aggiunto alla lista"), "success", 2000);
-      fetchSpesaReload();
     } catch (error) {
       console.error("Errore aggiunta spesa:", error);
+      setItems(prevItems);
+      setNewItem(cleanedItem);
+      showToast(t("groceries.addError", null, "Errore nel salvataggio. Riprova."), "error", 3000);
+    } finally {
+      submittingRef.current = false;
+      setSavingItem(false);
     }
   };
 
   const handleAddStaple = async (stapleName) => {
+    if (submittingRef.current) return;
     const cleanedItem = sanitizeText(stapleName, 80);
     if (!cleanedItem || !userData?.casaId) return;
 
+    submittingRef.current = true;
+    setSavingItem(true);
+    const tempId = `temp_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+    const nowDate = new Date();
+    const optimisticEntry = {
+      id: tempId,
+      nome: cleanedItem,
+      comprato: false,
+      casaId: userData.casaId,
+      autoreId: currentUser?.uid || "anonymous",
+      createdAt: nowDate
+    };
+    const prevItems = items;
+    const optimisticList = sortGroceries([optimisticEntry, ...prevItems]);
+    setItems(optimisticList);
+
     try {
-      await addDoc(collection(db, "spesa"), {
+      const docRef = await addDoc(collection(db, "spesa"), {
         nome: cleanedItem,
         comprato: false,
         casaId: userData.casaId,
         autoreId: currentUser?.uid || "anonymous",
-        createdAt: new Date()
+        createdAt: nowDate
       });
+      const finalizedList = optimisticList.map((it) =>
+        it.id === tempId ? { ...it, id: docRef?.id || tempId } : it
+      );
+      setItems(finalizedList);
+      syncSnapshot(userData.casaId, finalizedList);
       showToast(
         t("groceries.stapleAdded", { item: cleanedItem }, `"${cleanedItem}" aggiunto alla lista`),
         "success",
         2000
       );
-      fetchSpesaReload();
     } catch (err) {
       console.error("Errore aggiunta staple:", err);
+      setItems(prevItems);
+      showToast(t("groceries.addError", null, "Errore nel salvataggio. Riprova."), "error", 3000);
+    } finally {
+      submittingRef.current = false;
+      setSavingItem(false);
     }
   };
 
   const toggleCheck = async (item) => {
-    if (item.casaId !== userData?.casaId) return;
+    if (item.casaId !== userData?.casaId || String(item.id).startsWith("temp_")) return;
+    const prevItems = items;
+    const nextComprato = !item.comprato;
+    const nextList = sortGroceries(
+      prevItems.map((it) => (it.id === item.id ? { ...it, comprato: nextComprato } : it))
+    );
+    setItems(nextList);
 
     try {
       await updateDoc(doc(db, "spesa", item.id), {
-        comprato: !item.comprato
+        comprato: nextComprato
       });
-      fetchSpesaReload();
+      syncSnapshot(userData.casaId, nextList);
     } catch (error) {
       console.error("Errore toggle:", error);
+      setItems(prevItems);
+      showToast(t("groceries.updateError", null, "Aggiornamento non riuscito. Riprova."), "error", 3000);
     }
   };
 
   const handleDelete = async (id) => {
     // Household validation
     const itemTarget = items.find((i) => i.id === id);
-    if (!itemTarget || itemTarget.casaId !== userData?.casaId) return;
+    if (!itemTarget || itemTarget.casaId !== userData?.casaId || String(id).startsWith("temp_")) return;
+
+    const prevItems = items;
+    const nextList = prevItems.filter((it) => it.id !== id);
+    setItems(nextList);
 
     try {
       await deleteDoc(doc(db, "spesa", id));
+      syncSnapshot(userData.casaId, nextList);
       showToast(t("groceries.itemRemoved", null, "Prodotto rimosso"), "info", 2000);
-      fetchSpesaReload();
     } catch (error) {
       console.error("Errore eliminazione:", error);
+      setItems(prevItems);
+      showToast(t("groceries.deleteError", null, "Errore nella rimozione. Riprova."), "error", 3000);
     }
   };
 
   if (loading) {
     return (
-      <div className="card" style={{ maxWidth: "800px" }}>
+      <div className="card domain-page-card" style={{ minHeight: "420px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
         <p><i className="fas fa-spinner fa-spin fa-2x"></i></p>
         <p style={{ marginTop: "10px" }}>{t("groceries.loading", null, "Caricamento lista spesa...")}</p>
       </div>
@@ -327,9 +430,10 @@ export default function ViewSpesa() {
         <button
           type="submit"
           className="btn-primary"
+          disabled={savingItem}
           style={{ width: "auto", padding: "0 22px", borderRadius: "var(--radius-full)", minHeight: "46px" }}
         >
-          <i className="fas fa-plus" aria-hidden="true"></i> {t("groceries.addToListBtn", null, "Aggiungi prodotto")}
+          <i className="fas fa-plus" aria-hidden="true"></i> {savingItem ? t("common.saving", null, "Salvataggio...") : t("groceries.addToListBtn", null, "Aggiungi prodotto")}
         </button>
       </form>
 
@@ -343,7 +447,7 @@ export default function ViewSpesa() {
             </p>
           </div>
         ) : (
-          items.map((item) => (
+          items.slice(0, visibleCount).map((item) => (
             <div
               key={item.id}
               className={`sidemenu-entry-item ${item.comprato ? "item-completed" : ""}`}
@@ -406,6 +510,18 @@ export default function ViewSpesa() {
           ))
         )}
       </div>
+      {items.length > visibleCount && (
+        <div style={{ display: "flex", justifyContent: "center", marginTop: "14px" }}>
+          <button
+            type="button"
+            className="btn-secondary"
+            style={{ width: "auto", padding: "10px 20px" }}
+            onClick={() => setVisibleCount((prev) => prev + GROCERIES_PAGE_SIZE)}
+          >
+            {t("common.showMore", { count: items.length - visibleCount }, `Mostra altri (${items.length - visibleCount})`)}
+          </button>
+        </div>
+      )}
 
       <button className="btn-text" onClick={() => navigate("/home")} style={{ marginTop: "30px" }}>
         <i className="fas fa-arrow-left" style={{ marginRight: "6px" }}></i> {t("groceries.backToDashboard", null, "Torna alla Dashboard")}

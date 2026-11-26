@@ -16,6 +16,15 @@ import { useModalFocusTrap } from "../../components/ConfirmModal";
 import { showToast, showConfirm } from "../../utils/feedback";
 import { safeFloat } from "../../utils/security";
 import { exportExpensesToCsv, printMonthlyReport } from "../../utils/reportExport";
+import {
+  getDashboardSnapshot,
+  saveDashboardSnapshot,
+  isTenantFresh,
+  markTenantFresh,
+  invalidateTenantFreshness,
+} from "../../utils/offlineStorage";
+
+const DEBTS_PAGE_SIZE = 25;
 
 export default function ViewDebiti() {
   const navigate = useNavigate();
@@ -23,11 +32,30 @@ export default function ViewDebiti() {
   const { house: ctxHouse, roommates: ctxRoommates, roommateMap: ctxRoommateMap } = useHousehold();
   const { t, language } = useLanguage();
 
-  const [debiti, setDebiti] = useState([]);
-  const [utentiMap, setUtentiMap] = useState({});
-  const [roommates, setRoommates] = useState([]);
-  const [casaNome, setCasaNome] = useState(() => t("expenses.defaultHouseName", null, "Casa"));
-  const [loading, setLoading] = useState(true);
+  const cachedSnap = useMemo(
+    () => (userData?.casaId ? getDashboardSnapshot(userData.casaId) : null),
+    [userData?.casaId]
+  );
+  const initialDebiti = Array.isArray(cachedSnap?.debitiList) ? cachedSnap.debitiList : [];
+
+  const [debiti, setDebiti] = useState(initialDebiti);
+  const [visibleCount, setVisibleCount] = useState(DEBTS_PAGE_SIZE);
+  const [utentiMap, setUtentiMap] = useState(() =>
+    ctxRoommateMap && Object.keys(ctxRoommateMap).length > 0
+      ? ctxRoommateMap
+      : cachedSnap?.utentiMap || {}
+  );
+  const [roommates, setRoommates] = useState(() =>
+    Array.isArray(ctxRoommates) && ctxRoommates.length > 0
+      ? ctxRoommates
+          .filter((r) => r && r.statoMembro !== "pending")
+          .map((r) => ({ uid: r.uid, id: r.id, username: r.username || "Utente" }))
+      : []
+  );
+  const [casaNome, setCasaNome] = useState(
+    () => ctxHouse?.nome || cachedSnap?.casa?.nome || t("expenses.defaultHouseName", null, "Casa")
+  );
+  const [loading, setLoading] = useState(() => initialDebiti.length === 0 && !cachedSnap);
   const [error, setError] = useState(null);
   const [isSettling, setIsSettling] = useState(false);
   const settlementInFlight = useRef(false);
@@ -53,22 +81,42 @@ export default function ViewDebiti() {
     householdCtxRef.current = { ctxHouse, ctxRoommates, ctxRoommateMap };
   }, [ctxHouse, ctxRoommates, ctxRoommateMap]);
 
-  const fetchDati = useCallback(async () => {
+  const fetchDati = useCallback(async (force = false) => {
     if (!userData?.casaId) return;
-    setLoading(true);
+    const casaId = userData.casaId;
+    const currentCtx = householdCtxRef.current;
+    const canReuseCtx = Boolean(
+      currentCtx?.ctxHouse && currentCtx.ctxHouse.id === casaId &&
+      Array.isArray(currentCtx.ctxRoommates) && currentCtx.ctxRoommates.length > 0 &&
+      currentCtx.ctxRoommateMap && Object.keys(currentCtx.ctxRoommateMap).length > 0
+    );
+
+    const snap = getDashboardSnapshot(casaId);
+    if (!force && snap && Array.isArray(snap.debitiList) && isTenantFresh(casaId, "debiti", 20000) && canReuseCtx) {
+      setDebiti(snap.debitiList);
+      setUtentiMap(currentCtx.ctxRoommateMap);
+      setRoommates(
+        currentCtx.ctxRoommates
+          .filter((r) => r && r.statoMembro !== "pending")
+          .map((r) => ({
+            uid: r.uid,
+            id: r.id,
+            username: r.username || translateRef.current("expenses.unknownUser", null, "Utente Sconosciuto"),
+          }))
+      );
+      setCasaNome(currentCtx.ctxHouse.nome || translateRef.current("expenses.defaultHouseName", null, "Casa"));
+      setLoading(false);
+      return;
+    }
+
+    if (!snap) setLoading(true);
     setError(null);
     try {
-      const currentCtx = householdCtxRef.current;
-      const canReuseCtx = Boolean(
-        currentCtx?.ctxHouse && currentCtx.ctxHouse.id === userData.casaId &&
-        Array.isArray(currentCtx.ctxRoommates) && currentCtx.ctxRoommates.length > 0 &&
-        currentCtx.ctxRoommateMap && Object.keys(currentCtx.ctxRoommateMap).length > 0
-      );
       const [{ house, roommates: rList, roommateMap: map }, data] = await Promise.all([
         canReuseCtx
           ? Promise.resolve({ house: currentCtx.ctxHouse, roommates: currentCtx.ctxRoommates, roommateMap: currentCtx.ctxRoommateMap })
-          : fetchHouseholdData(userData.casaId, translateRef.current("expenses.unknownUser", null, "Utente Sconosciuto")),
-        fetchHouseDebts(userData.casaId)
+          : fetchHouseholdData(casaId, translateRef.current("expenses.unknownUser", null, "Utente Sconosciuto")),
+        fetchHouseDebts(casaId)
       ]);
 
       setUtentiMap(map);
@@ -87,6 +135,10 @@ export default function ViewDebiti() {
       }
 
       setDebiti(data);
+      if (snap) {
+        saveDashboardSnapshot(casaId, { ...snap, debitiList: data, utentiMap: map });
+      }
+      markTenantFresh(casaId, "debiti");
     } catch (err) {
       console.error(err);
       setError(translateRef.current("expenses.loadError", null, "Errore nel caricamento delle spese."));
@@ -134,14 +186,28 @@ export default function ViewDebiti() {
 
       if (!confirmed) return;
 
-      await deleteLedgerDebt(debitoTarget, userData?.casaId);
-      showToast(
-        isMyDebt
-          ? t("expenses.settleSuccess", null, "Debito saldato con successo!")
-          : t("expenses.deleteSuccess", null, "Spesa eliminata."),
-        "success"
-      );
-      await fetchDati();
+      const prevDebiti = debiti;
+      const nextDebiti = prevDebiti.filter((d) => d.id !== id);
+      setDebiti(nextDebiti);
+
+      try {
+        await deleteLedgerDebt(debitoTarget, userData?.casaId);
+        const snap = getDashboardSnapshot(userData?.casaId);
+        if (snap) {
+          saveDashboardSnapshot(userData?.casaId, { ...snap, debitiList: nextDebiti });
+        }
+        invalidateTenantFreshness(userData?.casaId, "dashboard");
+        markTenantFresh(userData?.casaId, "debiti");
+        showToast(
+          isMyDebt
+            ? t("expenses.settleSuccess", null, "Debito saldato con successo!")
+            : t("expenses.deleteSuccess", null, "Spesa eliminata."),
+          "success"
+        );
+      } catch (deleteErr) {
+        setDebiti(prevDebiti);
+        throw deleteErr;
+      }
     } catch (err) {
       console.error("Errore eliminazione:", err);
       showToast(t("expenses.deleteError", null, "Errore nell'eliminazione."), "error");
@@ -539,7 +605,7 @@ export default function ViewDebiti() {
             </p>
           </div>
         ) : (
-          debiti.map((debito) => {
+          debiti.slice(0, visibleCount).map((debito) => {
             const uid = currentUser?.uid;
             const sonoDebitore = Boolean(uid) && debito.debitoreId === uid;
             const sonoCreditore = Boolean(uid) && debito.creditoreId === uid;
@@ -633,6 +699,18 @@ export default function ViewDebiti() {
           })
         )}
       </div>
+      {debiti.length > visibleCount && (
+        <div style={{ display: "flex", justifyContent: "center", marginTop: "14px" }}>
+          <button
+            type="button"
+            className="btn-secondary"
+            style={{ width: "auto", padding: "10px 20px" }}
+            onClick={() => setVisibleCount((prev) => prev + DEBTS_PAGE_SIZE)}
+          >
+            {t("common.showMore", { count: debiti.length - visibleCount }, `Mostra altri (${debiti.length - visibleCount})`)}
+          </button>
+        </div>
+      )}
 
       {/* Export Modal */}
       {showExportModal && (
