@@ -240,10 +240,14 @@ async function main() {
     expectDeny(fsRequest('GET', 'inviti', { token: unassigned.token }), 'unassigned list inviti'));
   await check('Unassigned DENIED direct GET on case/casa_a', () =>
     expectDeny(fsRequest('GET', 'case/casa_a', { token: unassigned.token }), 'unassigned get casa_a'));
-  await check('Unassigned ALLOWED transitional limit=1 lookup on /case for legacy invites', () =>
-    expectAllow(fsRequest('GET', 'case', { token: unassigned.token, query: '?pageSize=1' }), 'unassigned list case limit=1'));
-  await check('Unassigned DENIED listing >1 houses on /case collection', () =>
+  await check('Unassigned DENIED listing /case collection (limit=1)', () =>
+    expectDeny(fsRequest('GET', 'case', { token: unassigned.token, query: '?pageSize=1' }), 'unassigned list case limit=1'));
+  await check('Unassigned DENIED listing /case collection (limit=2)', () =>
     expectDeny(fsRequest('GET', 'case', { token: unassigned.token, query: '?pageSize=2' }), 'unassigned list case limit=2'));
+  await check('ExMemberA DENIED direct GET on case/casa_a', () =>
+    expectDeny(fsRequest('GET', 'case/casa_a', { token: exMemberA.token }), 'exMemberA get casa_a'));
+  await check('ExMemberA DENIED listing /case collection (limit=1)', () =>
+    expectDeny(fsRequest('GET', 'case', { token: exMemberA.token, query: '?pageSize=1' }), 'exMemberA list case limit=1'));
   await check('Unassigned DENIED joining casa_a directly as admin/active', () =>
     expectDeny(fsRequest('PATCH', `utenti/${unassigned.uid}`, {
       token: unassigned.token,
