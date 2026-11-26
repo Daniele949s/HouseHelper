@@ -31,7 +31,11 @@ const app = initializeApp(firebaseConfig);
 // Note: Frontend attestation alone does not reject unattested traffic until Enforcement is enabled in Firebase Console.
 export let appCheck = null;
 const recaptchaEnterpriseKey = process.env.REACT_APP_RECAPTCHA_ENTERPRISE_SITE_KEY;
-const recaptchaV3Key = process.env.REACT_APP_RECAPTCHA_V3_SITE_KEY;
+// Public reCAPTCHA v3 site key (secret key lives exclusively in Firebase Console -> App Check).
+const DEFAULT_PROD_RECAPTCHA_V3_SITE_KEY = "6LeNyzMuAAAAAP9QAemPcko-fFj95b4YzoAdY2-S";
+const recaptchaV3Key =
+  process.env.REACT_APP_RECAPTCHA_V3_SITE_KEY ||
+  (process.env.NODE_ENV === "production" ? DEFAULT_PROD_RECAPTCHA_V3_SITE_KEY : "");
 if (
   process.env.NODE_ENV !== "test" &&
   process.env.REACT_APP_USE_FIREBASE_EMULATOR !== "true" &&
