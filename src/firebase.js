@@ -8,7 +8,11 @@ import {
   connectFirestoreEmulator,
 } from "firebase/firestore";
 import { getStorage, connectStorageEmulator } from "firebase/storage";
-import { initializeAppCheck, ReCaptchaV3Provider } from "firebase/app-check";
+import {
+  initializeAppCheck,
+  ReCaptchaV3Provider,
+  ReCaptchaEnterpriseProvider,
+} from "firebase/app-check";
 
 const firebaseConfig = {
   apiKey: process.env.REACT_APP_FIREBASE_API_KEY || "AIzaSyDVp02Ili_bgUUCK-RsB5knIj8qFdP7QFQ",
@@ -21,6 +25,39 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
+
+// Initialize Firebase App Check BEFORE Auth/Firestore/Storage so the first request carries an attestation token.
+// Supports either reCAPTCHA Enterprise (REACT_APP_RECAPTCHA_ENTERPRISE_SITE_KEY) or reCAPTCHA v3 (REACT_APP_RECAPTCHA_V3_SITE_KEY).
+// Note: Frontend attestation alone does not reject unattested traffic until Enforcement is enabled in Firebase Console.
+export let appCheck = null;
+const recaptchaEnterpriseKey = process.env.REACT_APP_RECAPTCHA_ENTERPRISE_SITE_KEY;
+const recaptchaV3Key = process.env.REACT_APP_RECAPTCHA_V3_SITE_KEY;
+if (
+  process.env.NODE_ENV !== "test" &&
+  process.env.REACT_APP_USE_FIREBASE_EMULATOR !== "true" &&
+  typeof window !== "undefined" &&
+  (recaptchaEnterpriseKey || recaptchaV3Key)
+) {
+  try {
+    if (process.env.REACT_APP_APPCHECK_DEBUG_TOKEN) {
+      // eslint-disable-next-line no-restricted-globals
+      self.FIREBASE_APPCHECK_DEBUG_TOKEN =
+        process.env.REACT_APP_APPCHECK_DEBUG_TOKEN === "true"
+          ? true
+          : process.env.REACT_APP_APPCHECK_DEBUG_TOKEN;
+    }
+    const provider = recaptchaEnterpriseKey
+      ? new ReCaptchaEnterpriseProvider(recaptchaEnterpriseKey)
+      : new ReCaptchaV3Provider(recaptchaV3Key);
+    appCheck = initializeAppCheck(app, {
+      provider,
+      isTokenAutoRefreshEnabled: true,
+    });
+  } catch (_err) {
+    // Already initialized during HMR
+  }
+}
+
 export const auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider();
 
@@ -50,32 +87,6 @@ function createFirestoreInstance(firebaseApp) {
 
 export const db = createFirestoreInstance(app);
 export const storage = getStorage(app);
-
-// Optional Firebase App Check (reCAPTCHA v3) — active when REACT_APP_RECAPTCHA_V3_SITE_KEY is configured.
-// Note: Frontend attestation alone does not reject unattested traffic until Enforcement is enabled in Firebase Console.
-export let appCheck = null;
-if (
-  process.env.NODE_ENV !== "test" &&
-  process.env.REACT_APP_USE_FIREBASE_EMULATOR !== "true" &&
-  typeof window !== "undefined" &&
-  process.env.REACT_APP_RECAPTCHA_V3_SITE_KEY
-) {
-  try {
-    if (process.env.REACT_APP_APPCHECK_DEBUG_TOKEN) {
-      // eslint-disable-next-line no-restricted-globals
-      self.FIREBASE_APPCHECK_DEBUG_TOKEN =
-        process.env.REACT_APP_APPCHECK_DEBUG_TOKEN === "true"
-          ? true
-          : process.env.REACT_APP_APPCHECK_DEBUG_TOKEN;
-    }
-    appCheck = initializeAppCheck(app, {
-      provider: new ReCaptchaV3Provider(process.env.REACT_APP_RECAPTCHA_V3_SITE_KEY),
-      isTokenAutoRefreshEnabled: true,
-    });
-  } catch (_err) {
-    // Already initialized during HMR
-  }
-}
 
 if (
   process.env.NODE_ENV !== "test" &&
