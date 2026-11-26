@@ -19,6 +19,214 @@
   --hh-radius-pill: 10px;
 }
 
+/* ==========================================================================
+   GLOBAL BOTANICAL THEME (APPLIES TO PUBLIC, AUTH, SCELTA-CASA, 404 & APP)
+   Overrides legacy dark-mode / indigo defaults regardless of OS color scheme.
+   ========================================================================== */
+html,
+body,
+html.dark-theme,
+body.dark-mode,
+html.light-theme,
+body.light-mode,
+[data-theme="dark"],
+[data-theme="light"] {
+  --bg-primary: #F7F6F2;
+  --bg-main: #F7F6F2;
+  --bg-secondary: #EFECE4;
+  --bg-surface: #EFECE4;
+  --bg-card: #FFFFFF;
+  --bg-card-glass: #FFFFFF;
+  --bg-card-hover: #FCFDF9;
+  --bg-input: #FFFFFF;
+  --bg-subtle: rgba(25, 40, 32, 0.04);
+  --bg-glass: rgba(255, 255, 255, 0.96);
+  --bg-overlay: rgba(25, 40, 32, 0.48);
+
+  --border-color: rgba(25, 40, 32, 0.11);
+  --border-subtle: rgba(25, 40, 32, 0.06);
+  --border-medium: rgba(25, 40, 32, 0.20);
+  --border-highlight: rgba(25, 40, 32, 0.20);
+  --border-focus: #1D4435;
+  --glass-border: 1px solid rgba(25, 40, 32, 0.10);
+
+  --text-primary: #192820;
+  --text-main: #192820;
+  --text-secondary: #43574C;
+  --text-muted: #4A5D52;
+  --text-caption: #4A5D52;
+  --text-disabled: #7D8E84;
+
+  --color-primary: #1D4435;
+  --color-primary-hover: #255341;
+  --color-primary-text: #1D4435;
+  --color-primary-light: rgba(29, 68, 53, 0.10);
+  --color-primary-border: rgba(29, 68, 53, 0.24);
+  --color-primary-glow: rgba(29, 68, 53, 0.18);
+
+  --color-accent: #1D4435;
+  --color-accent-hover: #255341;
+  --color-accent-light: rgba(221, 243, 166, 0.45);
+  --color-accent-glow: rgba(29, 68, 53, 0.16);
+  --color-secondary: rgba(25, 40, 32, 0.05);
+
+  --color-success: #157347;
+  --color-success-hover: #115c39;
+  --color-success-text: #146c43;
+  --color-success-light: rgba(21, 115, 71, 0.10);
+  --color-success-border: rgba(21, 115, 71, 0.24);
+
+  --color-danger: #C81E3A;
+  --color-danger-hover: #A61730;
+  --color-danger-text: #B41731;
+  --color-danger-light: rgba(200, 30, 58, 0.09);
+  --color-danger-border: rgba(200, 30, 58, 0.24);
+
+  --color-warning: #A15C07;
+  --color-warning-hover: #854D0E;
+  --color-warning-text: #854D0E;
+  --color-warning-light: #FEF3C7;
+  --color-warning-border: rgba(161, 92, 7, 0.28);
+
+  --color-info: #1D4435;
+  --color-info-light: rgba(29, 68, 53, 0.10);
+
+  --shadow-xs: 0 1px 2px rgba(25, 40, 32, 0.04);
+  --shadow-sm: 0 2px 6px rgba(25, 40, 32, 0.05);
+  --shadow-md: 0 4px 12px rgba(25, 40, 32, 0.06);
+  --shadow-lg: 0 10px 24px rgba(25, 40, 32, 0.08);
+  --shadow-card: 0 2px 10px rgba(25, 40, 32, 0.05);
+  --shadow-card-hover: 0 6px 18px rgba(25, 40, 32, 0.08);
+  --shadow-glass: 0 2px 10px rgba(25, 40, 32, 0.05);
+
+  background: var(--hh-bg) !important;
+  background-image: none !important;
+  color: var(--hh-ink) !important;
+}
+
+.background-slideshow {
+  display: none !important;
+}
+
+/* Public / Auth Topbar & Footer harmonized with botanical design */
+.app-topbar {
+  background: #FFFFFF !important;
+  border: 1px solid var(--hh-border) !important;
+  box-shadow: var(--shadow-sm) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.brand-icon-badge {
+  background: var(--hh-green) !important;
+  box-shadow: none !important;
+}
+
+.brand-title {
+  color: var(--hh-ink) !important;
+  -webkit-text-fill-color: var(--hh-ink) !important;
+  background: none !important;
+}
+
+.template-footer {
+  background: transparent !important;
+  color: var(--hh-muted) !important;
+  border-top: 1px solid var(--hh-border) !important;
+}
+
+.template-footer a {
+  color: var(--hh-green) !important;
+}
+
+/* Auth, SceltaCasa, VerificaEmail, NotFound cards & controls */
+.card,
+.auth-card {
+  background: #FFFFFF !important;
+  color: var(--hh-ink) !important;
+  border: 1px solid var(--hh-border) !important;
+  border-radius: var(--hh-radius-card) !important;
+  box-shadow: var(--shadow-card) !important;
+}
+
+.auth-brand-badge {
+  background: var(--hh-green) !important;
+  color: var(--hh-accent) !important;
+  box-shadow: none !important;
+}
+
+.auth-card h1,
+.card h1,
+.card h2 {
+  color: var(--hh-ink) !important;
+}
+
+.auth-card .subtitle,
+.card .subtitle {
+  color: var(--hh-muted) !important;
+}
+
+.auth-form input:not([type="checkbox"]):not([type="radio"]),
+.auth-form select,
+.auth-form textarea,
+.input-group input:not([type="checkbox"]):not([type="radio"]),
+.input-group select,
+.input-group textarea {
+  background: #FFFFFF !important;
+  color: var(--hh-ink) !important;
+  border: 1.5px solid rgba(25, 40, 32, 0.18) !important;
+  border-radius: 12px !important;
+  min-height: 44px;
+}
+
+.auth-form input:-webkit-autofill,
+.auth-form input:-webkit-autofill:hover,
+.auth-form input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1000px #FFFFFF inset !important;
+  -webkit-text-fill-color: var(--hh-ink) !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+.btn-primary {
+  background: var(--hh-green) !important;
+  color: #FFFFFF !important;
+  border: none !important;
+  min-height: 44px;
+  box-shadow: none !important;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--hh-green-hover) !important;
+}
+
+.btn-secondary,
+.google-btn,
+.btn-google {
+  background: #FFFFFF !important;
+  color: var(--hh-ink) !important;
+  border: 1.5px solid rgba(25, 40, 32, 0.20) !important;
+  min-height: 44px;
+}
+
+.btn-secondary:hover:not(:disabled),
+.google-btn:hover:not(:disabled),
+.btn-google:hover:not(:disabled) {
+  background: #EFECE4 !important;
+}
+
+.btn-text {
+  color: var(--hh-green) !important;
+  min-height: 44px;
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid var(--hh-green);
+  outline-offset: 2px;
+}
+
 /* Flush full-bleed viewport when authenticated HouseholdShell is active */
 body:has(.hh-shell) {
   background: var(--hh-bg) !important;
@@ -812,33 +1020,33 @@ body.dark-mode .hh-shell {
    MOBILE "ALTRO" DRAWER & PORTALED OVERLAYS (BOTANICAL PALETTE)
    Portal renders directly on document.body (outside .hh-shell)
    ========================================================================== */
-body:has(.hh-shell) .mobile-menu-overlay {
+.mobile-menu-overlay {
   background: rgba(25, 40, 32, 0.48) !important;
   backdrop-filter: blur(6px) !important;
   -webkit-backdrop-filter: blur(6px) !important;
 }
 
-body:has(.hh-shell) .mobile-menu-inner {
+.mobile-menu-inner {
   background: var(--hh-bg) !important;
   color: var(--hh-ink) !important;
   border-left: 1px solid var(--hh-border) !important;
   box-shadow: -8px 0 32px rgba(25, 40, 32, 0.16) !important;
 }
 
-body:has(.hh-shell) .mobile-menu-header {
+.mobile-menu-header {
   border-bottom: 1px solid var(--hh-border) !important;
 }
 
-body:has(.hh-shell) .mobile-menu-badge {
+.mobile-menu-badge {
   color: var(--hh-green) !important;
   font-weight: 800 !important;
 }
 
-body:has(.hh-shell) .mobile-user-greeting {
+.mobile-user-greeting {
   color: var(--hh-muted) !important;
 }
 
-body:has(.hh-shell) .mobile-close-btn {
+.mobile-close-btn {
   background: #FFFFFF !important;
   color: var(--hh-ink) !important;
   border: 1px solid var(--hh-border) !important;
@@ -846,11 +1054,11 @@ body:has(.hh-shell) .mobile-close-btn {
   min-height: 44px;
 }
 
-body:has(.hh-shell) .mobile-close-btn:hover {
+.mobile-close-btn:hover {
   background: #EFECE4 !important;
 }
 
-body:has(.hh-shell) .mobile-menu-link {
+.mobile-menu-link {
   background: #FFFFFF !important;
   color: var(--hh-ink) !important;
   border: 1px solid var(--hh-border) !important;
@@ -858,33 +1066,33 @@ body:has(.hh-shell) .mobile-menu-link {
   min-height: 48px;
 }
 
-body:has(.hh-shell) .mobile-menu-link:hover {
+.mobile-menu-link:hover {
   background: #FCFDF9 !important;
   border-color: rgba(29, 68, 53, 0.28) !important;
 }
 
-body:has(.hh-shell) .mobile-menu-item.active-item .mobile-menu-link {
+.mobile-menu-item.active-item .mobile-menu-link {
   background: var(--hh-accent) !important;
   color: var(--hh-ink) !important;
   border-color: rgba(29, 68, 53, 0.25) !important;
   font-weight: 700 !important;
 }
 
-body:has(.hh-shell) .menu-icon-wrapper {
+.menu-icon-wrapper {
   background: rgba(29, 68, 53, 0.10) !important;
   color: var(--hh-green) !important;
 }
 
-body:has(.hh-shell) .mobile-menu-item.active-item .menu-icon-wrapper {
+.mobile-menu-item.active-item .menu-icon-wrapper {
   background: var(--hh-green) !important;
   color: var(--hh-accent) !important;
 }
 
-body:has(.hh-shell) .mobile-menu-footer {
+.mobile-menu-footer {
   border-top: 1px solid var(--hh-border) !important;
 }
 
-body:has(.hh-shell) .mobile-logout-btn {
+.mobile-logout-btn {
   background: rgba(200, 30, 58, 0.08) !important;
   color: #B41731 !important;
   border: 1px solid rgba(200, 30, 58, 0.22) !important;
@@ -892,22 +1100,33 @@ body:has(.hh-shell) .mobile-logout-btn {
   min-height: 46px;
 }
 
-body:has(.hh-shell) .mobile-logout-btn:hover {
+.mobile-logout-btn:hover {
   background: rgba(200, 30, 58, 0.14) !important;
 }
 
 /* Harmonize portaled ConfirmModal inside authenticated shell */
-body:has(.hh-shell) .confirm-modal-card {
+.confirm-modal-card {
   background: #FFFFFF !important;
   color: var(--hh-ink) !important;
   border: 1px solid var(--hh-border) !important;
   box-shadow: 0 20px 44px rgba(25, 40, 32, 0.18) !important;
 }
 
-body:has(.hh-shell) .confirm-modal-title {
+.confirm-modal-title {
   color: var(--hh-ink) !important;
 }
 
-body:has(.hh-shell) .confirm-modal-message {
+.confirm-modal-message {
   color: var(--hh-muted) !important;
+}
+
+.hero-brand-badge {
+  background: var(--hh-green) !important;
+  color: var(--hh-accent) !important;
+  border: 1px solid rgba(29, 68, 53, 0.14) !important;
+  box-shadow: 0 8px 20px rgba(29, 68, 53, 0.16) !important;
+}
+
+.hero-brand-badge i {
+  color: var(--hh-accent) !important;
 }

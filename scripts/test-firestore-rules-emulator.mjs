@@ -347,11 +347,36 @@ async function main() {
       token: memberA3.token,
       body: { casaId: 'casa_a', creditoreId: memberA.uid, debitoreId: memberA2.uid, importo: 999, descrizione: 'Tampered', saldato: true }
     }), 'memberA3 tamper deb_a1'));
-  await check('MemberA2 (debtor) ALLOWED settling deb_a1', () =>
+  await check('MemberA2 (debtor) DENIED shrinking importo on deb_a1', () =>
+    expectDeny(fsRequest('PATCH', 'debiti/deb_a1', {
+      token: memberA2.token,
+      body: { casaId: 'casa_a', creditoreId: memberA.uid, debitoreId: memberA2.uid, importo: 0.01, descrizione: 'Bolletta luce', saldato: false }
+    }), 'memberA2 shrink importo'));
+  await check('MemberA2 (debtor) ALLOWED settling deb_a1 without changing importo', () =>
     expectAllow(fsRequest('PATCH', 'debiti/deb_a1', {
       token: memberA2.token,
       body: { casaId: 'casa_a', creditoreId: memberA.uid, debitoreId: memberA2.uid, importo: 25.5, descrizione: 'Bolletta luce', saldato: true }
     }), 'memberA2 settle deb_a1'));
+  await check('MemberA (creditor) ALLOWED updating importo on deb_a1', () =>
+    expectAllow(fsRequest('PATCH', 'debiti/deb_a1', {
+      token: memberA.token,
+      body: { casaId: 'casa_a', creditoreId: memberA.uid, debitoreId: memberA2.uid, importo: 30.0, descrizione: 'Bolletta luce rettificata', saldato: false }
+    }), 'memberA update importo'));
+  await check('AdminA DENIED creating mismatched /inviti/WRONG1 for casa_a', () =>
+    expectDeny(fsRequest('PATCH', 'inviti/WRONG1', {
+      token: adminA.token,
+      body: { casaId: 'casa_a', nomeCasa: 'Casa Alpha', creatoreId: adminA.uid }
+    }), 'adminA create mismatched invite'));
+  await check('MemberA (already housed) DENIED creating orphan house', () =>
+    expectDeny(fsRequest('PATCH', 'case/casa_orphan', {
+      token: memberA.token,
+      body: { nome: 'Orphan', codiceUnivoco: 'ORPH99', creatoreId: memberA.uid, adminUid: memberA.uid }
+    }), 'memberA create orphan house'));
+  await check('ExMemberA (homeless) ALLOWED creating a new house', () =>
+    expectAllow(fsRequest('PATCH', 'case/casa_fresh', {
+      token: exMemberA.token,
+      body: { nome: 'Casa Nuova', codiceUnivoco: 'NEW123', creatoreId: exMemberA.uid, adminUid: exMemberA.uid }
+    }), 'exMemberA create fresh house'));
 
   // 8. DOCUMENT URL INTEGRITY
   await check('MemberA DENIED creating document with javascript: URL', () =>

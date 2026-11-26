@@ -89,8 +89,8 @@ class AppErrorBoundary extends React.Component {
             justifyContent: "center",
             padding: "24px",
             textAlign: "center",
-            background: "var(--bg-primary, #0f172a)",
-            color: "var(--text-main, #f8fafc)"
+            background: "var(--bg-primary, #F7F6F2)",
+            color: "var(--text-main, #192820)"
           }}
         >
           <i className="fas fa-exclamation-triangle fa-2x" style={{ marginBottom: "12px", color: "#f59e0b" }} aria-hidden="true" />

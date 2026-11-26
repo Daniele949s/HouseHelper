@@ -22,7 +22,7 @@ export default function HomeAutenticazione() {
     <div className="card auth-card hero-welcome-card">
       {/* Brand Hero Emblem */}
       <div className="hero-brand-badge" aria-hidden="true">
-        <i className="fas fa-house-chimney-user"></i>
+        <i className="fas fa-home"></i>
       </div>
 
       {/* Main Title & Value Proposition */}

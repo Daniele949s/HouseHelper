@@ -185,8 +185,9 @@ service cloud.firestore {
         || (!hasValidCasa() && request.query.limit <= 1)
       );
 
-      // Create: Authenticated users can create a new household with required fields
+      // Create: Authenticated users without an active house can create a new household
       allow create: if isSignedIn()
+        && !hasValidCasa()
         && isNonEmptyString(request.resource.data.nome, 60)
         && isNonEmptyString(request.resource.data.codiceUnivoco, 12)
         && request.resource.data.codiceUnivoco.size() >= 4
@@ -221,7 +222,8 @@ service cloud.firestore {
         && isNonEmptyString(request.resource.data.casaId, 64)
         && isNonEmptyString(request.resource.data.nomeCasa, 60)
         && request.resource.data.creatoreId == request.auth.uid
-        && isHouseAdmin(request.resource.data.casaId);
+        && isHouseAdmin(request.resource.data.casaId)
+        && get(housePath(request.resource.data.casaId)).data.codiceUnivoco == codice;
 
       allow update: if false;
       allow delete: if isSignedIn() && isHouseAdmin(resource.data.casaId);
@@ -269,15 +271,24 @@ service cloud.firestore {
         && get(/databases/$(database)/documents/utenti/$(request.resource.data.creditoreId)).data.casaId == request.resource.data.casaId
         && get(/databases/$(database)/documents/utenti/$(request.resource.data.debitoreId)).data.casaId == request.resource.data.casaId;
 
-      // Update: Only debtor, creditor, or house admin may modify/settle. Immutability on casaId, creditoreId, debitoreId.
+      // Update: Creditor or house admin may modify importo/descrizione/saldato;
+      // Debtor may ONLY toggle saldato (cannot shrink importo or rewrite descrizione).
       allow update: if belongsToSameHouse(resource.data.casaId)
-        && (request.auth.uid == resource.data.debitoreId || request.auth.uid == resource.data.creditoreId || isHouseAdmin(resource.data.casaId))
         && request.resource.data.casaId == resource.data.casaId
         && request.resource.data.creditoreId == resource.data.creditoreId
         && request.resource.data.debitoreId == resource.data.debitoreId
         && isValidImporto(request.resource.data.importo)
         && isNonEmptyString(request.resource.data.descrizione, 255)
-        && (!('saldato' in request.resource.data) || request.resource.data.saldato is bool);
+        && (!('saldato' in request.resource.data) || request.resource.data.saldato is bool)
+        && (
+          request.auth.uid == resource.data.creditoreId
+          || isHouseAdmin(resource.data.casaId)
+          || (
+            request.auth.uid == resource.data.debitoreId
+            && request.resource.data.importo == resource.data.importo
+            && request.resource.data.descrizione == resource.data.descrizione
+          )
+        );
 
       // The debtor, creditor, or house admin may delete the debt.
       allow delete: if belongsToSameHouse(resource.data.casaId)
