@@ -456,7 +456,7 @@ export default function AggiungiDebito() {
                   </div>
                   {coinquilini.length > 0 && safeFloat(debito.importo) > 0 && (
                     <div style={{ marginTop: "6px", fontWeight: "600" }}>
-                      {t("expenses.individualShare", null, "Quota individuale:")} <span>{(safeFloat(debito.importo) / coinquilini.length).toFixed(2)} €</span>
+                      {t("expenses.individualShare", null, "Quota a testa:")} <span>{(safeFloat(debito.importo) / coinquilini.length).toFixed(2)} €</span>
                     </div>
                   )}
                 </div>

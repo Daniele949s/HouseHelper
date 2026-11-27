@@ -456,11 +456,17 @@ export default function HomeUtente() {
     }
   };
 
+  const removalLabel = (member) => member.isPending
+    ? t("dashboard.rejectRequest", {}, "Rifiuta richiesta")
+    : t("dashboard.kickMemberBtn", {}, "Espelli");
+
   const handleKickMember = async (member) => {
     const confirmed = await showConfirm({
-      title: t("dashboard.kickMemberBtn", {}, "Espelli"),
-      message: t("dashboard.kickMemberConfirm", { name: member.username }, `Vuoi rimuovere ${member.username} dalla casa?`),
-      confirmText: t("dashboard.kickMemberBtn", {}, "Espelli"),
+      title: removalLabel(member),
+      message: member.isPending
+        ? t("dashboard.rejectRequestConfirm", { name: member.username }, `Vuoi rifiutare la richiesta di ${member.username}?`)
+        : t("dashboard.kickMemberConfirm", { name: member.username }, `Vuoi rimuovere ${member.username} dalla casa?`),
+      confirmText: removalLabel(member),
       cancelText: t("common.cancel", {}, "Annulla"),
       isDanger: true,
     });
@@ -473,9 +479,13 @@ export default function HomeUtente() {
         delete next[member.uid];
         return next;
       });
-      showToast(t("dashboard.kickMemberSuccess", { name: member.username }, `${member.username} è stato rimosso dalla casa.`), "success");
+      showToast(member.isPending
+        ? t("dashboard.rejectRequestSuccess", { name: member.username }, `Richiesta di ${member.username} rifiutata.`)
+        : t("dashboard.kickMemberSuccess", { name: member.username }, `${member.username} è stato rimosso dalla casa.`), "success");
     } catch {
-      showToast(t("dashboard.kickMemberError", {}, "Impossibile rimuovere il membro."), "error");
+      showToast(member.isPending
+        ? t("dashboard.rejectRequestError", {}, "Impossibile rifiutare la richiesta.")
+        : t("dashboard.kickMemberError", {}, "Impossibile rimuovere il membro."), "error");
     }
   };
 
@@ -781,7 +791,7 @@ export default function HomeUtente() {
                     </button>
                   )}
                   <button type="button" className="btn-danger-outline btn-xs" onClick={() => handleKickMember(member)}>
-                    {t("dashboard.kickMemberBtn", {}, "Espelli")}
+                    {removalLabel(member)}
                   </button>
                 </div>
               )}

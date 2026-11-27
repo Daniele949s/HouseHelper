@@ -184,7 +184,7 @@ describe('Tier 1: Auth & House Selection Feature Coverage', () => {
     });
 
     const codeInput = await screen.findByPlaceholderText(/Codice \(es\. X7K9P2\)/i);
-    const joinBtn = screen.getByRole('button', { name: /Unisciti/i });
+    const joinBtn = screen.getByRole('button', { name: /Invia richiesta/i });
 
     fireEvent.change(codeInput, { target: { value: 'dant01' } });
     fireEvent.click(joinBtn);

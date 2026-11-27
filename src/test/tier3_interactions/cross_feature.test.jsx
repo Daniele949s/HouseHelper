@@ -144,7 +144,7 @@ describe('Tier 3: Cross-Feature State Interactions & Reactive Workflows', () => 
     });
 
     const codeInput = await screen.findByPlaceholderText(/Codice \(es\. X7K9P2\)/i);
-    const joinBtn = screen.getByRole('button', { name: /Unisciti/i });
+    const joinBtn = screen.getByRole('button', { name: /Invia richiesta/i });
 
     fireEvent.change(codeInput, { target: { value: 'JOIN01' } });
     fireEvent.click(joinBtn);

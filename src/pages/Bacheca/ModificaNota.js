@@ -218,7 +218,7 @@ export default function ModificaNota() {
             {t("common.cancel", null, "Annulla")}
           </button>
           <button type="submit" className="btn-primary" disabled={saving}>
-            {saving ? <i className="fas fa-spinner fa-spin" aria-hidden="true"></i> : t("board.saveChangesBtn", null, "Salva Modifiche")}
+            {saving ? t("common.saving", null, "Salvataggio…") : t("board.saveChangesBtn", null, "Salva Modifiche")}
           </button>
         </div>
       </form>

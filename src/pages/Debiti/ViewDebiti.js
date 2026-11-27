@@ -214,7 +214,7 @@ export default function ViewDebiti() {
         showToast(
           isMyDebt
             ? t("expenses.settleSuccess", null, "Debito saldato con successo!")
-            : t("expenses.deleteSuccess", null, "Spesa eliminata."),
+            : t("expenses.deleteSuccess", null, "Rimborso confermato e quota saldata."),
           "success"
         );
       } catch (deleteErr) {
@@ -223,7 +223,7 @@ export default function ViewDebiti() {
       }
     } catch (err) {
       console.error("Errore eliminazione:", err);
-      showToast(t("expenses.deleteError", null, "Errore nell'eliminazione."), "error");
+      showToast(t("expenses.deleteError", null, "Impossibile aggiornare il saldo. Riprova."), "error");
     } finally {
       settlementInFlight.current = false;
       setIsSettling(false);

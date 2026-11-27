@@ -171,7 +171,7 @@ describe('Milestone 3 Adversarial Challenge Suite', () => {
       fireEvent.click(splitCheckbox);
 
       // Verify live quota preview
-      expect(await screen.findByText(/Quota individuale:/i)).toBeInTheDocument();
+      expect(await screen.findByText(/Quota a testa:/i)).toBeInTheDocument();
       expect(screen.getByText('3.33 €')).toBeInTheDocument();
 
       fireEvent.click(submitBtn);

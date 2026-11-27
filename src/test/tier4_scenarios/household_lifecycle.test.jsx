@@ -77,7 +77,7 @@ describe('Tier 4: Realistic Household Lifecycle & Multi-User Workloads', () => {
     });
 
     const marcoCodeInput = await screen.findByPlaceholderText(/Codice \(es\. X7K9P2\)/i);
-    const marcoJoinBtn = screen.getByRole('button', { name: /Unisciti/i });
+    const marcoJoinBtn = screen.getByRole('button', { name: /Invia richiesta/i });
     fireEvent.change(marcoCodeInput, { target: { value: inviteCode } });
     fireEvent.click(marcoJoinBtn);
 
@@ -94,7 +94,7 @@ describe('Tier 4: Realistic Household Lifecycle & Multi-User Workloads', () => {
     });
 
     const sofiaCodeInput = await screen.findByPlaceholderText(/Codice \(es\. X7K9P2\)/i);
-    const sofiaJoinBtn = screen.getByRole('button', { name: /Unisciti/i });
+    const sofiaJoinBtn = screen.getByRole('button', { name: /Invia richiesta/i });
     fireEvent.change(sofiaCodeInput, { target: { value: inviteCode } });
     fireEvent.click(sofiaJoinBtn);
 

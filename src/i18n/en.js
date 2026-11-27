@@ -5,6 +5,7 @@
  */
 const en = {
   "common": {
+    "saving": "Saving…",
     "save": "Save",
     "cancel": "Cancel",
     "confirm": "Confirm",
@@ -837,9 +838,9 @@ const en = {
     "joinTitle": "Join with invite code",
     "joinDesc": "Enter the code you received to send a join request to the house admin.",
     "inviteCodePlaceholder": "Code (e.g. X7K9P2)",
-    "inviteCodeAria": "Invite code to join the house",
+    "inviteCodeAria": "Invite code to request membership",
     "joining": "Sending request...",
-    "joinBtn": "Join"
+    "joinBtn": "Send request"
   },
   "dashboard": {
     "membersSectionTitle": "Household Members",
@@ -854,6 +855,10 @@ const en = {
     "promoteAdminConfirm": "Transfer the Household Admin role to {name}? You will become a Member.",
     "promoteAdminSuccess": "Transferred the Household Admin role to {name}.",
     "promoteAdminError": "Could not transfer the Household Admin role.",
+    "rejectRequest": "Decline request",
+    "rejectRequestConfirm": "Decline the request from {name}?",
+    "rejectRequestSuccess": "Request from {name} declined.",
+    "rejectRequestError": "Could not decline the request.",
     "kickMemberBtn": "Remove",
     "kickMemberConfirm": "Remove {name} from the household?",
     "kickMemberSuccess": "{name} was removed from the household.",

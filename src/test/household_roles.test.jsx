@@ -69,7 +69,7 @@ describe("Dashboard household members and roles", () => {
     expect(activeRow.getByRole("button", { name: remove })).toBeInTheDocument();
     expect(activeRow.queryByRole("button", { name: accept })).not.toBeInTheDocument();
     expect(pendingRow.getByRole("button", { name: accept })).toBeInTheDocument();
-    expect(pendingRow.getByRole("button", { name: remove })).toBeInTheDocument();
+    expect(pendingRow.getByRole("button", { name: "Rifiuta richiesta" })).toBeInTheDocument();
     expect(pendingRow.queryByRole("button", { name: promote })).not.toBeInTheDocument();
   });
 

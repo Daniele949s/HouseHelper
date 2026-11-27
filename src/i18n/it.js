@@ -5,6 +5,7 @@
  */
 const it = {
   "common": {
+    "saving": "Salvataggio…",
     "save": "Salva",
     "cancel": "Annulla",
     "confirm": "Conferma",
@@ -19,11 +20,11 @@ const it = {
     "loading": "Caricamento in corso...",
     "copied": "Copiato negli appunti!",
     "success": "Operazione completata con successo",
-    "error": "Si e verificato un errore",
+    "error": "Si è verificato un errore",
     "warning": "Attenzione",
     "info": "Informazione",
     "logout": "Esci dall'account",
-    "yes": "Si",
+    "yes": "Sì",
     "no": "No",
     "or": "oppure",
     "active": "Attivo",
@@ -760,7 +761,7 @@ const it = {
     "notFoundDesc": "La pagina richiesta non esiste o e stata spostata.",
     "backHome": "Torna alla Home",
     "unauthorized": "Accesso non autorizzato",
-    "generic": "Si e verificato un errore imprevisto.",
+    "generic": "Si è verificato un errore imprevisto.",
     "offline": "Sei offline. Alcune modifiche verranno sincronizzate alla riconnessione.",
     "notFoundLongDesc": "L'indirizzo URL a cui stai tentando di accedere non esiste, è stato rimosso oppure non hai i permessi per visualizzarlo.",
     "backToDashboard": "Torna alla dashboard"
@@ -837,9 +838,9 @@ const it = {
     "joinTitle": "Unisciti con codice invito",
     "joinDesc": "Inserisci il codice ricevuto per inviare la richiesta di ingresso all'amministratore.",
     "inviteCodePlaceholder": "Codice (es. X7K9P2)",
-    "inviteCodeAria": "Codice invito per accedere alla casa",
+    "inviteCodeAria": "Codice invito per richiedere l’ingresso",
     "joining": "Invio richiesta...",
-    "joinBtn": "Unisciti"
+    "joinBtn": "Invia richiesta"
   },
   "dashboard": {
     "membersSectionTitle": "Membri della Casa",
@@ -854,6 +855,10 @@ const it = {
     "promoteAdminConfirm": "Vuoi cedere il ruolo di Amministratore della casa a {name}? Diventerai un Membro della casa.",
     "promoteAdminSuccess": "Ruolo di Amministratore ceduto a {name}.",
     "promoteAdminError": "Impossibile cedere il ruolo di Amministratore.",
+    "rejectRequest": "Rifiuta richiesta",
+    "rejectRequestConfirm": "Vuoi rifiutare la richiesta di {name}?",
+    "rejectRequestSuccess": "Richiesta di {name} rifiutata.",
+    "rejectRequestError": "Impossibile rifiutare la richiesta.",
     "kickMemberBtn": "Espelli",
     "kickMemberConfirm": "Vuoi rimuovere {name} dalla casa?",
     "kickMemberSuccess": "{name} è stato rimosso dalla casa.",

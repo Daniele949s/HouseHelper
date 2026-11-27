@@ -161,7 +161,7 @@ export default function AggiungiNota() {
             {t("common.cancel", null, "Annulla")}
           </button>
           <button type="submit" className="btn-primary" disabled={loading}>
-            {loading ? <i className="fas fa-spinner fa-spin" aria-hidden="true"></i> : t("board.publishBtn", null, "Pubblica Avviso")}
+            {loading ? t("common.saving", null, "Salvataggio…") : t("board.publishBtn", null, "Pubblica Avviso")}
           </button>
         </div>
       </form>

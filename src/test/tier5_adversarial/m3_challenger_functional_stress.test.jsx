@@ -820,7 +820,7 @@ describe("Milestone M3 Adversarial Challenger: Functional & Edge Case Stress Har
         await capturedOptions.onConfirm();
       });
 
-      expect(feedbackModule.showToast).toHaveBeenCalledWith("Si e verificato un errore", "error");
+      expect(feedbackModule.showToast).toHaveBeenCalledWith("Si è verificato un errore", "error");
     });
   });
 

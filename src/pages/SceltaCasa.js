@@ -202,7 +202,7 @@ export default function SceltaCasa() {
                 value={codiceCasa}
                 maxLength={10}
                 onChange={(e) => setCodiceCasa(e.target.value.toUpperCase())}
-                aria-label={t("houseChoice.inviteCodeAria", {}, "Codice invito per accedere alla casa")}
+                aria-label={t("houseChoice.inviteCodeAria", {}, "Codice invito per richiedere l’ingresso")}
                 style={{
                   width: "100%",
                   minHeight: "46px",
@@ -229,7 +229,7 @@ export default function SceltaCasa() {
               {loading ? (
                 <span><i className="fas fa-spinner fa-spin" aria-hidden="true"></i> {t("houseChoice.joining", {}, "Invio richiesta...")}</span>
               ) : (
-                <span><i className="fas fa-door-open" aria-hidden="true"></i> {t("houseChoice.joinBtn", {}, "Unisciti")}</span>
+                <span><i className="fas fa-door-open" aria-hidden="true"></i> {t("houseChoice.joinBtn", {}, "Invia richiesta")}</span>
               )}
             </button>
           </div>
