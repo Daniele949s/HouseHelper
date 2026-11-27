@@ -322,6 +322,7 @@ export default function AggiuntaTurno() {
               <button
                 key={z}
                 type="button"
+                className="hh-touch-chip"
                 aria-pressed={selectedZones.includes(z)}
                 onClick={() => addZonePreset(z)}
                 disabled={loading}
@@ -450,14 +451,7 @@ export default function AggiuntaTurno() {
           />
         </div>
 
-        <div style={{ display: "flex", gap: "12px", marginTop: "20px" }}>
-          <button type="submit" className="btn-primary" disabled={loading}>
-            {loading ? (
-              <span><i className="fas fa-spinner fa-spin" aria-hidden="true"></i> {t("chores.saving", {}, "Salvataggio...")}</span>
-            ) : (
-              <span><i className="fas fa-plus" aria-hidden="true"></i> {t("chores.createBtn", {}, "Crea Turno")}</span>
-            )}
-          </button>
+        <div className="hh-form-actions">
           <button
             type="button"
             className="btn-secondary"
@@ -465,6 +459,13 @@ export default function AggiuntaTurno() {
             disabled={loading}
           >
             {t("common.cancel", {}, "Annulla")}
+          </button>
+          <button type="submit" className="btn-primary" disabled={loading}>
+            {loading ? (
+              <span><i className="fas fa-spinner fa-spin" aria-hidden="true"></i> {t("chores.saving", {}, "Salvataggio...")}</span>
+            ) : (
+              <span><i className="fas fa-plus" aria-hidden="true"></i> {t("chores.createBtn", {}, "Crea Turno")}</span>
+            )}
           </button>
         </div>
       </form>

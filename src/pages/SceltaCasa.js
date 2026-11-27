@@ -93,14 +93,18 @@ export default function SceltaCasa() {
       clearInviteCodeRateLimit();
 
       showToast(
-        t("houseChoice.welcomeToHouseToast", { name: result.house.nome }, `Benvenuto in ${result.house.nome}!`),
+        t(
+          "houseChoice.welcomeToHouseToast",
+          { name: result.house.nome },
+          `Richiesta inviata a ${result.house.nome}. In attesa di approvazione dell'amministratore.`
+        ),
         "success",
-        3500
+        4000
       );
       navigate("/home");
     } catch (e) {
       console.error(e);
-      const err = t("houseChoice.joinHouseError", {}, "Errore durante l'accesso alla casa.");
+      const err = t("houseChoice.joinHouseError", {}, "Errore nell'invio della richiesta di ingresso.");
       setError(err);
       showToast(err, "error");
     } finally {
@@ -117,12 +121,12 @@ export default function SceltaCasa() {
     <div className="card scelta-casa-card" style={{ maxWidth: "620px" }}>
       {/* Brand Header */}
       <div className="auth-brand-badge" aria-hidden="true">
-        <i className="fas fa-house-chimney"></i>
+        <i className="fas fa-home"></i>
       </div>
 
       <div className="auth-header">
-        <h1>{t("houseChoice.title", {}, "Configurazione Casa")}</h1>
-        <p className="subtitle">{t("houseChoice.subtitle", {}, "Non fai ancora parte di un gruppo. Crea una casa o unisciti ai tuoi coinquilini!")}</p>
+        <h1>{t("houseChoice.title", {}, "Configura la tua casa")}</h1>
+        <p className="subtitle">{t("houseChoice.subtitle", {}, "Non fai ancora parte di una casa. Creane una nuova oppure entra con un codice invito.")}</p>
       </div>
 
       {error && (
@@ -138,13 +142,13 @@ export default function SceltaCasa() {
         <div className="scelta-card scelta-crea" style={{ borderBottom: "1px solid var(--border-color)", paddingBottom: "2rem", textAlign: "left" }}>
           <h3 style={{ display: "flex", alignItems: "center", gap: "8px", margin: "0 0 6px 0" }}>
             <i className="fas fa-plus-circle" style={{ color: "var(--color-primary)" }} aria-hidden="true"></i>
-            <span>{t("houseChoice.createTitle", {}, "Crea una nuova Casa")}</span>
+            <span>{t("houseChoice.createTitle", {}, "Crea una nuova casa")}</span>
           </h3>
           <p className="scelta-desc" style={{ marginBottom: "14px", fontSize: "0.92rem", color: "var(--text-secondary)" }}>
-            {t("houseChoice.createDesc", {}, "Dai un nome alla casa e riceverai un codice invito da condividere con i coinquilini.")}
+            {t("houseChoice.createDesc", {}, "Scegli un nome per la casa: otterrai subito un codice invito da condividere con i coinquilini.")}
           </p>
-          <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
-            <div className="input-with-icon" style={{ flex: 1, minWidth: "220px" }}>
+          <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", alignItems: "stretch" }}>
+            <div className="scelta-input-wrap" style={{ flex: "1 1 220px", minWidth: 0 }}>
               <input
                 type="text"
                 placeholder={t("houseChoice.houseNamePlaceholder", {}, "Nome casa (es. Villa Arzilla, Appartamento 4B)")}
@@ -154,12 +158,14 @@ export default function SceltaCasa() {
                 aria-label={t("houseChoice.houseNameAria", {}, "Nome della casa da creare")}
                 style={{
                   width: "100%",
-                  padding: "14px 18px",
+                  minHeight: "46px",
+                  padding: "12px 16px",
                   borderRadius: "var(--radius-md)",
                   border: "1.5px solid var(--border-color)",
                   background: "var(--bg-input)",
                   color: "var(--text-main)",
-                  outline: "none"
+                  outline: "none",
+                  boxSizing: "border-box"
                 }}
               />
             </div>
@@ -168,7 +174,7 @@ export default function SceltaCasa() {
               className="btn-primary"
               onClick={creaCasa}
               disabled={loading}
-              style={{ width: "auto", padding: "14px 24px" }}
+              style={{ width: "auto", flex: "0 0 auto", padding: "12px 24px", minHeight: "46px" }}
             >
               {loading ? (
                 <span><i className="fas fa-spinner fa-spin" aria-hidden="true"></i> {t("houseChoice.creating", {}, "Creazione...")}</span>
@@ -183,13 +189,13 @@ export default function SceltaCasa() {
         <div className="scelta-card scelta-unisciti" style={{ textAlign: "left" }}>
           <h3 style={{ display: "flex", alignItems: "center", gap: "8px", margin: "0 0 6px 0" }}>
             <i className="fas fa-key" style={{ color: "var(--color-accent)" }} aria-hidden="true"></i>
-            <span>{t("houseChoice.joinTitle", {}, "Unisciti con codice")}</span>
+            <span>{t("houseChoice.joinTitle", {}, "Unisciti con codice invito")}</span>
           </h3>
           <p className="scelta-desc" style={{ marginBottom: "14px", fontSize: "0.92rem", color: "var(--text-secondary)" }}>
-            {t("houseChoice.joinDesc", {}, "Hai ricevuto un codice dal tuo coinquilino? Inseriscilo qui per accedere subito.")}
+            {t("houseChoice.joinDesc", {}, "Inserisci il codice ricevuto per inviare la richiesta di ingresso all'amministratore.")}
           </p>
-          <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
-            <div className="input-with-icon" style={{ flex: 1, minWidth: "220px" }}>
+          <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", alignItems: "stretch" }}>
+            <div className="scelta-input-wrap" style={{ flex: "1 1 220px", minWidth: 0 }}>
               <input
                 type="text"
                 placeholder={t("houseChoice.inviteCodePlaceholder", {}, "Codice (es. X7K9P2)")}
@@ -199,15 +205,17 @@ export default function SceltaCasa() {
                 aria-label={t("houseChoice.inviteCodeAria", {}, "Codice invito per accedere alla casa")}
                 style={{
                   width: "100%",
-                  padding: "14px 18px",
+                  minHeight: "46px",
+                  padding: "12px 16px",
                   borderRadius: "var(--radius-md)",
                   border: "1.5px solid var(--border-color)",
                   background: "var(--bg-input)",
                   color: "var(--text-main)",
                   outline: "none",
-                  letterSpacing: "2px",
-                  textTransform: "uppercase",
-                  fontWeight: "bold"
+                  letterSpacing: codiceCasa ? "2px" : "normal",
+                  textTransform: codiceCasa ? "uppercase" : "none",
+                  fontWeight: codiceCasa ? "700" : "500",
+                  boxSizing: "border-box"
                 }}
               />
             </div>
@@ -216,10 +224,10 @@ export default function SceltaCasa() {
               className="btn-secondary"
               onClick={uniscitiCasa}
               disabled={loading}
-              style={{ width: "auto", padding: "14px 24px" }}
+              style={{ width: "auto", flex: "0 0 auto", padding: "12px 24px", minHeight: "46px" }}
             >
               {loading ? (
-                <span><i className="fas fa-spinner fa-spin" aria-hidden="true"></i> {t("houseChoice.joining", {}, "Accesso...")}</span>
+                <span><i className="fas fa-spinner fa-spin" aria-hidden="true"></i> {t("houseChoice.joining", {}, "Invio richiesta...")}</span>
               ) : (
                 <span><i className="fas fa-door-open" aria-hidden="true"></i> {t("houseChoice.joinBtn", {}, "Unisciti")}</span>
               )}

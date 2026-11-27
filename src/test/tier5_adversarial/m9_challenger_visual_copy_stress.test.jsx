@@ -275,7 +275,7 @@ describe("Milestone M9 Empirical Challenger Suite: Visual System, Liquid Glass B
         route: "/home"
       });
 
-      await screen.findByText(/Bentornato/i);
+      await screen.findByText(/Ciao,/i);
       const homeHtml = document.body.innerHTML;
 
       // Bureaucratic term check on HomeUtente

@@ -111,6 +111,20 @@ describe('Tier 2: Auth & House Selection Boundary & Corner Cases', () => {
         creatoreId: 'creator_1'
       }
     });
+    mockStore.seed('inviti', {
+      AB1234: {
+        casaId: 'casa_target',
+        nomeCasa: 'Casa Test',
+        creatoreId: 'creator_1'
+      }
+    });
+    mockStore.seed('utenti', {
+      u_joiner: {
+        username: 'Joiner',
+        email: 'joiner@test.com',
+        casaId: null
+      }
+    });
 
     const user = { uid: 'u_joiner', email: 'joiner@test.com' };
     const userData = { username: 'Joiner', email: 'joiner@test.com', casaId: null };

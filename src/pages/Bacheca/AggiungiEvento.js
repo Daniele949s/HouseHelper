@@ -181,12 +181,12 @@ export default function AggiungiEvento() {
           />
         </div>
 
-        <div style={{ display: "flex", gap: "12px", marginTop: "16px" }}>
-          <button type="submit" className="btn-primary" disabled={loading}>
-            {loading ? <i className="fas fa-spinner fa-spin"></i> : t("calendar.saveEventBtn", null, "Salva Evento")}
-          </button>
+        <div className="hh-form-actions">
           <button type="button" className="btn-secondary" onClick={() => navigate("/calendario")}>
             {t("common.cancel", null, "Annulla")}
+          </button>
+          <button type="submit" className="btn-primary" disabled={loading}>
+            {loading ? <i className="fas fa-spinner fa-spin" aria-hidden="true"></i> : t("calendar.saveEventBtn", null, "Salva Evento")}
           </button>
         </div>
       </form>

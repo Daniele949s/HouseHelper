@@ -175,7 +175,7 @@ body.light-mode,
   color: var(--hh-ink) !important;
   border: 1.5px solid rgba(25, 40, 32, 0.18) !important;
   border-radius: 12px !important;
-  min-height: 44px;
+  min-height: 46px;
 }
 
 .auth-form input:-webkit-autofill,
@@ -190,7 +190,7 @@ body.light-mode,
   background: var(--hh-green) !important;
   color: #FFFFFF !important;
   border: none !important;
-  min-height: 44px;
+  min-height: 46px;
   box-shadow: none !important;
 }
 
@@ -204,7 +204,7 @@ body.light-mode,
   background: #FFFFFF !important;
   color: var(--hh-ink) !important;
   border: 1.5px solid rgba(25, 40, 32, 0.20) !important;
-  min-height: 44px;
+  min-height: 46px;
 }
 
 .btn-secondary:hover:not(:disabled),
@@ -215,7 +215,7 @@ body.light-mode,
 
 .btn-text {
   color: var(--hh-green) !important;
-  min-height: 44px;
+  min-height: 46px;
 }
 
 a:focus-visible,
@@ -730,7 +730,7 @@ body.dark-mode .hh-shell {
 
 .hh-shell .btn-text {
   color: var(--hh-green) !important;
-  min-height: 44px;
+  min-height: 46px;
 }
 
 /* Botanical Hero Banner treatment for key summary headers */
@@ -789,6 +789,10 @@ body.dark-mode .hh-shell {
 .hh-shell .household-status-card .invite-code-val,
 .hh-shell .household-status-card .invite-code-val code {
   color: #FFFFFF !important;
+}
+
+.hh-shell .household-status-card .invite-code-val i {
+  color: var(--hh-accent) !important;
 }
 
 .hh-shell .household-status-card .metric-icon-wrap {
@@ -1135,4 +1139,123 @@ body.dark-mode .hh-shell {
 .hh-shell,
 .hh-main {
   min-height: 78vh;
+}
+
+/* ==========================================================================
+   SPACING, ALIGNMENT & ACTION HIERARCHY REFINEMENTS (DESKTOP & MOBILE)
+   ========================================================================== */
+.hh-shell .card.members-management-card,
+.hh-shell .card.vacation-mode-card {
+  max-width: 100% !important;
+  width: 100% !important;
+  margin-bottom: 20px !important;
+}
+
+.hh-shell .member-actions {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.hh-shell .member-actions .btn-primary,
+.hh-shell .member-actions .btn-secondary,
+.hh-shell .member-actions .btn-danger-outline {
+  width: auto !important;
+  min-height: 44px !important;
+  padding: 8px 16px !important;
+  font-size: 0.86rem !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hh-shell .bento-account {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.hh-shell .debt-hero-card p {
+  margin-inline: auto !important;
+}
+
+.hh-shell .debt-summary-grid {
+  text-align: left;
+}
+
+@media (max-width: 480px) {
+  .hh-shell .debt-summary-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+.hh-shell .bacheca-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  flex-wrap: nowrap;
+}
+
+.hh-shell .bacheca-header-left {
+  flex: 1 1 0%;
+  min-width: 0;
+}
+
+.hh-shell .bacheca-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+/* Standardized Form Action Footer: Cancel leading, Primary trailing */
+.hh-form-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+  flex-wrap: wrap;
+}
+
+.hh-form-actions .btn-secondary {
+  flex: 0 1 auto;
+  width: auto !important;
+  min-height: 46px;
+  padding: 12px 18px;
+  white-space: nowrap;
+}
+
+.hh-form-actions .btn-primary {
+  flex: 1 1 auto;
+  width: auto !important;
+  min-height: 46px;
+  padding: 12px 20px;
+  white-space: nowrap;
+}
+
+@media (min-width: 600px) {
+  .hh-form-actions .btn-primary {
+    flex: 0 1 auto;
+    min-width: 180px;
+  }
+}
+
+@media (max-width: 420px) {
+  .hh-form-actions .btn-secondary,
+  .hh-form-actions .btn-primary {
+    flex: 1 1 130px;
+  }
+}
+
+/* Enforce >= 44px Apple HIG touch target floor across chips and checklist rows */
+.hh-touch-chip,
+.roommate-select-chip,
+.zone-chips-container button {
+  min-height: 44px !important;
 }

@@ -199,16 +199,16 @@ export default function ModificaTurno() {
           />
         </div>
 
-        <div style={{ display: "flex", gap: "12px", marginTop: "16px" }}>
+        <div className="hh-form-actions">
+          <button type="button" className="btn-secondary" onClick={() => navigate("/turni")}>
+            {t("common.cancel", {}, "Annulla")}
+          </button>
           <button type="submit" className="btn-primary" disabled={saving}>
             {saving ? (
               <span><i className="fas fa-spinner fa-spin" aria-hidden="true"></i> {t("chores.saving", {}, "Salvataggio...")}</span>
             ) : (
               <span><i className="fas fa-check" aria-hidden="true"></i> {t("chores.saveChangesBtn", {}, "Salva Modifiche")}</span>
             )}
-          </button>
-          <button type="button" className="btn-secondary" onClick={() => navigate("/turni")}>
-            {t("common.cancel", {}, "Annulla")}
           </button>
         </div>
       </form>

@@ -256,11 +256,12 @@ export default function AggiungiDebito() {
         {/* Importo Totale */}
         <div className="input-group">
           <label htmlFor="debito-importo">{t("expenses.amountLabel", null, "Importo Totale (€) * (Min: 0.01 €, Max: 50.000 €)")}</label>
-          <div style={{ display: "flex", gap: "6px", marginBottom: "8px" }}>
+          <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginBottom: "8px" }}>
             {[5, 10, 20, 50].map((inc) => (
               <button
                 key={inc}
                 type="button"
+                className="hh-touch-chip"
                 onClick={() => addAmountPreset(inc)}
                 disabled={loading}
                 style={{
@@ -271,6 +272,7 @@ export default function AggiungiDebito() {
                   padding: "8px 14px",
                   minHeight: "40px",
                   fontSize: "0.85rem",
+                  fontWeight: "600",
                   cursor: "pointer",
                   display: "inline-flex",
                   alignItems: "center",
@@ -365,7 +367,7 @@ export default function AggiungiDebito() {
                     justifyContent: "center",
                     borderRadius: "var(--radius-sm)",
                     border: splitMode === "uguali" ? "2px solid var(--color-primary)" : "1px solid var(--border-color)",
-                    background: splitMode === "uguali" ? "rgba(37, 99, 235, 0.1)" : "var(--bg-card)",
+                    background: splitMode === "uguali" ? "var(--color-primary-light)" : "var(--bg-card)",
                     color: splitMode === "uguali" ? "var(--color-primary)" : "var(--text-main)",
                     fontWeight: splitMode === "uguali" ? "700" : "500",
                     fontSize: "0.85rem",
@@ -388,7 +390,7 @@ export default function AggiungiDebito() {
                     justifyContent: "center",
                     borderRadius: "var(--radius-sm)",
                     border: splitMode === "fissi" ? "2px solid var(--color-primary)" : "1px solid var(--border-color)",
-                    background: splitMode === "fissi" ? "rgba(37, 99, 235, 0.1)" : "var(--bg-card)",
+                    background: splitMode === "fissi" ? "var(--color-primary-light)" : "var(--bg-card)",
                     color: splitMode === "fissi" ? "var(--color-primary)" : "var(--text-main)",
                     fontWeight: splitMode === "fissi" ? "700" : "500",
                     fontSize: "0.85rem",
@@ -411,7 +413,7 @@ export default function AggiungiDebito() {
                     justifyContent: "center",
                     borderRadius: "var(--radius-sm)",
                     border: splitMode === "percentuali" ? "2px solid var(--color-primary)" : "1px solid var(--border-color)",
-                    background: splitMode === "percentuali" ? "rgba(37, 99, 235, 0.1)" : "var(--bg-card)",
+                    background: splitMode === "percentuali" ? "var(--color-primary-light)" : "var(--bg-card)",
                     color: splitMode === "percentuali" ? "var(--color-primary)" : "var(--text-main)",
                     fontWeight: splitMode === "percentuali" ? "700" : "500",
                     fontSize: "0.85rem",
@@ -434,7 +436,7 @@ export default function AggiungiDebito() {
                     justifyContent: "center",
                     borderRadius: "var(--radius-sm)",
                     border: splitMode === "esclusioni" ? "2px solid var(--color-primary)" : "1px solid var(--border-color)",
-                    background: splitMode === "esclusioni" ? "rgba(37, 99, 235, 0.1)" : "var(--bg-card)",
+                    background: splitMode === "esclusioni" ? "var(--color-primary-light)" : "var(--bg-card)",
                     color: splitMode === "esclusioni" ? "var(--color-primary)" : "var(--text-main)",
                     fontWeight: splitMode === "esclusioni" ? "700" : "500",
                     fontSize: "0.85rem",
@@ -630,14 +632,7 @@ export default function AggiungiDebito() {
           </div>
         )}
 
-        <div style={{ display: "flex", gap: "12px", marginTop: "24px" }}>
-          <button type="submit" className="btn-primary" disabled={loading}>
-            {loading ? (
-              <span><i className="fas fa-spinner fa-spin" aria-hidden="true"></i> {t("expenses.saving", null, "Salvataggio...")}</span>
-            ) : (
-              <span><i className="fas fa-save" aria-hidden="true"></i> {t("expenses.saveExpense", null, "Salva Spesa")}</span>
-            )}
-          </button>
+        <div className="hh-form-actions">
           <button
             type="button"
             className="btn-secondary"
@@ -645,6 +640,13 @@ export default function AggiungiDebito() {
             disabled={loading}
           >
             {t("common.cancel", null, "Annulla")}
+          </button>
+          <button type="submit" className="btn-primary" disabled={loading}>
+            {loading ? (
+              <span><i className="fas fa-spinner fa-spin" aria-hidden="true"></i> {t("expenses.saving", null, "Salvataggio...")}</span>
+            ) : (
+              <span><i className="fas fa-save" aria-hidden="true"></i> {t("expenses.saveExpense", null, "Salva spesa")}</span>
+            )}
           </button>
         </div>
       </form>

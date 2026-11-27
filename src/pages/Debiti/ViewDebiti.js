@@ -174,14 +174,27 @@ export default function ViewDebiti() {
     settlementInFlight.current = true;
     setIsSettling(true);
     try {
+      const formattedAmt = safeFloat(debitoTarget.importo).toFixed(2);
+      const debtorName = utentiMap[debitoTarget.debitoreId] || t("expenses.unknownShort", null, "Coinquilino");
+      const creditorName = utentiMap[debitoTarget.creditoreId] || t("expenses.unknownShort", null, "Coinquilino");
       const confirmed = await showConfirm({
-        title: isMyDebt ? t("expenses.settle", null, "Salda Debito") : t("expenses.deleteExpenseTitle", null, "Elimina Spesa"),
+        title: isMyDebt
+          ? t("expenses.settle", null, "Conferma pagamento")
+          : t("expenses.deleteExpenseTitle", null, "Conferma rimborso ricevuto"),
         message: isMyDebt
-          ? t("expenses.settleConfirmMsg", null, "Confermi di aver saldato questo importo?")
-          : t("expenses.deleteConfirmMsg", null, "Sei sicuro di voler eliminare questa spesa?"),
-        confirmText: isMyDebt ? t("expenses.settleBtn", null, "Salda") : t("common.delete", null, "Elimina"),
+          ? t(
+              "expenses.settleConfirmMsg",
+              { amount: formattedAmt, creditor: creditorName },
+              `Confermi di aver versato ${formattedAmt} € a ${creditorName}?`
+            )
+          : t(
+              "expenses.deleteConfirmMsg",
+              { amount: formattedAmt, debtor: debtorName },
+              `Confermi di aver ricevuto ${formattedAmt} € da ${debtorName}? La quota verrà rimossa dai saldi aperti.`
+            ),
+        confirmText: t("expenses.settleBtn", null, "Conferma saldo"),
         cancelText: t("common.cancel", null, "Annulla"),
-        isDanger: !isMyDebt
+        isDanger: false
       });
 
       if (!confirmed) return;
@@ -394,18 +407,18 @@ export default function ViewDebiti() {
           borderRadius: "var(--radius-lg)"
         }}
       >
-        <p style={{ fontWeight: "600", color: "var(--text-secondary)", fontSize: "0.85rem", letterSpacing: "0.02em", margin: "0 0 6px 0" }}>
-          {t("expenses.yourBalanceLabel", null, "Il tuo bilancio")}
+        <p style={{ fontWeight: "600", color: "var(--text-secondary)", fontSize: "0.85rem", letterSpacing: "0.02em", margin: "0 auto 6px auto" }}>
+          {t("expenses.yourBalanceLabel", null, "Saldo spese condivise")}
         </p>
         <h2 style={{ fontSize: "3.2rem", margin: "6px 0", color: saldo > 0 ? "var(--color-success)" : saldo < 0 ? "var(--color-danger)" : "var(--text-main)", fontWeight: "800", letterSpacing: "-0.02em" }}>
           {saldo > 0 ? "+" : ""}{safeFloat(saldo).toFixed(2)} €
         </h2>
-        <p style={{ fontSize: "0.95rem", color: "var(--text-muted)", margin: "6px 0 0 0" }}>
+        <p style={{ fontSize: "0.95rem", color: "var(--text-muted)", margin: "6px auto 0 auto" }}>
           {saldo > 0
-            ? t("expenses.balancePositive", null, "Gli altri coinquilini ti devono dei soldi")
+            ? t("expenses.balancePositive", null, "Gli altri coinquilini devono rimborsarti")
             : saldo < 0
-            ? t("expenses.balanceNegative", null, "Hai debiti pendenti da restituire")
-            : t("expenses.balanceZero", null, "Nessun debito in sospeso. Perfetta parità!")}
+            ? t("expenses.balanceNegative", null, "Hai quote da rimborsare ai coinquilini")
+            : t("expenses.balanceZero", null, "Nessun saldo aperto. Siete in pari!")}
         </p>
       </div>
 
@@ -534,7 +547,7 @@ export default function ViewDebiti() {
                       {(isPayer || isReceiver) && (
                         <button
                           type="button"
-                          className="btn-primary"
+                          className="btn-primary hh-touch-chip"
                           disabled={isSettling}
                           onClick={() => handleSettleSimplified(st)}
                           style={{
@@ -582,8 +595,9 @@ export default function ViewDebiti() {
                     >
                       {b.username}:{" "}
                       <strong style={{ color: positive ? "var(--color-success)" : negative ? "var(--color-danger)" : "var(--text-muted)" }}>
-                        {positive ? "+" : ""}{b.amount} EUR
-                      </strong>
+                        {positive ? "+" : ""}{b.amount}
+                      </strong>{" "}
+                      €
                     </span>
                   );
                 })}

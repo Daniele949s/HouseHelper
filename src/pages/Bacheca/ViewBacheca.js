@@ -276,8 +276,8 @@ export default function ViewBacheca() {
         )}
       </div>
 
-      <button className="btn-text" onClick={() => navigate("/home")} style={{ marginTop: "30px" }}>
-        <i className="fas fa-arrow-left" style={{ marginRight: "6px" }} aria-hidden="true"></i> {t("board.backToDashboard", null, "Torna alla Dashboard")}
+      <button type="button" className="btn-text" onClick={() => navigate("/home")} style={{ marginTop: "30px" }}>
+        <i className="fas fa-arrow-left" style={{ marginRight: "6px" }} aria-hidden="true"></i> {t("board.backToDashboard", null, "Torna alla Home")}
       </button>
     </div>
   );

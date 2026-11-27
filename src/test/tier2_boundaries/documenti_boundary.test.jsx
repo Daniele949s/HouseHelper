@@ -209,7 +209,8 @@ describe('Tier 2: Document Management Boundary & Security Tests', () => {
     const cleanFilename = sanitizeFileName(dirtyFilename);
     expect(cleanFilename).not.toContain('/');
     expect(cleanFilename).not.toContain('\\');
-    expect(cleanFilename).toBe('.._.._.._etc_passwd.pdf');
+    expect(cleanFilename).not.toContain('..');
+    expect(cleanFilename).toBe('______etc_passwd.pdf');
 
     // 2. HTML tags stripped
     const htmlName = '<b>Contratto Affitto</b>';

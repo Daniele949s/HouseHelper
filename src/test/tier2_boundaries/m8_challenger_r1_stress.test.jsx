@@ -110,7 +110,7 @@ describe('Milestone 8 Challenger: R1 Sync & Performance Stress Suite', () => {
       expect(screen.queryByText(/Caricamento dati della casa\.\.\./i)).toBeNull();
 
       // 4. Quick navigation services are interactive immediately
-      const servicesNav = screen.getByLabelText(/Servizi Rapidi/i);
+      const servicesNav = screen.getByLabelText(/Accesso rapido alle sezioni|Servizi Rapidi/i);
       const turniBtn = within(servicesNav).getByRole('button', { name: /^Turni$/i });
       expect(turniBtn).toBeInTheDocument();
 
@@ -148,7 +148,7 @@ describe('Milestone 8 Challenger: R1 Sync & Performance Stress Suite', () => {
         t_live: {
           casaId: houseId,
           mansione: 'Sanificazione Cucina Live',
-          data: '2026-11-25',
+          data: '2099-11-25',
           nomi: ['AlphaUser']
         }
       });
@@ -198,14 +198,14 @@ describe('Milestone 8 Challenger: R1 Sync & Performance Stress Suite', () => {
       renderHome();
 
       // Greeting banner and dashboard structure render immediately
-      expect(screen.getByText(/Bentornato,/i)).toBeInTheDocument();
+      expect(screen.getByText(/Ciao,/i)).toBeInTheDocument();
       expect(screen.getByText('AlphaUser')).toBeInTheDocument();
 
       // Quick services navigation grid is present immediately
-      const servicesNav = screen.getByLabelText(/Servizi Rapidi/i);
+      const servicesNav = screen.getByLabelText(/Accesso rapido alle sezioni|Servizi Rapidi/i);
       expect(within(servicesNav).getByRole('button', { name: /^Turni$/i })).toBeInTheDocument();
-      expect(within(servicesNav).getByRole('button', { name: /^Spese$/i })).toBeInTheDocument();
-      expect(within(servicesNav).getByRole('button', { name: /^Spesa$/i })).toBeInTheDocument();
+      expect(within(servicesNav).getByRole('button', { name: /^Spese condivise$/i })).toBeInTheDocument();
+      expect(within(servicesNav).getByRole('button', { name: /^Lista della spesa$/i })).toBeInTheDocument();
 
       // Inline skeleton is rendered during initial cold load
       expect(screen.getByText(/Caricamento dati della casa\.\.\./i)).toBeInTheDocument();
@@ -243,8 +243,8 @@ describe('Milestone 8 Challenger: R1 Sync & Performance Stress Suite', () => {
       renderHome();
 
       // Quick service button is clickable while queries are pending
-      const servicesNav = screen.getByLabelText(/Servizi Rapidi/i);
-      const spesaBtn = within(servicesNav).getByRole('button', { name: /^Spesa$/i });
+      const servicesNav = screen.getByLabelText(/Accesso rapido alle sezioni|Servizi Rapidi/i);
+      const spesaBtn = within(servicesNav).getByRole('button', { name: /^Lista della spesa$/i });
       fireEvent.click(spesaBtn);
 
       expect(routerMock.__mockNavigate).toHaveBeenCalledWith('/spesa');
@@ -294,7 +294,7 @@ describe('Milestone 8 Challenger: R1 Sync & Performance Stress Suite', () => {
       expect(screen.queryByText(/Sincronizzazione\.\.\./i)).toBeNull();
 
       // UI navigation remains active
-      const servicesNav = screen.getByLabelText(/Servizi Rapidi/i);
+      const servicesNav = screen.getByLabelText(/Accesso rapido alle sezioni|Servizi Rapidi/i);
       expect(within(servicesNav).getByRole('button', { name: /^Turni$/i })).toBeInTheDocument();
       consoleErrorSpy.mockRestore();
     });
@@ -498,7 +498,7 @@ describe('Milestone 8 Challenger: R1 Sync & Performance Stress Suite', () => {
       }).not.toThrow();
 
       // UI renders greeting cleanly
-      expect(screen.getByText(/Bentornato,/i)).toBeInTheDocument();
+      expect(screen.getByText(/Ciao,/i)).toBeInTheDocument();
 
       await waitFor(() => {
         expect(screen.queryByText(/Sincronizzazione\.\.\./i)).toBeNull();

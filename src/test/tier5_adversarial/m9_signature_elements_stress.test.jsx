@@ -17,6 +17,8 @@ describe("Milestone M9 Empirical Challenger: Signature Elements & Invariant Stre
   const houseId = "casa_m9_signature_stress";
 
   beforeEach(() => {
+    localStorage.clear();
+    sessionStorage.clear();
     mockStore.reset();
     const routerMock = require("react-router-dom");
     if (routerMock.__resetRouterMock) routerMock.__resetRouterMock();
@@ -136,6 +138,7 @@ describe("Milestone M9 Empirical Challenger: Signature Elements & Invariant Stre
       u1();
 
       // B) Case 2: Today assigned to Bob -> "Nessun turno oggi" for Alice
+      localStorage.clear();
       mockStore.reset();
       seedHousehold({
         houseId,
@@ -167,6 +170,7 @@ describe("Milestone M9 Empirical Challenger: Signature Elements & Invariant Stre
       u2();
 
       // C) Case 3: No turns at all -> "Nessun turno oggi"
+      localStorage.clear();
       mockStore.reset();
       seedHousehold({
         houseId,
@@ -500,8 +504,10 @@ describe("Milestone M9 Empirical Challenger: Signature Elements & Invariant Stre
       // Click staple button
       fireEvent.click(latteBtn);
 
-      // Verify "Latte" appears in the grocery list
-      expect(await screen.findByText(/Latte/i)).toBeInTheDocument();
+      // Verify "Latte" appears in the grocery list (alongside the staple chip)
+      await waitFor(() => {
+        expect(screen.getAllByText(/Latte/i).length).toBeGreaterThanOrEqual(2);
+      });
     });
 
     test("4.3: Fluid strike-through styling on completed items", async () => {

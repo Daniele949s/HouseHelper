@@ -83,12 +83,13 @@ export default function HouseholdShell({ title, children }) {
           <button
             type="button"
             className="hh-house-selector"
-            onClick={() => navigate("/scelta-casa")}
-            aria-label={t("house.switch", {}, "Cambia casa")}
+            onClick={() => navigate("/impostazioni")}
+            title={t("house.switch", {}, "Impostazioni casa")}
+            aria-label={`${t("settings.household.title", {}, "Casa Attiva")}: ${houseName}`}
           >
             <i className="fas fa-home" aria-hidden="true" />
             <span>{houseName}</span>
-            <i className="fas fa-caret-down" aria-hidden="true" />
+            <i className="fas fa-sliders-h" style={{ fontSize: "0.8rem", opacity: 0.7 }} aria-hidden="true" />
           </button>
         </div>
 

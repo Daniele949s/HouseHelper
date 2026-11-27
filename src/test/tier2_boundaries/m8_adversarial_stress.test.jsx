@@ -282,8 +282,8 @@ describe("Milestone M8 Adversarial Challenger Suite: Mobile Navigation, Ergonomi
 
       const labels = Array.from(serviceButtons).map((btn) => btn.textContent.trim());
       expect(labels).toContain("Turni");
-      expect(labels).toContain("Spese");
-      expect(labels).toContain("Spesa");
+      expect(labels).toContain("Spese condivise");
+      expect(labels).toContain("Lista della spesa");
       expect(labels).toContain("Calendario");
       expect(labels).toContain("Bacheca");
       expect(labels).toContain("Documenti");

@@ -213,12 +213,12 @@ export default function ModificaNota() {
           />
         </div>
 
-        <div style={{ display: "flex", gap: "12px", marginTop: "16px" }}>
-          <button type="submit" className="btn-primary" disabled={saving}>
-            {saving ? <i className="fas fa-spinner fa-spin"></i> : t("board.saveChangesBtn", null, "Salva Modifiche")}
-          </button>
+        <div className="hh-form-actions">
           <button type="button" className="btn-secondary" onClick={() => navigate("/bacheca")}>
             {t("common.cancel", null, "Annulla")}
+          </button>
+          <button type="submit" className="btn-primary" disabled={saving}>
+            {saving ? <i className="fas fa-spinner fa-spin" aria-hidden="true"></i> : t("board.saveChangesBtn", null, "Salva Modifiche")}
           </button>
         </div>
       </form>

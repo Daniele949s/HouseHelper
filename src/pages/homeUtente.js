@@ -279,7 +279,7 @@ export default function HomeUtente() {
       showToast(
         inVacanza
           ? t("dashboard.vacationEnabledToast", {}, "Modalità vacanza attivata! I turni non ti verranno assegnati.")
-          : t("dashboard.vacationDisabledToast", {}, "Modalità vacanza disattivata. Bentornato a casa!"),
+          : t("dashboard.vacationDisabledToast", {}, "Modalità vacanza disattivata."),
         "success"
       );
     } catch (err) {
@@ -517,7 +517,7 @@ export default function HomeUtente() {
           </div>
           <div className="welcome-text" style={{ flex: 1, minWidth: "180px", textAlign: "left" }}>
             <h1 className="welcome-username" style={{ margin: 0, fontSize: "1.6rem" }}>
-              {t("dashboard.welcomePrefix", {}, "Bentornato,")}{" "}
+              {t("dashboard.welcomePrefix", {}, "Ciao,")}{" "}
               <strong style={{ color: "var(--text-main)" }}>{userData?.username || t("dashboard.userFallback", {}, "Utente")}</strong>
             </h1>
           </div>
@@ -578,11 +578,11 @@ export default function HomeUtente() {
         </div>
 
         {/* Roommate Presence Avatars row */}
-        {membersForSection.length > 0 && (
+        {membersForSection.filter((r) => !r.isPending).length > 0 && (
           <div className="roommate-presence-bar" style={{ display: "flex", alignItems: "center", gap: "10px", margin: "12px 0 16px 0", flexWrap: "wrap" }}>
             <span style={{ fontSize: "0.8rem", color: "var(--text-muted)", fontWeight: "500" }}>{t("dashboard.roommatesLabel", {}, "Coinquilini:")}</span>
             <div style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
-              {membersForSection.map((r) => (
+              {membersForSection.filter((r) => !r.isPending).map((r) => (
                 <div
                   key={r.uid}
                   className="roommate-avatar-chip"
@@ -696,7 +696,11 @@ export default function HomeUtente() {
           >
             <HouseholdStatus
               casa={activeHouse}
-              roommateCount={Object.keys(utentiMap).length || 1}
+              roommateCount={
+                membersForSection.filter((m) => !m.isPending).length ||
+                Object.keys(utentiMap).length ||
+                1
+              }
               prossimoTurno={prossimoTurno}
               variant="full"
             />
@@ -750,18 +754,17 @@ export default function HomeUtente() {
                 {member.isMemberAdmin ? (
                   <span className="member-role-badge admin">
                     <i className="fas fa-crown" aria-hidden="true"></i>{" "}
-                    {t("dashboard.roleAdmin", {}, "Amministratore della casa")}
+                    {t("dashboard.roleAdmin", {}, "Amministratore")}
+                  </span>
+                ) : member.isPending ? (
+                  <span className="member-role-badge pending">
+                    <i className="fas fa-clock" aria-hidden="true"></i>{" "}
+                    {t("dashboard.statusPending", {}, "In attesa di approvazione")}
                   </span>
                 ) : (
                   <span className="member-role-badge">
                     <i className="fas fa-user" aria-hidden="true"></i>{" "}
                     {t("dashboard.roleMember", {}, "Membro")}
-                  </span>
-                )}
-                {member.isPending && (
-                  <span className="member-role-badge pending">
-                    <i className="fas fa-clock" aria-hidden="true"></i>{" "}
-                    {t("dashboard.statusPending", {}, "In attesa di approvazione")}
                   </span>
                 )}
               </div>
@@ -894,18 +897,18 @@ export default function HomeUtente() {
 
       <div className="bento-grid">
         {/* ================= 3. QUICK SERVICES NAVIGATION ================= */}
-        <div className="bento-services" aria-label={t("dashboard.quickServicesAria", {}, "Servizi Rapidi")}>
+        <div className="bento-services" aria-label={t("dashboard.quickServicesAria", {}, "Accesso rapido alle sezioni")}>
           <button type="button" onClick={() => navigate("/turni")} className="service-btn">
             <span className="service-icon"><i className="fas fa-broom" aria-hidden="true"></i></span>
             <span>{t("dashboard.serviceChores", {}, "Turni")}</span>
           </button>
           <button type="button" onClick={() => navigate("/debiti")} className="service-btn">
             <span className="service-icon"><i className="fas fa-wallet" aria-hidden="true"></i></span>
-            <span>{t("dashboard.serviceExpenses", {}, "Spese")}</span>
+            <span>{t("dashboard.serviceExpenses", {}, "Spese condivise")}</span>
           </button>
           <button type="button" onClick={() => navigate("/spesa")} className="service-btn">
             <span className="service-icon"><i className="fas fa-shopping-cart" aria-hidden="true"></i></span>
-            <span>{t("dashboard.serviceGroceries", {}, "Spesa")}</span>
+            <span>{t("dashboard.serviceGroceries", {}, "Lista della spesa")}</span>
           </button>
           <button type="button" onClick={() => navigate("/calendario")} className="service-btn">
             <span className="service-icon"><i className="fas fa-calendar-alt" aria-hidden="true"></i></span>
@@ -1179,16 +1182,27 @@ export default function HomeUtente() {
 
         {/* ================= 9. ACCOUNT SETTINGS & ACTIONS ================= */}
         <div className="bento-item bento-account">
-          <p style={{ margin: 0, color: "var(--text-muted)", fontSize: "0.9rem" }}>
-            <i className="fas fa-user-shield" style={{ marginRight: "8px" }} aria-hidden="true"></i>
-            <span>{t("dashboard.yourAccount", {}, "Il tuo account")}</span>
-          </p>
-          <div style={{ display: "flex", gap: "10px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap" }}>
+            <p style={{ margin: 0, color: "var(--text-muted)", fontSize: "0.9rem", fontWeight: "600" }}>
+              <i className="fas fa-user-shield" style={{ marginRight: "8px" }} aria-hidden="true"></i>
+              <span>{t("dashboard.yourAccount", {}, "Sessione e gestione casa")}</span>
+            </p>
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="btn-secondary"
+              style={{ padding: "10px 18px", minHeight: "46px", display: "inline-flex", alignItems: "center", gap: "8px", width: "auto", fontSize: "0.88rem" }}
+            >
+              <i className="fas fa-sign-out-alt" aria-hidden="true"></i>
+              <span>{t("dashboard.logoutShort", {}, "Esci dall'account")}</span>
+            </button>
+          </div>
+          <div className="hh-danger-actions-group" style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
             <button
               type="button"
               onClick={lasciaCasa}
               className="btn-danger-outline"
-              style={{ fontSize: "0.88rem", minHeight: "44px", display: "inline-flex", alignItems: "center", gap: "6px", padding: "10px 16px" }}
+              style={{ fontSize: "0.88rem", minHeight: "46px", display: "inline-flex", alignItems: "center", gap: "6px", padding: "10px 16px" }}
             >
               <i className="fas fa-door-open" aria-hidden="true"></i>
               <span>{t("dashboard.leaveHouseBtn", {}, "Lascia Casa")}</span>
@@ -1198,21 +1212,12 @@ export default function HomeUtente() {
                 type="button"
                 onClick={eliminaCasa}
                 className="btn-danger-outline"
-                style={{ fontSize: "0.88rem", minHeight: "44px", display: "inline-flex", alignItems: "center", gap: "6px", padding: "10px 16px" }}
+                style={{ fontSize: "0.88rem", minHeight: "46px", display: "inline-flex", alignItems: "center", gap: "6px", padding: "10px 16px" }}
               >
                 <i className="fas fa-trash-alt" aria-hidden="true"></i>
                 <span>{t("dashboard.deleteHouseBtn", {}, "Elimina Casa")}</span>
               </button>
             )}
-            <button
-              type="button"
-              onClick={handleLogout}
-              className="btn-secondary"
-              style={{ padding: "10px 18px", minHeight: "44px", display: "inline-flex", alignItems: "center", gap: "6px", width: "auto", fontSize: "0.88rem" }}
-            >
-              <i className="fas fa-sign-out-alt" aria-hidden="true"></i>
-              <span>{t("dashboard.logoutShort", {}, "Esci")}</span>
-            </button>
           </div>
         </div>
       </div>

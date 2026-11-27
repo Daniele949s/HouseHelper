@@ -93,7 +93,7 @@ describe("ViewImpostazioni Component Suite (Apple HIG & Frontend Design)", () =>
   test("2. Renders member role badge when user is not creator", async () => {
     renderWithProviders(<ViewImpostazioni />, {
       route: "/impostazioni",
-      user: unverifiedUser,
+      user: { ...unverifiedUser, emailVerified: true },
       userData: roommateUserData,
       language: "it",
     });

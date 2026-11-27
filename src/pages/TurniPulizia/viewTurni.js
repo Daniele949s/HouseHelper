@@ -511,6 +511,7 @@ export default function VisualizzaTurni() {
                             {checklist.map((item) => (
                               <label
                                 key={item.id}
+                                className="hh-touch-chip"
                                 style={{
                                   display: "flex",
                                   alignItems: "center",
@@ -518,7 +519,6 @@ export default function VisualizzaTurni() {
                                   cursor: "pointer",
                                   fontSize: "0.9rem",
                                   color: item.completed ? "var(--text-muted)" : "var(--text-main)",
-                                  textDecoration: item.completed ? "line-through" : "none",
                                   margin: 0,
                                   minHeight: "40px",
                                   padding: "6px 8px",
@@ -538,12 +538,14 @@ export default function VisualizzaTurni() {
                                     flexShrink: 0
                                   }}
                                 />
-                                <span>{item.text}</span>
-                                {item.completedBy && (
-                                  <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", fontStyle: "italic" }}>
-                                    {t("chores.completedBy", { name: item.completedBy }, `(completato da ${item.completedBy})`)}
-                                  </span>
-                                )}
+                                <span style={{ display: "flex", flexWrap: "wrap", alignItems: "baseline", gap: "6px", flex: 1, minWidth: 0 }}>
+                                  <span style={{ textDecoration: item.completed ? "line-through" : "none" }}>{item.text}</span>
+                                  {item.completedBy && (
+                                    <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", fontStyle: "italic", textDecoration: "none" }}>
+                                      {t("chores.completedBy", { name: item.completedBy }, `(completato da ${item.completedBy})`)}
+                                    </span>
+                                  )}
+                                </span>
                               </label>
                             ))}
                           </div>
@@ -594,7 +596,7 @@ export default function VisualizzaTurni() {
                     </div>
 
                     {/* Spotlight Action Buttons */}
-                    <div style={{ display: "flex", gap: "8px", alignSelf: "flex-start" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "12px", width: "100%", paddingTop: "4px" }}>
                       <button
                         type="button"
                         className="btn-secondary"
@@ -716,6 +718,7 @@ export default function VisualizzaTurni() {
                                   {checklist.map((item) => (
                                     <label
                                       key={item.id}
+                                      className="hh-touch-chip"
                                       style={{
                                         display: "flex",
                                         alignItems: "center",
@@ -723,7 +726,6 @@ export default function VisualizzaTurni() {
                                         cursor: "pointer",
                                         fontSize: "0.9rem",
                                         color: item.completed ? "var(--text-muted)" : "var(--text-main)",
-                                        textDecoration: item.completed ? "line-through" : "none",
                                         margin: 0,
                                         minHeight: "40px",
                                         padding: "6px 8px",
@@ -743,12 +745,14 @@ export default function VisualizzaTurni() {
                                           flexShrink: 0
                                         }}
                                       />
-                                      <span>{item.text}</span>
-                                      {item.completedBy && (
-                                        <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", fontStyle: "italic" }}>
-                                          {t("chores.completedBy", { name: item.completedBy }, `(completato da ${item.completedBy})`)}
-                                        </span>
-                                      )}
+                                      <span style={{ display: "flex", flexWrap: "wrap", alignItems: "baseline", gap: "6px", flex: 1, minWidth: 0 }}>
+                                        <span style={{ textDecoration: item.completed ? "line-through" : "none" }}>{item.text}</span>
+                                        {item.completedBy && (
+                                          <span style={{ fontSize: "0.75rem", color: "var(--text-muted)", fontStyle: "italic", textDecoration: "none" }}>
+                                            {t("chores.completedBy", { name: item.completedBy }, `(completato da ${item.completedBy})`)}
+                                          </span>
+                                        )}
+                                      </span>
                                     </label>
                                   ))}
                                 </div>
@@ -831,7 +835,7 @@ export default function VisualizzaTurni() {
       </div>
 
       <button type="button" className="btn-text" onClick={() => navigate("/home")} style={{ marginTop: "30px", minHeight: "44px", display: "inline-flex", alignItems: "center" }}>
-        <i className="fas fa-arrow-left" style={{ marginRight: "6px" }} aria-hidden="true"></i> {t("chores.backToDashboard", {}, "Torna alla dashboard")}
+        <i className="fas fa-arrow-left" style={{ marginRight: "6px" }} aria-hidden="true"></i> {t("chores.backToDashboard", {}, "Torna alla Home")}
       </button>
     </div>
   );
