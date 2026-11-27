@@ -281,8 +281,9 @@ export function HouseholdProvider({ children }) {
       }
       const previousCasaId = casaId;
       const entryRequestId = requestIdRef.current;
-      const result = await joinHousehold({ code, userUid: currentUser.uid });
-      if (!result || !mountedRef.current || requestIdRef.current !== entryRequestId) {
+      const isCurrent = () => mountedRef.current && requestIdRef.current === entryRequestId;
+      const result = await joinHousehold({ code, userUid: currentUser.uid, isCurrent });
+      if (!result || !isCurrent()) {
         return null;
       }
 

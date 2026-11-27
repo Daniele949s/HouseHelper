@@ -347,7 +347,7 @@ describe("M1a Remediation Regression Suite", () => {
         );
       }
 
-      mockStore.currentMockUser = { uid: "u1", email: "a@test.com" };
+      mockStore.currentMockUser = { uid: "u1", email: "a@test.com", emailVerified: true };
       render(
         <LanguageProvider>
           <AuthProvider>
@@ -412,7 +412,7 @@ describe("M1a Remediation Regression Suite", () => {
         );
       }
 
-      mockStore.currentMockUser = { uid: "u1", email: "a@test.com" };
+      mockStore.currentMockUser = { uid: "u1", email: "a@test.com", emailVerified: true };
       render(
         <LanguageProvider>
           <AuthProvider>
@@ -475,7 +475,7 @@ describe("M1a Remediation Regression Suite", () => {
         );
       }
 
-      mockStore.currentMockUser = { uid: "u1", email: "a@test.com" };
+      mockStore.currentMockUser = { uid: "u1", email: "a@test.com", emailVerified: true };
       render(
         <LanguageProvider>
           <AuthProvider>
@@ -514,6 +514,7 @@ describe("M1a Remediation Regression Suite", () => {
         u1: { username: "Alice", email: "a@test.com", casaId: null },
         u2: { username: "Bob", email: "b@test.com", casaId: "casa_target" },
       });
+      mockStore.seed("inviti", { JOIN99: { casaId: "casa_target", nomeCasa: "Target Home" } });
       mockStore.seed("case", {
         casa_target: { nome: "Target Home", codiceUnivoco: "JOIN99", creatoreId: "u2" },
       });
@@ -531,7 +532,7 @@ describe("M1a Remediation Regression Suite", () => {
         );
       }
 
-      mockStore.currentMockUser = { uid: "u1", email: "a@test.com" };
+      mockStore.currentMockUser = { uid: "u1", email: "a@test.com", emailVerified: true };
       render(
         <LanguageProvider>
           <AuthProvider>
@@ -601,7 +602,7 @@ describe("M1a Remediation Regression Suite", () => {
         return <span data-testid="lang-house">{house?.nome || "none"}</span>;
       }
 
-      mockStore.currentMockUser = { uid: "u1", email: "a@test.com" };
+      mockStore.currentMockUser = { uid: "u1", email: "a@test.com", emailVerified: true };
       render(
         <LanguageProvider>
           <AuthProvider>
@@ -627,24 +628,27 @@ describe("M1a Remediation Regression Suite", () => {
       expect(getDocsSpy.mock.calls.length).toBe(callsAfterInit);
     });
 
-    test("joinHouse does not resurrect state or snapshot if leaveHouse() runs while loadHousehold is in-flight", async () => {
+    test.each(["invite lookup", "roommate fetch"])("leaving during %s cancels a pending join without restoring membership or cached data", async (phase) => {
       mockStore.seed("utenti", {
         u1: { username: "Alice", email: "a@test.com", casaId: null },
         u2: { username: "Bob", email: "b@test.com", casaId: "casa_target" },
       });
+      mockStore.seed("inviti", { JOIN99: { casaId: "casa_target", nomeCasa: "Target Home" } });
       mockStore.seed("case", {
         casa_target: { nome: "Target Home", codiceUnivoco: "JOIN99", creatoreId: "u2" },
       });
 
-      const slowUtentiDocs = createDeferred();
-      const origGetDocs = firestoreMock.getDocs;
-      let utentiFetchStarted = false;
-      jest.spyOn(firestoreMock, "getDocs").mockImplementation((q) => {
-        if (q && q.coll === "utenti") {
-          utentiFetchStarted = true;
-          return slowUtentiDocs.promise;
+      const resumeRead = createDeferred();
+      let readStarted = false;
+      const method = phase === "invite lookup" ? "getDoc" : "getDocs";
+      const collectionName = phase === "invite lookup" ? "inviti" : "utenti";
+      const read = firestoreMock[method];
+      jest.spyOn(firestoreMock, method).mockImplementation(async (ref) => {
+        if (ref.coll === collectionName) {
+          readStarted = true;
+          await resumeRead.promise;
         }
-        return origGetDocs(q);
+        return read(ref);
       });
 
       let houseApi = null;
@@ -658,7 +662,7 @@ describe("M1a Remediation Regression Suite", () => {
         );
       }
 
-      mockStore.currentMockUser = { uid: "u1", email: "a@test.com" };
+      mockStore.currentMockUser = { uid: "u1", email: "a@test.com", emailVerified: true };
       render(
         <LanguageProvider>
           <AuthProvider>
@@ -679,7 +683,7 @@ describe("M1a Remediation Regression Suite", () => {
       });
 
       await waitFor(() => {
-        expect(utentiFetchStarted).toBe(true);
+        expect(readStarted).toBe(true);
       });
 
       await act(async () => {
@@ -688,11 +692,12 @@ describe("M1a Remediation Regression Suite", () => {
 
       let joinResult;
       await act(async () => {
-        slowUtentiDocs.resolve({ docs: [], forEach: () => {}, empty: true });
+        resumeRead.resolve();
         joinResult = await joinPromise;
       });
 
       expect(joinResult).toBeNull();
+      expect(mockStore.getDocData("utenti", "u1").casaId).toBeNull();
       expect(screen.getByTestId("jl-name")).toHaveTextContent("none");
       expect(screen.getByTestId("jl-count")).toHaveTextContent("0");
       expect(houseApi.roommateMap).toEqual({});
@@ -722,7 +727,7 @@ describe("M1a Remediation Regression Suite", () => {
         );
       }
 
-      mockStore.currentMockUser = { uid: "u1", email: "a@test.com" };
+      mockStore.currentMockUser = { uid: "u1", email: "a@test.com", emailVerified: true };
       render(
         <LanguageProvider>
           <AuthProvider>

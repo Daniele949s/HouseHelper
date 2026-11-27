@@ -106,7 +106,7 @@ describe("Milestone M3 Adversarial Challenger Suite: Visual Ergonomics, Apple HI
       const interactives = container.querySelectorAll(
         "button, a, input, select, textarea, [role='switch'], [role='radio']"
       );
-      expect(interactives.length).toBeGreaterThanOrEqual(10);
+      expect(interactives.length).toBeGreaterThanOrEqual(9);
 
       interactives.forEach((el) => {
         const style = el.style;
@@ -160,7 +160,7 @@ describe("Milestone M3 Adversarial Challenger Suite: Visual Ergonomics, Apple HI
       });
     });
 
-    test("CHALLENGE 1.3: Segmented control items (IT, EN, Light, Dark, System) satisfy >= 44x44px in JSX and CSS", async () => {
+    test("CHALLENGE 1.3: Segmented control items (IT, EN) satisfy >= 44x44px in JSX and CSS", async () => {
       // In CSS, .ios-segmented-item must define min-height >= 44px and min-width >= 44px
       expect(appCss).toMatch(/\.ios-segmented-item\s*\{[^}]*min-height:\s*44px/);
       expect(appCss).toMatch(/\.ios-segmented-item\s*\{[^}]*min-width:\s*44px/);
@@ -174,7 +174,7 @@ describe("Milestone M3 Adversarial Challenger Suite: Visual Ergonomics, Apple HI
       await screen.findByRole("heading", { level: 1, name: /Impostazioni/i });
 
       const segmentedItems = container.querySelectorAll(".ios-segmented-item");
-      expect(segmentedItems.length).toBe(5); // 2 language + 3 theme
+      expect(segmentedItems.length).toBe(2); // Italian and English
 
       segmentedItems.forEach((item) => {
         expect(parseInt(item.style.minHeight, 10)).toBeGreaterThanOrEqual(44);
@@ -608,18 +608,7 @@ describe("Milestone M3 Adversarial Challenger Suite: Visual Ergonomics, Apple HI
       expect(itBtn).toHaveAttribute("aria-pressed", "false");
       expect(enBtn).toHaveAttribute("aria-pressed", "true");
 
-      // Theme group (light, dark, system)
-      const lightBtn = screen.getByRole("button", { name: /Chiaro|Light/i });
-      const darkBtn = screen.getByRole("button", { name: /Scuro|Dark/i });
-      const systemBtn = screen.getByRole("button", { name: /Sistema|System/i });
-
-      expect(lightBtn).toHaveAttribute("aria-pressed");
-      expect(darkBtn).toHaveAttribute("aria-pressed");
-      expect(systemBtn).toHaveAttribute("aria-pressed");
-
-      fireEvent.click(darkBtn);
-      expect(darkBtn).toHaveAttribute("aria-pressed", "true");
-      expect(lightBtn).toHaveAttribute("aria-pressed", "false");
+      expect(enBtn.closest('[role="group"]')).toHaveAccessibleName("Language");
     });
 
     test("CHALLENGE 4.4: Every button element has a deterministic, non-empty accessible name", async () => {

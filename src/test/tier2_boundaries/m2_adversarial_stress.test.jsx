@@ -66,7 +66,7 @@ describe("Milestone 2 Adversarial Stress Suite", () => {
       expect(links).toHaveLength(9);
 
       const expectedLinks = [
-        { label: "Dashboard", href: "/home" },
+        { label: "Home", href: "/home" },
         { label: "Turni", href: "/turni" },
         { label: "Debiti", href: "/debiti" },
         { label: "Spesa", href: "/spesa" },
@@ -101,7 +101,7 @@ describe("Milestone 2 Adversarial Stress Suite", () => {
         expect(turniLink).toHaveClass("active");
       });
 
-      const dashboardLink = screen.getByText("Dashboard").closest("a");
+      const dashboardLink = screen.getByText("Home").closest("a");
       expect(dashboardLink).not.toHaveClass("active");
     });
   });

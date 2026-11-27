@@ -35,7 +35,7 @@ jobs:
           npm run audit:secrets
 
       - name: Run Jest unit and integration tests
-        run: CI=true npm test -- --watchAll=false src/components/DesktopNavigation.test.jsx src/components/MobileBottomBar.test.jsx src/components/MobileNavigation.test.jsx src/components/HouseholdStatus.test.jsx src/test/household_roles.test.jsx src/test/tier2_boundaries/security_rules.test.js src/test/tier2_boundaries/antibot_email_verification.test.jsx src/test/tier3_interactions/cross_feature.test.jsx src/test/tier3_interactions/concurrency_and_recovery.test.jsx
+        run: CI=true npm test -- --watchAll=false --maxWorkers=2
 
       - name: Run Firebase Emulator Suite Security Rules and Multi-User Lifecycle tests
         run: npx -y firebase-tools emulators:exec --only auth,firestore --project househelper-12050 "node scripts/test-firestore-rules-emulator.mjs && node scripts/test-e2e-multiuser-lifecycle.mjs"

@@ -162,14 +162,14 @@ describe("Milestone M3 Adversarial Challenger: Functional & Edge Case Stress Har
 
       // Verify English microcopy in settings sections
       expect(screen.getByRole("heading", { level: 1, name: /Settings/i })).toBeInTheDocument();
-      expect(screen.getByRole("heading", { level: 2, name: /Theme & Appearance/i })).toBeInTheDocument();
+      expect(screen.getByRole("heading", { level: 2, name: /^Language$/i })).toBeInTheDocument();
       expect(screen.getByRole("heading", { level: 2, name: /Notifications & Alerts/i })).toBeInTheDocument();
       expect(screen.getByRole("heading", { level: 2, name: /Account & Security/i })).toBeInTheDocument();
 
       // Switch back to Italian
       fireEvent.click(italianBtn);
       expect(screen.getByRole("heading", { level: 1, name: /Impostazioni/i })).toBeInTheDocument();
-      expect(screen.getByRole("heading", { level: 2, name: /Tema e Aspetto/i })).toBeInTheDocument();
+      expect(screen.getByRole("heading", { level: 2, name: /^Lingua$/i })).toBeInTheDocument();
       expect(document.documentElement.lang).toBe("it");
     });
 
@@ -266,19 +266,19 @@ describe("Milestone M3 Adversarial Challenger: Functional & Edge Case Stress Har
   // SECTION 2: THEME SWITCHING STRESS & DYNAMIC SYSTEM MEDIA QUERY HANDLING
   // =========================================================================
   describe("2. Theme Switching Stress & Dynamic System Media Query Handling", () => {
+    function ThemeControls() {
+      const { theme, setTheme } = useTheme();
+      return ["light", "dark", "system"].map((mode) => (
+        <button key={mode} aria-pressed={theme === mode} onClick={() => setTheme(mode)}>{mode}</button>
+      ));
+    }
+
     test("2.1 Rapid cycling of Light, Dark, and System modes synchronizes data-theme and storage", async () => {
-      renderWithProviders(<ViewImpostazioni />, {
-        route: "/impostazioni",
-        user: verifiedUser,
-        userData: alphaUserData,
-        language: "it",
-      });
+      renderWithProviders(<ThemeControls />);
 
-      await screen.findByRole("heading", { level: 1, name: /Impostazioni/i });
-
-      const lightBtn = screen.getByRole("button", { name: /Chiaro/i });
-      const darkBtn = screen.getByRole("button", { name: /Scuro/i });
-      const systemBtn = screen.getByRole("button", { name: /Sistema/i });
+      const lightBtn = screen.getByRole("button", { name: /^light$/i });
+      const darkBtn = screen.getByRole("button", { name: /^dark$/i });
+      const systemBtn = screen.getByRole("button", { name: /^system$/i });
 
       // Cycle rapidly across modes
       for (let i = 0; i < 5; i++) {
@@ -304,16 +304,9 @@ describe("Milestone M3 Adversarial Challenger: Functional & Edge Case Stress Har
     });
 
     test("2.2 System mode dynamically adapts to simulated OS dark/light media query changes", async () => {
-      renderWithProviders(<ViewImpostazioni />, {
-        route: "/impostazioni",
-        user: verifiedUser,
-        userData: alphaUserData,
-        language: "it",
-      });
+      renderWithProviders(<ThemeControls />);
 
-      await screen.findByRole("heading", { level: 1, name: /Impostazioni/i });
-
-      const systemBtn = screen.getByRole("button", { name: /Sistema/i });
+      const systemBtn = screen.getByRole("button", { name: /^system$/i });
       fireEvent.click(systemBtn);
 
       expect(document.documentElement.getAttribute("data-theme-preference")).toBe("system");
@@ -337,22 +330,15 @@ describe("Milestone M3 Adversarial Challenger: Functional & Edge Case Stress Har
     });
 
     test("2.3 Explicit user theme preference is immune to OS media query change events", async () => {
-      renderWithProviders(<ViewImpostazioni />, {
-        route: "/impostazioni",
-        user: verifiedUser,
-        userData: alphaUserData,
-        language: "it",
-      });
-
-      await screen.findByRole("heading", { level: 1, name: /Impostazioni/i });
+      renderWithProviders(<ThemeControls />);
 
       // First enter system mode to register listeners
-      const systemBtn = screen.getByRole("button", { name: /Sistema/i });
+      const systemBtn = screen.getByRole("button", { name: /^system$/i });
       fireEvent.click(systemBtn);
       const initialListeners = [...mediaQueryListeners];
 
       // Explicitly switch to Light mode
-      const lightBtn = screen.getByRole("button", { name: /Chiaro/i });
+      const lightBtn = screen.getByRole("button", { name: /^light$/i });
       fireEvent.click(lightBtn);
 
       expect(document.documentElement.getAttribute("data-theme")).toBe("light");
@@ -368,7 +354,7 @@ describe("Milestone M3 Adversarial Challenger: Functional & Edge Case Stress Har
       expect(document.documentElement.getAttribute("data-theme-preference")).toBe("light");
 
       // Explicitly switch to Dark mode
-      const darkBtn = screen.getByRole("button", { name: /Scuro/i });
+      const darkBtn = screen.getByRole("button", { name: /^dark$/i });
       fireEvent.click(darkBtn);
       expect(document.documentElement.getAttribute("data-theme")).toBe("dark");
 
@@ -383,21 +369,14 @@ describe("Milestone M3 Adversarial Challenger: Functional & Edge Case Stress Har
     });
 
     test("2.4 MatchMedia listener cleanup occurs when leaving system mode", async () => {
-      renderWithProviders(<ViewImpostazioni />, {
-        route: "/impostazioni",
-        user: verifiedUser,
-        userData: alphaUserData,
-        language: "it",
-      });
+      renderWithProviders(<ThemeControls />);
 
-      await screen.findByRole("heading", { level: 1, name: /Impostazioni/i });
-
-      const systemBtn = screen.getByRole("button", { name: /Sistema/i });
+      const systemBtn = screen.getByRole("button", { name: /^system$/i });
       fireEvent.click(systemBtn);
       expect(mediaQueryListeners.length).toBeGreaterThan(0);
 
       // Switch away to explicit Dark
-      const darkBtn = screen.getByRole("button", { name: /Scuro/i });
+      const darkBtn = screen.getByRole("button", { name: /^dark$/i });
       fireEvent.click(darkBtn);
 
       // Verify listeners cleaned up

@@ -53,7 +53,7 @@ describe("Settings & Routing Integration (Apple HIG & i18n)", () => {
 
     // Grouped section headings
     expect(screen.getByText("Casa Attiva")).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: /Tema e Aspetto/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /^Lingua$/i })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: /Notifiche e Avvisi/i })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: /Account e Sicurezza/i })).toBeInTheDocument();
   });
@@ -87,7 +87,7 @@ describe("Settings & Routing Integration (Apple HIG & i18n)", () => {
 
     // English section headings
     expect(screen.getByText("Active Household")).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: /Theme & Appearance/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /^Language$/i })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: /Notifications & Alerts/i })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: /Account & Security/i })).toBeInTheDocument();
   });

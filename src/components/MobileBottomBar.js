@@ -12,7 +12,7 @@ import {
 
 /**
  * MobileBottomBar component providing ergonomic thumb-friendly bottom navigation on mobile (< 768px).
- * Displays 5 tabs: Home, Turni, Spese, Spesa, and Altro (which triggers the mobile drawer).
+ * Displays 5 tabs: Home, Debiti, Turni, Calendario, and Altro (which triggers the mobile drawer).
  * Adheres to Apple HIG touch target guidelines (>= 48px) and safe area insets.
  */
 export default function MobileBottomBar() {

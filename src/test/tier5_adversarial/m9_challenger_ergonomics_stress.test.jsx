@@ -90,8 +90,8 @@ describe("Milestone M9 Adversarial Challenger Suite: Ergonomics, Bottom Bar, Tou
       // Verify labels
       expect(screen.getByText("Home")).toBeInTheDocument();
       expect(screen.getByText("Turni")).toBeInTheDocument();
-      expect(screen.getByText("Spese")).toBeInTheDocument();
-      expect(screen.getByText("Spesa")).toBeInTheDocument();
+      expect(screen.getByText("Debiti")).toBeInTheDocument();
+      expect(screen.getByText("Calendario")).toBeInTheDocument();
       expect(screen.getByText("Altro")).toBeInTheDocument();
 
       // Verify FontAwesome vector icons
@@ -101,7 +101,7 @@ describe("Milestone M9 Adversarial Challenger Suite: Ergonomics, Bottom Bar, Tou
       expect(iconClasses.some((c) => c.includes("fa-home"))).toBe(true);
       expect(iconClasses.some((c) => c.includes("fa-broom"))).toBe(true);
       expect(iconClasses.some((c) => c.includes("fa-wallet"))).toBe(true);
-      expect(iconClasses.some((c) => c.includes("fa-shopping-cart"))).toBe(true);
+      expect(iconClasses.some((c) => c.includes("fa-calendar-alt"))).toBe(true);
       expect(iconClasses.some((c) => c.includes("fa-bars"))).toBe(true);
 
       // Strict zero-emoji check on rendered content
@@ -149,13 +149,13 @@ describe("Milestone M9 Adversarial Challenger Suite: Ergonomics, Bottom Bar, Tou
 
       const homeLink = screen.getByText("Home").closest("a");
       const turniLink = screen.getByText("Turni").closest("a");
-      const speseLink = screen.getByText("Spese").closest("a");
-      const spesaLink = screen.getByText("Spesa").closest("a");
+      const speseLink = screen.getByText("Debiti").closest("a");
+      const calendarLink = screen.getByText("Calendario").closest("a");
 
       expect(homeLink).toHaveAttribute("href", "/home");
       expect(turniLink).toHaveAttribute("href", "/turni");
       expect(speseLink).toHaveAttribute("href", "/debiti");
-      expect(spesaLink).toHaveAttribute("href", "/spesa");
+      expect(calendarLink).toHaveAttribute("href", "/calendario");
     });
 
     test("CHALLENGE 2.2: Active route styling on exact and sub-routes", async () => {
@@ -170,8 +170,8 @@ describe("Milestone M9 Adversarial Challenger Suite: Ergonomics, Bottom Bar, Tou
         expect(homeLink).toHaveClass("active");
         expect(homeLink).toHaveAttribute("aria-current", "page");
         expect(screen.getByText("Turni").closest("a")).not.toHaveClass("active");
-        expect(screen.getByText("Spese").closest("a")).not.toHaveClass("active");
-        expect(screen.getByText("Spesa").closest("a")).not.toHaveClass("active");
+        expect(screen.getByText("Debiti").closest("a")).not.toHaveClass("active");
+        expect(screen.getByText("Calendario").closest("a")).not.toHaveClass("active");
       });
       u1();
 
@@ -196,36 +196,37 @@ describe("Milestone M9 Adversarial Challenger Suite: Ergonomics, Bottom Bar, Tou
         route: "/debiti/aggiungi",
       });
       await waitFor(() => {
-        const speseLink = screen.getByText("Spese").closest("a");
+        const speseLink = screen.getByText("Debiti").closest("a");
         expect(speseLink).toHaveClass("active");
         expect(speseLink).toHaveAttribute("aria-current", "page");
       });
       u3();
 
-      // 4. Exact match on /spesa
+      // 4. Exact match on /calendario
       const { unmount: u4 } = renderWithProviders(<MobileBottomBar />, {
-        user: alice,
-        userData: { username: "Alice", casaId: houseId },
-        route: "/spesa",
-      });
-      await waitFor(() => {
-        const spesaLink = screen.getByText("Spesa").closest("a");
-        expect(spesaLink).toHaveClass("active");
-        expect(spesaLink).toHaveAttribute("aria-current", "page");
-      });
-      u4();
-
-      // 5. Unmapped secondary routes (e.g. /calendario) leave all bottom tabs inactive
-      const { unmount: u5 } = renderWithProviders(<MobileBottomBar />, {
         user: alice,
         userData: { username: "Alice", casaId: houseId },
         route: "/calendario",
       });
       await waitFor(() => {
+        const calendarLink = screen.getByText("Calendario").closest("a");
+        expect(calendarLink).toHaveClass("active");
+        expect(calendarLink).toHaveAttribute("aria-current", "page");
+      });
+      u4();
+
+      // 5. Unmapped secondary routes (e.g. /documenti) activate Altro
+      const { unmount: u5 } = renderWithProviders(<MobileBottomBar />, {
+        user: alice,
+        userData: { username: "Alice", casaId: houseId },
+        route: "/documenti",
+      });
+      await waitFor(() => {
+        expect(screen.getByText("Altro").closest("button")).toHaveClass("active");
         expect(screen.getByText("Home").closest("a")).not.toHaveClass("active");
         expect(screen.getByText("Turni").closest("a")).not.toHaveClass("active");
-        expect(screen.getByText("Spese").closest("a")).not.toHaveClass("active");
-        expect(screen.getByText("Spesa").closest("a")).not.toHaveClass("active");
+        expect(screen.getByText("Debiti").closest("a")).not.toHaveClass("active");
+        expect(screen.getByText("Calendario").closest("a")).not.toHaveClass("active");
       });
       u5();
     });
@@ -549,7 +550,7 @@ describe("Milestone M9 Adversarial Challenger Suite: Ergonomics, Bottom Bar, Tou
       expect(links).toHaveLength(9);
 
       const expectedTabs = [
-        { label: "Dashboard", href: "/home", icon: "fa-home" },
+        { label: "Home", href: "/home", icon: "fa-home" },
         { label: "Turni", href: "/turni", icon: "fa-broom" },
         { label: "Debiti", href: "/debiti", icon: "fa-wallet" },
         { label: "Spesa", href: "/spesa", icon: "fa-shopping-cart" },
@@ -577,7 +578,7 @@ describe("Milestone M9 Adversarial Challenger Suite: Ergonomics, Bottom Bar, Tou
 
     test("CHALLENGE 5.3: DesktopNavigation route highlighting sets .active class exclusively on current route", async () => {
       const routesToTest = [
-        { path: "/home", activeLabel: "Dashboard" },
+        { path: "/home", activeLabel: "Home" },
         { path: "/turni", activeLabel: "Turni" },
         { path: "/debiti", activeLabel: "Debiti" },
         { path: "/spesa", activeLabel: "Spesa" },

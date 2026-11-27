@@ -16,6 +16,8 @@ describe('Milestone 3 Adversarial Challenge Suite', () => {
   const charlie = { uid: 'u_charlie', email: 'charlie@test.com', username: 'Charlie' };
 
   beforeEach(() => {
+    localStorage.clear();
+    sessionStorage.clear();
     mockStore.reset();
     const routerMock = require('react-router-dom');
     if (routerMock.__resetRouterMock) routerMock.__resetRouterMock();

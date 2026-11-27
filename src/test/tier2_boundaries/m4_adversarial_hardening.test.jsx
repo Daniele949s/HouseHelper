@@ -1,5 +1,5 @@
 import React from 'react';
-import { screen, fireEvent, waitFor, act, render } from '@testing-library/react';
+import { screen, fireEvent, waitFor, within, act, render } from '@testing-library/react';
 import { renderWithProviders, seedHousehold, mockStore } from '../testUtils';
 import { db, auth } from '../../firebase';
 import { doc, getDoc, collection, addDoc, deleteDoc } from 'firebase/firestore';
@@ -269,20 +269,23 @@ describe('Milestone 4 Tier 5 Adversarial Coverage Hardening Suite', () => {
         users: [alice]
       });
 
-      renderWithProviders(<ViewSpesa />, {
-        user: alice,
-        userData: { username: 'Alice', casaId: 'casa_1' },
-        route: '/spesa'
+      // Independent sessions may write concurrently. Each form guards repeat submissions.
+      const sessions = Array.from({ length: 10 }, () =>
+        renderWithProviders(<ViewSpesa />, {
+          user: alice,
+          userData: { username: 'Alice', casaId: 'casa_1' },
+          route: '/spesa'
+        })
+      );
+      const forms = await Promise.all(sessions.map(async ({ container }) => {
+        const view = within(container);
+        const input = await view.findByPlaceholderText(/Aggiungi prodotto da comprare/i);
+        return { input, button: view.getByRole('button', { name: /Aggiungi/i }) };
+      }));
+      forms.forEach(({ input, button }, index) => {
+        fireEvent.change(input, { target: { value: `Articolo ${index + 1}` } });
+        fireEvent.click(button);
       });
-
-      const input = await screen.findByPlaceholderText(/Aggiungi prodotto da comprare/i);
-      const addBtn = screen.getByRole('button', { name: /Aggiungi/i });
-
-      // Add 10 items in rapid succession
-      for (let i = 1; i <= 10; i++) {
-        fireEvent.change(input, { target: { value: `Articolo ${i}` } });
-        fireEvent.click(addBtn);
-      }
 
       await waitFor(() => {
         const items = Object.values(mockStore.getCollection('spesa'));

@@ -67,7 +67,7 @@ describe("M2 Empirical Challenger: Navigation Routing & Dynamic i18n Stress Suit
       // ViewImpostazioni mounts successfully
       expect(await screen.findByRole("heading", { level: 1, name: /Impostazioni/i })).toBeInTheDocument();
       expect(screen.getByText("Casa Attiva")).toBeInTheDocument();
-      expect(screen.getByRole("heading", { name: /Tema e Aspetto/i })).toBeInTheDocument();
+      expect(screen.getByRole("heading", { name: /^Lingua$/i })).toBeInTheDocument();
       expect(screen.getByRole("heading", { name: /Notifiche e Avvisi/i })).toBeInTheDocument();
       expect(screen.getByRole("heading", { name: /Account e Sicurezza/i })).toBeInTheDocument();
     });
@@ -202,7 +202,7 @@ describe("M2 Empirical Challenger: Navigation Routing & Dynamic i18n Stress Suit
       );
     }
 
-    test("2.1 Dynamic switch IT -> EN updates all 9 desktop links, all 9 mobile drawer links, and all 5 bottom tabs without unmounting", async () => {
+    test("2.1 Dynamic switch IT -> EN updates all 9 desktop links, all 5 mobile drawer links, and all 5 bottom tabs without unmounting", async () => {
       renderWithProviders(<IntegratedNavHarness />, {
         route: "/home",
         user: testUser,
@@ -220,7 +220,7 @@ describe("M2 Empirical Challenger: Navigation Routing & Dynamic i18n Stress Suit
       const desktopLinksIt = screen.getByTestId("desktop-nav-container").querySelectorAll(".desktop-nav-link");
       expect(desktopLinksIt).toHaveLength(9);
       const expectedDesktopIt = [
-        "Dashboard", "Turni", "Debiti", "Spesa", "Bacheca", "Calendario", "Documenti", "Contatti", "Impostazioni"
+        "Home", "Turni", "Debiti", "Spesa", "Bacheca", "Calendario", "Documenti", "Contatti", "Impostazioni"
       ];
       expectedDesktopIt.forEach((label) => {
         expect(screen.getByTestId("desktop-nav-container")).toHaveTextContent(label);
@@ -230,7 +230,7 @@ describe("M2 Empirical Challenger: Navigation Routing & Dynamic i18n Stress Suit
       expect(screen.getByText("Ciao, Challenger")).toBeInTheDocument();
       expect(screen.getByText("HouseHelper Menu")).toBeInTheDocument();
       const expectedMobileIt = [
-        "Dashboard", "Turni Pulizia", "Spese & Debiti", "Lista Spesa", "Calendario Casa",
+        "Lista Spesa",
         "Bacheca", "Documenti & Contratti", "Contatti Utili", "Impostazioni"
       ];
       expectedMobileIt.forEach((label) => {
@@ -244,8 +244,8 @@ describe("M2 Empirical Challenger: Navigation Routing & Dynamic i18n Stress Suit
       const bottomBarIt = screen.getByTestId("mobile-bottom-bar-container");
       expect(bottomBarIt).toHaveTextContent("Home");
       expect(bottomBarIt).toHaveTextContent("Turni");
-      expect(bottomBarIt).toHaveTextContent("Spese");
-      expect(bottomBarIt).toHaveTextContent("Spesa");
+      expect(bottomBarIt).toHaveTextContent("Debiti");
+      expect(bottomBarIt).toHaveTextContent("Calendario");
       expect(bottomBarIt).toHaveTextContent("Altro");
 
       // 2. DYNAMIC SWITCH TO ENGLISH (Without re-rendering/unmounting harness)
@@ -258,7 +258,7 @@ describe("M2 Empirical Challenger: Navigation Routing & Dynamic i18n Stress Suit
       // Desktop Nav updated to EN
       expect(screen.getByRole("navigation", { name: "Main navigation" })).toBeInTheDocument();
       const expectedDesktopEn = [
-        "Dashboard", "Chores", "Balances", "Groceries", "Notice Board", "Calendar", "Documents", "Contacts", "Settings"
+        "Home", "Chores", "Balances", "Groceries", "Notice Board", "Calendar", "Documents", "Contacts", "Settings"
       ];
       expectedDesktopEn.forEach((label) => {
         expect(screen.getByTestId("desktop-nav-container")).toHaveTextContent(label);
@@ -270,7 +270,7 @@ describe("M2 Empirical Challenger: Navigation Routing & Dynamic i18n Stress Suit
       // Mobile Drawer updated to EN
       expect(screen.getByText("Hello, Challenger")).toBeInTheDocument();
       const expectedMobileEn = [
-        "Dashboard", "Cleaning Chores", "Expenses & Balances", "Grocery List", "House Calendar",
+        "Grocery List",
         "Notice Board", "Documents & Leases", "Useful Contacts", "Settings"
       ];
       expectedMobileEn.forEach((label) => {
@@ -285,8 +285,8 @@ describe("M2 Empirical Challenger: Navigation Routing & Dynamic i18n Stress Suit
       const bottomBarEn = screen.getByTestId("mobile-bottom-bar-container");
       expect(bottomBarEn).toHaveTextContent("Home");
       expect(bottomBarEn).toHaveTextContent("Chores");
-      expect(bottomBarEn).toHaveTextContent("Expenses");
-      expect(bottomBarEn).toHaveTextContent("Groceries");
+      expect(bottomBarEn).toHaveTextContent("Balances");
+      expect(bottomBarEn).toHaveTextContent("Calendar");
       expect(bottomBarEn).toHaveTextContent("More");
       expect(bottomBarEn).not.toHaveTextContent("Turni");
       expect(bottomBarEn).not.toHaveTextContent("Spese");
@@ -410,7 +410,7 @@ describe("M2 Empirical Challenger: Navigation Routing & Dynamic i18n Stress Suit
 
     test("3.2 DesktopNavigation highlights exactly 1 active item across all 9 domain pages", async () => {
       const routesAndExpectedLabels = [
-        { route: "/home", label: "Dashboard" },
+        { route: "/home", label: "Home" },
         { route: "/turni", label: "Turni" },
         { route: "/debiti", label: "Debiti" },
         { route: "/spesa", label: "Spesa" },
@@ -493,7 +493,7 @@ describe("M2 Empirical Challenger: Navigation Routing & Dynamic i18n Stress Suit
       u2();
     });
 
-    test("3.5 MobileBottomBar highlights correct tabs on core routes and leaves tabs inactive on Settings and unmapped routes", async () => {
+    test("3.5 MobileBottomBar highlights correct tabs on core routes and highlights More on drawer routes", async () => {
       // 1. /home
       const { unmount: u1 } = renderWithProviders(<ActiveRouteHarness />, {
         route: "/home",
@@ -535,11 +535,11 @@ describe("M2 Empirical Challenger: Navigation Routing & Dynamic i18n Stress Suit
         userData: testUserData,
       });
       await screen.findByRole("navigation", { name: "Navigazione rapida mobile" });
-      const spesaTab = screen.getByTestId("mobile-bottom").querySelector("a[href='/spesa']");
-      expect(spesaTab).toHaveClass("active");
+      const moreTab = screen.getByTestId("mobile-bottom").querySelector("button.mobile-bottom-tab");
+      expect(moreTab).toHaveClass("active");
       u4();
 
-      // 5. /impostazioni and /settings — NO bottom tab active (Settings is accessed via drawer)
+      // 5. Settings and its alias are both accessed through More.
       const { unmount: u5 } = renderWithProviders(<ActiveRouteHarness />, {
         route: "/impostazioni",
         user: testUser,
@@ -547,7 +547,8 @@ describe("M2 Empirical Challenger: Navigation Routing & Dynamic i18n Stress Suit
       });
       await screen.findByRole("navigation", { name: "Navigazione rapida mobile" });
       const activeTabsImpostazioni = screen.getByTestId("mobile-bottom").querySelectorAll(".mobile-bottom-tab.active");
-      expect(activeTabsImpostazioni).toHaveLength(0);
+      expect(activeTabsImpostazioni).toHaveLength(1);
+      expect(activeTabsImpostazioni[0]).toHaveTextContent("Altro");
       u5();
 
       const { unmount: u6 } = renderWithProviders(<ActiveRouteHarness />, {
@@ -557,7 +558,8 @@ describe("M2 Empirical Challenger: Navigation Routing & Dynamic i18n Stress Suit
       });
       await screen.findByRole("navigation", { name: "Navigazione rapida mobile" });
       const activeTabsSettings = screen.getByTestId("mobile-bottom").querySelectorAll(".mobile-bottom-tab.active");
-      expect(activeTabsSettings).toHaveLength(0);
+      expect(activeTabsSettings).toHaveLength(1);
+      expect(activeTabsSettings[0]).toHaveTextContent("Altro");
       u6();
     });
   });

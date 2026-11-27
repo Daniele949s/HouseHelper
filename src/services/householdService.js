@@ -132,10 +132,10 @@ export async function createHousehold({ name, creatorUid }) {
 /**
  * Joins an existing Household matching the provided InviteCode.
  *
- * @param {{ code: string, userUid: string }} params
+ * @param {{ code: string, userUid: string, isCurrent?: () => boolean }} params
  * @returns {Promise<{ house: object }|null>} Null when no Household matches code
  */
-export async function joinHousehold({ code, userUid }) {
+export async function joinHousehold({ code, userUid, isCurrent = () => true }) {
   const normalizedCode = String(code || "").trim().toUpperCase();
   if (!isSafeInviteCode(normalizedCode)) {
     return null;
@@ -160,7 +160,7 @@ export async function joinHousehold({ code, userUid }) {
     return null;
   }
 
-  if (!targetCasaId) {
+  if (!targetCasaId || !isCurrent()) {
     return null;
   }
 

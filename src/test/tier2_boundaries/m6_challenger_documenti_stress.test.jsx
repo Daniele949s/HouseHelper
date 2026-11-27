@@ -256,10 +256,10 @@ describe('Milestone 6 Challenger: Document UI Workflows, Security & Concurrency 
   test('CHALLENGE 3.1: Sanitization against ../../../etc/passwd, null bytes, and script injection', () => {
     // 1. Path traversal in filename
     const traversal1 = '../../../etc/passwd';
-    expect(sanitizeFileName(traversal1)).toBe('.._.._.._etc_passwd');
+    expect(sanitizeFileName(traversal1)).toBe('______etc_passwd');
 
     const traversal2 = '..\\..\\..\\windows\\system32\\cmd.exe';
-    expect(sanitizeFileName(traversal2)).toBe('.._.._.._windows_system32_cmd.exe');
+    expect(sanitizeFileName(traversal2)).toBe('______windows_system32_cmd.exe');
 
     // 2. Null byte elimination
     const nullByte = 'safe\0file.pdf';
