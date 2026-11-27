@@ -9,6 +9,7 @@ import React, {
 } from "react";
 import { useAuth } from "./AuthContext";
 import { useLanguage } from "./LanguageContext";
+import { isUserEmailVerified } from "../navigation/navigationRegistry";
 import {
   fetchHouseholdData,
   isUserHouseAdmin,
@@ -69,10 +70,14 @@ function buildRoommateMap(roommates, fallbackUsername) {
  * per casaId, and centralizes create/join/leave/vacation mutations.
  */
 export function HouseholdProvider({ children }) {
-  const { currentUser, userData, setUserData } = useAuth();
+  const { currentUser, userData, setUserData, isEmailVerified } = useAuth();
   const { t } = useLanguage();
   const currentUid = currentUser?.uid || null;
-  const casaId = userData?.casaId || null;
+  const emailVerified =
+    typeof isEmailVerified === "boolean"
+      ? isEmailVerified
+      : isUserEmailVerified(currentUser);
+  const casaId = emailVerified ? (userData?.casaId || null) : null;
 
   const [house, setHouse] = useState(null);
   const [roommates, setRoommates] = useState([]);
@@ -217,7 +222,9 @@ export function HouseholdProvider({ children }) {
 
   const createHouse = useCallback(
     async (name) => {
-      if (!currentUser) return null;
+      if (!currentUser || !emailVerified) {
+        throw new Error("Email verification is required before creating a household.");
+      }
       const previousCasaId = casaId;
       const entryRequestId = requestIdRef.current;
       const result = await createHousehold({ name, creatorUid: currentUser.uid });
@@ -264,12 +271,14 @@ export function HouseholdProvider({ children }) {
       setUserData((prev) => ({ ...(prev || {}), ...membership }));
       return result;
     },
-    [currentUser, userData, casaId, setUserData]
+    [currentUser, emailVerified, userData, casaId, setUserData]
   );
 
   const joinHouse = useCallback(
     async (code) => {
-      if (!currentUser) return null;
+      if (!currentUser || !emailVerified) {
+        throw new Error("Email verification is required before joining a household.");
+      }
       const previousCasaId = casaId;
       const entryRequestId = requestIdRef.current;
       const result = await joinHousehold({ code, userUid: currentUser.uid });
@@ -325,7 +334,7 @@ export function HouseholdProvider({ children }) {
 
       return result;
     },
-    [currentUser, userData, casaId, setUserData, loadHousehold]
+    [currentUser, emailVerified, userData, casaId, setUserData, loadHousehold]
   );
 
   const leaveHouse = useCallback(async () => {

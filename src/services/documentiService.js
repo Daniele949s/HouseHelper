@@ -14,7 +14,7 @@ import {
   doc,
   deleteDoc
 } from "firebase/firestore";
-import { sanitizeText } from "../utils/security";
+import { sanitizeText, isSafeDocumentId, isSafeStoragePath } from "../utils/security";
 
 export const MAX_FILE_SIZE_BYTES = 15 * 1024 * 1024; // 15 MB
 
@@ -40,11 +40,17 @@ export const ALLOWED_MIME_TYPES = [
 
 export function sanitizeFileName(filename) {
   if (!filename) return "documento";
-  return filename
-    .replace(/[/\\?%*:|"<>]/g, "_")
-    .replace(/\s+/g, "_")
+  const cleaned = String(filename)
     .replace(/\0/g, "")
+    .replace(/[/\\?%*:|"<>]/g, "_")
+    .replace(/\.{2,}/g, "_")
+    .replace(/\s+/g, "_")
+    .replace(/^\.+/, "")
     .slice(0, 100);
+  if (!cleaned || /^[_.\s-]+$/.test(cleaned)) {
+    return "documento";
+  }
+  return cleaned;
 }
 
 export function formatFileSize(bytes) {
@@ -279,15 +285,15 @@ export async function caricaDocumento({ file, nome, categoria, note, casaId, cur
 }
 
 export async function eliminaDocumento({ docId, storagePath, lang, t }) {
-  if (!docId) {
+  if (!docId || !isSafeDocumentId(docId)) {
     throw createCodedError(
       getDocMessage("missingDocId", "documents.errors.missingDocId", { lang, t }),
       "DOC_ID_MISSING"
     );
   }
 
-  // Delete Storage file
-  if (storagePath) {
+  // Delete Storage file only if storagePath is strictly within case/{casaId}/documenti/{fileName}
+  if (storagePath && isSafeStoragePath(storagePath)) {
     try {
       const fileRef = ref(storage, storagePath);
       await deleteObject(fileRef);

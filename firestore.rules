@@ -19,13 +19,21 @@ service cloud.firestore {
       return get(/databases/$(database)/documents/utenti/$(request.auth.uid));
     }
 
-    // Verify user profile exists and has an active non-empty casaId
+    function isSafeDocId(val) {
+      return val is string && val.matches('^[A-Za-z0-9_-]{1,64}$');
+    }
+
+    function isSafeInviteCode(val) {
+      return val is string && val.matches('^[A-Za-z0-9]{4,12}$');
+    }
+
+    // Verify user is email-verified and profile exists with an active non-empty safe casaId
     function hasValidCasa() {
-      return isSignedIn() 
+      return isEmailVerified()
         && exists(/databases/$(database)/documents/utenti/$(request.auth.uid))
         && getUserDoc().data.casaId != null
         && getUserDoc().data.casaId is string
-        && getUserDoc().data.casaId.size() > 0;
+        && isSafeDocId(getUserDoc().data.casaId);
     }
 
     // Retrieve user's active household ID
@@ -44,10 +52,8 @@ service cloud.firestore {
     // Strict multi-tenant household barrier: prevents null == null exploit
     // and blocks pending, null, or unexpected member states from accessing household data.
     function belongsToSameHouse(casaId) {
-      return hasValidCasa() 
-        && casaId != null 
-        && casaId is string 
-        && casaId.size() > 0 
+      return hasValidCasa()
+        && isSafeDocId(casaId)
         && getUserCasaId() == casaId
         && isActiveMember();
     }
@@ -57,7 +63,7 @@ service cloud.firestore {
     }
 
     function isHouseAdmin(casaId) {
-      return isSignedIn() && casaId is string && casaId.size() > 0
+      return isEmailVerified() && isSafeDocId(casaId)
         && get(housePath(casaId)).data.get(
           'adminUid', get(housePath(casaId)).data.get('creatoreId', null)
         ) == request.auth.uid;
@@ -91,7 +97,7 @@ service cloud.firestore {
         || (after.casaId == null && after.get('ruoloCasa', null) == null
           && after.get('statoMembro', null) == null)
         || (resource.data.get('casaId', null) == null
-          && after.casaId is string && after.casaId.size() > 0
+          && isSafeDocId(after.casaId)
           && exists(housePath(after.casaId)) && (
             (after.get('ruoloCasa', null) == 'member' && after.get('statoMembro', null) == 'pending')
             || (after.get('ruoloCasa', null) == 'admin' && after.get('statoMembro', null) == 'active'
@@ -103,7 +109,7 @@ service cloud.firestore {
       let uid = request.resource.data.get('adminUid', '');
       let target = /databases/$(database)/documents/utenti/$(uid);
       let previous = /databases/$(database)/documents/utenti/$(request.auth.uid);
-      return uid is string && uid.size() > 0 && uid != request.auth.uid
+      return isSafeDocId(uid) && uid != request.auth.uid
         && request.resource.data.creatoreId == uid
         && get(target).data.casaId == casaId
         && getAfter(target).data.casaId == casaId
@@ -112,12 +118,11 @@ service cloud.firestore {
         && getAfter(previous).data.ruoloCasa == 'member';
     }
 
-    // Helper: Validates that the authenticated user has verified their email or signed in via trusted provider (e.g. Google)
+    // Helper: Validates that the authenticated user has a verified email claim in their Firebase ID token.
+    // Relies strictly on request.auth.token.email_verified (never on client-writable Firestore fields
+    // and never blindly on sign_in_provider).
     function isEmailVerified() {
-      return isSignedIn() && (
-        request.auth.token.email_verified == true || 
-        request.auth.token.firebase.sign_in_provider == 'google.com'
-      );
+      return isSignedIn() && request.auth.token.email_verified == true;
     }
 
     // Helper: Validates positive importo between 0.01 and 50,000.00 EUR (supports string and number)
@@ -140,13 +145,15 @@ service cloud.firestore {
     // 1. UTENTI (User Profiles)
     // ==========================================
     match /utenti/{userId} {
-      // Allow reading user profile if self OR if belonging to the same household
+      // Allow reading own profile (needed to hydrate session before verification)
+      // OR reading roommate profiles when email-verified and in the same active household.
       allow read: if isSignedIn() && (
-        isOwner(userId) || 
-        (resource.data.casaId != null && belongsToSameHouse(resource.data.casaId))
+        isOwner(userId) ||
+        (isEmailVerified() && resource.data.casaId != null && belongsToSameHouse(resource.data.casaId))
       );
 
-      // Create profile: only the account owner, required username and email
+      // Create initial profile at signup (before email verification completes):
+      // strictly limited to self with null household/role/member state.
       allow create: if isOwner(userId)
         && isNonEmptyString(request.resource.data.username, 50)
         && isNonEmptyString(request.resource.data.email, 100)
@@ -154,14 +161,16 @@ service cloud.firestore {
         && request.resource.data.get('ruoloCasa', null) == null
         && request.resource.data.get('statoMembro', null) == null;
 
-      // Owners edit their profiles. Household admins can change membership fields.
-      allow update: if (isOwner(userId) && isOwnerMembershipUpdate()
-        && isNonEmptyString(request.resource.data.username, 50)
-        && (request.resource.data.casaId == null || (request.resource.data.casaId is string && request.resource.data.casaId.size() <= 64))
-        && (!('inVacanza' in request.resource.data) || request.resource.data.inVacanza is bool)
-        && (!('vacanzaInizio' in request.resource.data) || request.resource.data.vacanzaInizio == null || isValidDateString(request.resource.data.vacanzaInizio))
-        && (!('vacanzaFine' in request.resource.data) || request.resource.data.vacanzaFine == null || isValidDateString(request.resource.data.vacanzaFine)))
-        || isHouseMembershipUpdate(userId);
+      // Profile and membership updates strictly require verified email.
+      allow update: if isEmailVerified() && (
+        (isOwner(userId) && isOwnerMembershipUpdate()
+          && isNonEmptyString(request.resource.data.username, 50)
+          && (request.resource.data.casaId == null || isSafeDocId(request.resource.data.casaId))
+          && (!('inVacanza' in request.resource.data) || request.resource.data.inVacanza is bool)
+          && (!('vacanzaInizio' in request.resource.data) || request.resource.data.vacanzaInizio == null || isValidDateString(request.resource.data.vacanzaInizio))
+          && (!('vacanzaFine' in request.resource.data) || request.resource.data.vacanzaFine == null || isValidDateString(request.resource.data.vacanzaFine)))
+        || isHouseMembershipUpdate(userId)
+      );
 
       // Profiles are never deleted directly by clients
       allow delete: if false;
@@ -171,27 +180,28 @@ service cloud.firestore {
     // 2. CASE (Nuclei Abitativi)
     // ==========================================
     match /case/{casaId} {
-      // Get: Active members and pending members awaiting approval for THEIR house only.
+      // Get: Email-verified active members and pending members awaiting approval for THEIR house only.
       // Unassigned users must resolve invite codes via /inviti/{codice} instead of reading /case.
-      allow get: if isSignedIn() && (
+      allow get: if isEmailVerified() && (
         belongsToSameHouse(casaId)
         || (hasValidCasa() && getUserCasaId() == casaId)
       );
 
-      // List: Only active members of the house; zero enumeration for unassigned or ex-members.
+      // List: Only email-verified active members of the house; zero enumeration for unassigned or ex-members.
       // Invite lookup is handled exclusively via exact-ID GET on /inviti/{codice}.
-      allow list: if isSignedIn() && belongsToSameHouse(casaId);
+      allow list: if isEmailVerified() && belongsToSameHouse(casaId);
 
-      // Create: Authenticated users without an active house can create a new household
-      allow create: if isSignedIn()
+      // Create: Email-verified authenticated users without an active house can create a new household.
+      allow create: if isEmailVerified()
         && !hasValidCasa()
+        && isSafeDocId(casaId)
         && isNonEmptyString(request.resource.data.nome, 60)
-        && isNonEmptyString(request.resource.data.codiceUnivoco, 12)
-        && request.resource.data.codiceUnivoco.size() >= 4
+        && isSafeInviteCode(request.resource.data.codiceUnivoco)
         && request.resource.data.creatoreId == request.auth.uid
         && request.resource.data.get('adminUid', request.auth.uid) == request.auth.uid;
 
-      allow update: if isNonEmptyString(request.resource.data.nome, 60)
+      allow update: if isEmailVerified()
+        && isNonEmptyString(request.resource.data.nome, 60)
         && (!('impostazioniTurni' in request.resource.data) || request.resource.data.impostazioniTurni is map)
         && (
           ((isHouseAdmin(casaId) || (belongsToSameHouse(casaId)
@@ -202,28 +212,27 @@ service cloud.firestore {
             && isAdminTransfer(casaId))
         );
 
-      allow delete: if isHouseAdmin(casaId);
+      allow delete: if isEmailVerified() && isHouseAdmin(casaId);
     }
 
     // ==========================================
     // 2B. INVITI (Exact-Code Invite Lookup, Zero Enumeration)
     // ==========================================
     match /inviti/{codice} {
-      // Proves exact possession of the invite code; listing all invites is strictly denied.
-      allow get: if isSignedIn();
+      // Proves exact possession of the invite code for email-verified users; listing is strictly denied.
+      allow get: if isEmailVerified() && isSafeInviteCode(codice);
       allow list: if false;
 
-      allow create: if isSignedIn()
-        && isNonEmptyString(codice, 12)
-        && codice.size() >= 4
-        && isNonEmptyString(request.resource.data.casaId, 64)
+      allow create: if isEmailVerified()
+        && isSafeInviteCode(codice)
+        && isSafeDocId(request.resource.data.casaId)
         && isNonEmptyString(request.resource.data.nomeCasa, 60)
         && request.resource.data.creatoreId == request.auth.uid
         && isHouseAdmin(request.resource.data.casaId)
         && get(housePath(request.resource.data.casaId)).data.codiceUnivoco == codice;
 
       allow update: if false;
-      allow delete: if isSignedIn() && isHouseAdmin(resource.data.casaId);
+      allow delete: if isEmailVerified() && isHouseAdmin(resource.data.casaId);
     }
 
     // ==========================================
@@ -262,8 +271,8 @@ service cloud.firestore {
       allow create: if belongsToSameHouse(request.resource.data.casaId)
         && isValidImporto(request.resource.data.importo)
         && isNonEmptyString(request.resource.data.descrizione, 255)
-        && isNonEmptyString(request.resource.data.creditoreId, 64)
-        && isNonEmptyString(request.resource.data.debitoreId, 64)
+        && isSafeDocId(request.resource.data.creditoreId)
+        && isSafeDocId(request.resource.data.debitoreId)
         && request.resource.data.creditoreId != request.resource.data.debitoreId
         && get(/databases/$(database)/documents/utenti/$(request.resource.data.creditoreId)).data.casaId == request.resource.data.casaId
         && get(/databases/$(database)/documents/utenti/$(request.resource.data.debitoreId)).data.casaId == request.resource.data.casaId;

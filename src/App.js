@@ -20,10 +20,12 @@ import AppFooter from "./components/AppFooter";
 
 // Import Security Route Guards
 import {
+  EmailVerificationRoute,
   HouseProtectedRoute,
   HouseSelectRoute,
   PublicOnlyRoute
 } from "./components/RouteGuards";
+import { hasHouseholdAccess } from "./navigation/navigationRegistry";
 
 // Eager public entry routes for zero-waterfall first paint on / and /login
 import HomeAutenticazione from "./pages/Autenticazione/homeAutenticazione";
@@ -57,9 +59,10 @@ const ViewContatti = lazy(() => import("./pages/Contatti/ViewContatti"));
 const ViewImpostazioni = lazy(() => import("./pages/Impostazioni/ViewImpostazioni"));
 
 function RouteChunkPrefetcher() {
-  const { currentUser, userData } = useAuth();
+  const { currentUser, userData, isEmailVerified } = useAuth();
+  const canAccessHousehold = hasHouseholdAccess(currentUser, userData, isEmailVerified);
   useEffect(() => {
-    if (!currentUser || !userData?.casaId || process.env.NODE_ENV === "test") return;
+    if (!canAccessHousehold || process.env.NODE_ENV === "test") return;
     let cancelled = false;
     const prefetch = () => {
       if (cancelled) return;
@@ -81,7 +84,7 @@ function RouteChunkPrefetcher() {
       cancelled = true;
       clearTimeout(timer);
     };
-  }, [currentUser, userData?.casaId]);
+  }, [canAccessHousehold]);
   return null;
 }
 
@@ -176,8 +179,10 @@ function App() {
                 <Route path="/registrazione" element={<ViewRegistrazione />} />
               </Route>
 
-              {/* Email Verification Route */}
-              <Route path="/verifica-email" element={<ViewVerificaEmail />} />
+              {/* Email Verification Route (Authenticated unverified users only) */}
+              <Route element={<EmailVerificationRoute />}>
+                <Route path="/verifica-email" element={<ViewVerificaEmail />} />
+              </Route>
 
               {/* House Setup Route (Authenticated users without a household) */}
               <Route element={<HouseSelectRoute />}>

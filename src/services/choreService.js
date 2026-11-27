@@ -15,6 +15,7 @@ import {
   sanitizeText,
   sanitizeChecklist,
   validateDate,
+  isSafeDocumentId,
 } from "../utils/security";
 import {
   getAvailableRoommates,
@@ -59,6 +60,9 @@ export async function fetchHouseChores(casaId) {
  * @returns {Promise<{ status: "ok"|"not_found"|"unauthorized", chore?: object }>}
  */
 export async function fetchChoreById(choreId, casaId) {
+  if (!isSafeDocumentId(choreId)) {
+    return { status: "not_found" };
+  }
   const turnoDoc = await getDoc(doc(db, "turni", choreId));
   if (!turnoDoc.exists()) {
     return { status: "not_found" };

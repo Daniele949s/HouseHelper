@@ -2,6 +2,11 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { useLanguage } from "../contexts/LanguageContext";
+import {
+  ACCESS_STATES,
+  getDefaultRouteForState,
+  resolveAccessState,
+} from "../navigation/navigationRegistry";
 import MobileNavigation from "./MobileNavigation";
 import DesktopNavigation from "./DesktopNavigation";
 import logo from "../HouseHelper.svg";
@@ -12,16 +17,16 @@ import logo from "../HouseHelper.svg";
  */
 export default function AppHeader() {
   const navigate = useNavigate();
-  const { currentUser, userData } = useAuth();
+  const { currentUser, userData, isEmailVerified, accessState } = useAuth() || {};
   const { t } = useLanguage();
 
   const handleBrandClick = () => {
-    if (currentUser && userData?.casaId) {
-      navigate("/home");
-    } else if (currentUser) {
-      navigate("/scelta-casa");
-    } else {
+    const state =
+      accessState || resolveAccessState(currentUser, userData, isEmailVerified);
+    if (state === ACCESS_STATES.ANONYMOUS) {
       navigate("/");
+    } else {
+      navigate(getDefaultRouteForState(state));
     }
   };
 

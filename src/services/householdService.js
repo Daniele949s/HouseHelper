@@ -14,6 +14,7 @@ import {
 } from "firebase/firestore";
 import { ref, deleteObject } from "firebase/storage";
 import { db, storage } from "../firebase";
+import { isSafeInviteCode, isSafeStoragePath } from "../utils/security";
 
 const INVITE_CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 const INVITE_CODE_LENGTH = 6;
@@ -137,7 +138,7 @@ export async function createHousehold({ name, creatorUid }) {
  */
 export async function joinHousehold({ code, userUid }) {
   const normalizedCode = String(code || "").trim().toUpperCase();
-  if (!normalizedCode) {
+  if (!isSafeInviteCode(normalizedCode)) {
     return null;
   }
 
@@ -259,7 +260,7 @@ export async function deleteHousehold({ casaId, adminUid }) {
 
       if (name === "documenti") {
         const data = docSnap.data();
-        if (data?.storagePath && !data.isFirestoreInline) {
+        if (data?.storagePath && !data.isFirestoreInline && isSafeStoragePath(data.storagePath, casaId)) {
           cleanup.push(deleteObject(ref(storage, data.storagePath)).catch(() => {}));
         }
       }

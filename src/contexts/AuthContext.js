@@ -11,6 +11,10 @@ import { auth, db } from '../firebase';
 import { onAuthStateChanged } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { purgeAllOfflineStorage } from '../utils/offlineStorage';
+import {
+  isUserEmailVerified,
+  resolveAccessState,
+} from '../navigation/navigationRegistry';
 
 const AuthContext = createContext();
 
@@ -18,8 +22,40 @@ export function useAuth() {
   return useContext(AuthContext);
 }
 
+function AuthInitializingShell() {
+  return (
+    <div
+      className="hh-auth-loading"
+      role="status"
+      aria-busy="true"
+      aria-live="polite"
+      style={{
+        minHeight: '100vh',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: '12px',
+        background: 'var(--bg-primary, #F7F6F2)',
+        color: 'var(--text-main, #192820)',
+        padding: '24px',
+      }}
+    >
+      <i
+        className="fas fa-spinner fa-spin"
+        aria-hidden="true"
+        style={{ fontSize: '1.6rem', color: 'var(--color-primary, #1D4435)' }}
+      />
+      <span style={{ fontSize: '0.95rem', fontWeight: 500, opacity: 0.8 }}>
+        Verifica sessione in corso...
+      </span>
+    </div>
+  );
+}
+
 export function AuthProvider({ children }) {
   const [currentUser, setCurrentUser] = useState(null);
+  const [emailVerified, setEmailVerified] = useState(false);
   const [userData, setUserDataState] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -67,6 +103,68 @@ export function AuthProvider({ children }) {
     }
   }, []);
 
+  /**
+   * Reloads Firebase Auth user state and forces an ID token refresh when verified
+   * so Firestore rules immediately observe request.auth.token.email_verified == true.
+   */
+  const refreshAuthUser = useCallback(
+    async ({ forceTokenRefresh = false } = {}) => {
+      const targetUser = auth.currentUser || currentUserRef.current;
+      if (!targetUser) {
+        if (mountedRef.current) {
+          setCurrentUser(null);
+          setEmailVerified(false);
+          setUserDataState(null);
+        }
+        return { verified: false, tokenVerified: false, user: null, userData: null };
+      }
+
+      if (typeof targetUser.reload === 'function') {
+        await targetUser.reload();
+      }
+
+      const updatedUser = auth.currentUser || targetUser;
+      const isVerified = isUserEmailVerified(updatedUser);
+      let tokenVerified = isVerified;
+
+      if (isVerified || forceTokenRefresh) {
+        if (typeof updatedUser.getIdToken === 'function') {
+          await updatedUser.getIdToken(true);
+        }
+        if (typeof updatedUser.getIdTokenResult === 'function') {
+          let tokenResult = await updatedUser.getIdTokenResult(false);
+          tokenVerified = tokenResult?.claims?.email_verified === true;
+          if (isVerified && !tokenVerified && typeof updatedUser.getIdToken === 'function') {
+            await updatedUser.getIdToken(true);
+            tokenResult = await updatedUser.getIdTokenResult(false);
+            tokenVerified = tokenResult?.claims?.email_verified === true;
+          }
+        }
+      }
+
+      const effectiveVerified = Boolean(isVerified && tokenVerified);
+      let nextUserData = null;
+
+      if (mountedRef.current) {
+        currentUserRef.current = updatedUser;
+        setCurrentUser(updatedUser);
+        setEmailVerified(effectiveVerified);
+      }
+
+      if (effectiveVerified) {
+        nextUserData = await refreshUserData(updatedUser);
+      }
+
+      return {
+        verified: isVerified,
+        tokenVerified: effectiveVerified,
+        user: updatedUser,
+        userData: nextUserData,
+      };
+    },
+    [refreshUserData]
+  );
+
   useEffect(() => {
     mountedRef.current = true;
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -82,6 +180,7 @@ export function AuthProvider({ children }) {
 
       currentUserRef.current = user;
       setCurrentUser(user);
+      setEmailVerified(isUserEmailVerified(user));
 
       try {
         if (user) {
@@ -121,19 +220,37 @@ export function AuthProvider({ children }) {
     };
   }, []);
 
+  const accessState = useMemo(
+    () => resolveAccessState(currentUser, userData, emailVerified),
+    [currentUser, userData, emailVerified]
+  );
+
   const value = useMemo(
     () => ({
       currentUser,
       userData,
+      loading,
+      isEmailVerified: emailVerified,
+      accessState,
       setUserData,
       refreshUserData,
+      refreshAuthUser,
     }),
-    [currentUser, userData, setUserData, refreshUserData]
+    [
+      currentUser,
+      userData,
+      loading,
+      emailVerified,
+      accessState,
+      setUserData,
+      refreshUserData,
+      refreshAuthUser,
+    ]
   );
 
   return (
     <AuthContext.Provider value={value}>
-      {!loading && children}
+      {loading ? <AuthInitializingShell /> : children}
     </AuthContext.Provider>
   );
 }

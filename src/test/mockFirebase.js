@@ -86,7 +86,20 @@ class MockFirestoreStore {
 
   // Auth Helpers
   setMockUser(user) {
-    this.currentMockUser = user ? { ...user } : null;
+    if (!user) {
+      this.currentMockUser = null;
+    } else {
+      const emailVerified = user.emailVerified !== undefined ? user.emailVerified : true;
+      this.currentMockUser = {
+        reload: jest.fn(async () => Promise.resolve()),
+        getIdToken: jest.fn(async () => 'mock-id-token'),
+        getIdTokenResult: jest.fn(async () => ({
+          claims: { email_verified: Boolean(this.currentMockUser?.emailVerified) }
+        })),
+        ...user,
+        emailVerified,
+      };
+    }
     this._notifyAuthListeners();
   }
 
@@ -392,11 +405,12 @@ export const signInWithEmailAndPassword = async (auth, email, password) => {
   const user = {
     uid,
     email: trimmed,
-    displayName: found ? found[1].username : 'Test User'
+    displayName: found ? found[1].username : 'Test User',
+    emailVerified: found && found[1].emailVerified === false ? false : true,
   };
 
   mockStore.setMockUser(user);
-  return { user };
+  return { user: mockStore.currentMockUser };
 };
 
 export const createUserWithEmailAndPassword = async (auth, email, password) => {
@@ -456,10 +470,11 @@ export const signInWithPopup = async (auth, provider) => {
   const user = {
     uid,
     email: 'google_user@test.com',
-    displayName: 'Google Roommate'
+    displayName: 'Google Roommate',
+    emailVerified: true,
   };
   mockStore.setMockUser(user);
-  return { user };
+  return { user: mockStore.currentMockUser };
 };
 
 export const signOut = async (auth) => {

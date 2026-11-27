@@ -42,7 +42,57 @@ function toFsDoc(obj) {
   return { fields };
 }
 
-async function createAuthUser(email, password = 'password123') {
+async function verifyAuthUserEmail(user, password = 'password123') {
+  const sendRes = await fetch(
+    `http://${AUTH_HOST}/identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key=fake-api-key`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ requestType: 'VERIFY_EMAIL', idToken: user.token })
+    }
+  );
+  if (!sendRes.ok) {
+    throw new Error(`sendOobCode failed for ${user.email}: ${await sendRes.text()}`);
+  }
+
+  const oobRes = await fetch(`http://${AUTH_HOST}/emulator/v1/projects/${PROJECT_ID}/oobCodes`);
+  const oobData = await oobRes.json();
+  const matches = (oobData.oobCodes || []).filter(
+    (c) => c.email === user.email && c.requestType === 'VERIFY_EMAIL'
+  );
+  const latest = matches[matches.length - 1];
+  if (!latest?.oobCode) {
+    throw new Error(`No VERIFY_EMAIL oobCode found for ${user.email}`);
+  }
+
+  const applyRes = await fetch(
+    `http://${AUTH_HOST}/identitytoolkit.googleapis.com/v1/accounts:update?key=fake-api-key`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ oobCode: latest.oobCode })
+    }
+  );
+  if (!applyRes.ok) {
+    throw new Error(`apply oobCode failed for ${user.email}: ${await applyRes.text()}`);
+  }
+
+  const signInRes = await fetch(
+    `http://${AUTH_HOST}/identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=fake-api-key`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: user.email, password, returnSecureToken: true })
+    }
+  );
+  const signInData = await signInRes.json();
+  if (!signInRes.ok) {
+    throw new Error(`re-signIn failed for ${user.email}: ${JSON.stringify(signInData)}`);
+  }
+  return { ...user, token: signInData.idToken, emailVerified: true };
+}
+
+async function createAuthUser(email, password = 'password123', { verified = true } = {}) {
   const url = `http://${AUTH_HOST}/identitytoolkit.googleapis.com/v1/accounts:signUp?key=fake-api-key`;
   const res = await fetch(url, {
     method: 'POST',
@@ -51,7 +101,11 @@ async function createAuthUser(email, password = 'password123') {
   });
   const data = await res.json();
   if (!res.ok) throw new Error(`Auth signUp failed for ${email}: ${JSON.stringify(data)}`);
-  return { uid: data.localId, token: data.idToken, email };
+  const user = { uid: data.localId, token: data.idToken, email, emailVerified: false };
+  if (verified) {
+    return verifyAuthUserEmail(user, password);
+  }
+  return user;
 }
 
 async function adminWrite(docPath, obj) {
@@ -414,6 +468,177 @@ async function main() {
     expectDeny(fsRequest('DELETE', 'note/nota_a1', { token: memberA2.token }), 'memberA2 delete memberA note'));
   await check('AdminA ALLOWED deleting MemberA note', () =>
     expectAllow(fsRequest('DELETE', 'note/nota_a1', { token: adminA.token }), 'adminA delete memberA note'));
+
+  // 10. EMAIL VERIFICATION ENFORCEMENT & ANTI-SPOOFING
+  const unverifiedNew = await createAuthUser('unverified-new@test.local', 'password123', { verified: false });
+  const unverifiedBadProfile = await createAuthUser('unverified-bad@test.local', 'password123', { verified: false });
+  const unverifiedLegacyHoused = await createAuthUser('unverified-legacy@test.local', 'password123', { verified: false });
+  await adminWrite(`utenti/${unverifiedLegacyHoused.uid}`, {
+    username: 'UnverifiedLegacy',
+    email: unverifiedLegacyHoused.email,
+    casaId: 'casa_a',
+    ruoloCasa: 'member',
+    statoMembro: 'active',
+    emailVerified: true
+  });
+
+  await check('Unverified ALLOWED creating own initial null-house profile (even with forged emailVerified:true field)', () =>
+    expectAllow(fsRequest('PATCH', `utenti/${unverifiedNew.uid}`, {
+      token: unverifiedNew.token,
+      body: {
+        username: 'UnverifiedUser',
+        email: unverifiedNew.email,
+        casaId: null,
+        ruoloCasa: null,
+        statoMembro: null,
+        emailVerified: true
+      }
+    }), 'unverified create initial profile'));
+  await check('Unverified ALLOWED reading own profile', () =>
+    expectAllow(fsRequest('GET', `utenti/${unverifiedNew.uid}`, { token: unverifiedNew.token }), 'unverified get self'));
+  await check('Unverified DENIED creating profile with pre-attached casaId', () =>
+    expectDeny(fsRequest('PATCH', `utenti/${unverifiedBadProfile.uid}`, {
+      token: unverifiedBadProfile.token,
+      body: {
+        username: 'BadUnverified',
+        email: unverifiedBadProfile.email,
+        casaId: 'casa_a',
+        ruoloCasa: 'member',
+        statoMembro: 'active'
+      }
+    }), 'unverified create profile with casaId'));
+  await check('Unverified (with forged emailVerified:true in Firestore) DENIED creating a house', () =>
+    expectDeny(fsRequest('PATCH', 'case/casa_unv', {
+      token: unverifiedNew.token,
+      body: {
+        nome: 'Casa Illegittima',
+        codiceUnivoco: 'UNV123',
+        creatoreId: unverifiedNew.uid,
+        adminUid: unverifiedNew.uid
+      }
+    }), 'unverified create house'));
+  await check('Unverified DENIED reading /inviti/ALPHA1', () =>
+    expectDeny(fsRequest('GET', 'inviti/ALPHA1', { token: unverifiedNew.token }), 'unverified get invite'));
+  await check('Unverified DENIED creating /inviti/UNV123', () =>
+    expectDeny(fsRequest('PATCH', 'inviti/UNV123', {
+      token: unverifiedNew.token,
+      body: { casaId: 'casa_a', nomeCasa: 'Casa Alpha', creatoreId: unverifiedNew.uid }
+    }), 'unverified create invite'));
+  await check('Unverified DENIED updating own profile to join casa_a as pending', () =>
+    expectDeny(fsRequest('PATCH', `utenti/${unverifiedNew.uid}`, {
+      token: unverifiedNew.token,
+      body: {
+        username: 'UnverifiedUser',
+        email: unverifiedNew.email,
+        casaId: 'casa_a',
+        ruoloCasa: 'member',
+        statoMembro: 'pending'
+      }
+    }), 'unverified join house'));
+  await check('Unverified DENIED updating own profile fields before verification', () =>
+    expectDeny(fsRequest('PATCH', `utenti/${unverifiedNew.uid}`, {
+      token: unverifiedNew.token,
+      body: {
+        username: 'SpoofedName',
+        email: unverifiedNew.email,
+        casaId: null,
+        ruoloCasa: null,
+        statoMembro: null,
+        emailVerified: true
+      }
+    }), 'unverified update own profile'));
+  await check('Unverified DENIED reading House A data (case, debiti, documenti, member profile)', async () => {
+    await expectDeny(fsRequest('GET', 'case/casa_a', { token: unverifiedNew.token }), 'unverified get casa_a');
+    await expectDeny(fsRequest('GET', 'debiti/deb_a1', { token: unverifiedNew.token }), 'unverified get deb_a1');
+    await expectDeny(fsRequest('GET', 'documenti/doc_a1', { token: unverifiedNew.token }), 'unverified get doc_a1');
+    await expectDeny(fsRequest('GET', `utenti/${memberA.uid}`, { token: unverifiedNew.token }), 'unverified get memberA');
+  });
+  await check('Unverified legacy housed user DENIED reading/writing House A private data', async () => {
+    await expectDeny(fsRequest('GET', 'case/casa_a', { token: unverifiedLegacyHoused.token }), 'unverified legacy get casa_a');
+    await expectDeny(fsRequest('GET', 'debiti/deb_a1', { token: unverifiedLegacyHoused.token }), 'unverified legacy get deb_a1');
+    await expectDeny(fsRequest('GET', 'documenti/doc_a1', { token: unverifiedLegacyHoused.token }), 'unverified legacy get doc_a1');
+    await expectDeny(fsRequest('GET', 'contatti/cnt_a1', { token: unverifiedLegacyHoused.token }), 'unverified legacy get cnt_a1');
+    await expectDeny(fsRequest('GET', `utenti/${memberA.uid}`, { token: unverifiedLegacyHoused.token }), 'unverified legacy get memberA');
+    await expectDeny(fsRequest('PATCH', 'debiti/deb_unv_legacy', {
+      token: unverifiedLegacyHoused.token,
+      body: { casaId: 'casa_a', creditoreId: unverifiedLegacyHoused.uid, debitoreId: memberA.uid, importo: 15, descrizione: 'Illegit', saldato: false }
+    }), 'unverified legacy create debt');
+  });
+
+  // Complete real email verification for unverifiedNew and refresh token -> authorized flows succeed
+  const verifiedNew = await verifyAuthUserEmail(unverifiedNew, 'password123');
+  await check('After real email verification + token refresh: ALLOWED reading /inviti/ALPHA1', () =>
+    expectAllow(fsRequest('GET', 'inviti/ALPHA1', { token: verifiedNew.token }), 'verified get invite'));
+  await check('After real email verification + token refresh: ALLOWED creating house + invite + admin profile', async () => {
+    await expectAllow(fsRequest('PATCH', 'case/casa_verified_ok', {
+      token: verifiedNew.token,
+      body: {
+        nome: 'Casa Verificata',
+        codiceUnivoco: 'VER123',
+        creatoreId: verifiedNew.uid,
+        adminUid: verifiedNew.uid
+      }
+    }), 'verified create house');
+    await expectAllow(fsRequest('PATCH', 'inviti/VER123', {
+      token: verifiedNew.token,
+      body: { casaId: 'casa_verified_ok', nomeCasa: 'Casa Verificata', creatoreId: verifiedNew.uid }
+    }), 'verified create invite');
+    await expectAllow(fsRequest('PATCH', `utenti/${verifiedNew.uid}`, {
+      token: verifiedNew.token,
+      body: {
+        username: 'UnverifiedUser',
+        email: verifiedNew.email,
+        casaId: 'casa_verified_ok',
+        ruoloCasa: 'admin',
+        statoMembro: 'active'
+      }
+    }), 'verified attach admin profile');
+  });
+
+  // 11. PATH TRAVERSAL DEFENSE IN FIRESTORE RULES
+  const traversalUser = await createAuthUser('traversal-test@test.local', 'password123', { verified: true });
+  await adminWrite(`utenti/${traversalUser.uid}`, {
+    username: 'TraversalTest',
+    email: traversalUser.email,
+    casaId: null,
+    ruoloCasa: null,
+    statoMembro: null
+  });
+  await check('Path traversal in utenti.casaId (../utenti/other) DENIED', () =>
+    expectDeny(fsRequest('PATCH', `utenti/${traversalUser.uid}`, {
+      token: traversalUser.token,
+      body: {
+        username: 'TraversalTest',
+        email: traversalUser.email,
+        casaId: '../utenti/victim',
+        ruoloCasa: 'member',
+        statoMembro: 'pending'
+      }
+    }), 'traversal casaId'));
+  await check('Path traversal in case.codiceUnivoco (../BAD) DENIED', () =>
+    expectDeny(fsRequest('PATCH', 'case/casa_trav_code', {
+      token: traversalUser.token,
+      body: {
+        nome: 'Casa Bad Code',
+        codiceUnivoco: '../BAD',
+        creatoreId: traversalUser.uid,
+        adminUid: traversalUser.uid
+      }
+    }), 'traversal codiceUnivoco'));
+  await check('Path traversal / non-alphanumeric /inviti/BAD.CODE GET DENIED', () =>
+    expectDeny(fsRequest('GET', 'inviti/BAD.CODE', { token: traversalUser.token }), 'traversal invite get'));
+  await check('Path traversal in debiti.debitoreId (../case/casa_a) DENIED', () =>
+    expectDeny(fsRequest('PATCH', 'debiti/deb_trav', {
+      token: memberA.token,
+      body: {
+        casaId: 'casa_a',
+        creditoreId: memberA.uid,
+        debitoreId: '../case/casa_a',
+        importo: 10,
+        descrizione: 'Traversal test',
+        saldato: false
+      }
+    }), 'traversal debitoreId'));
 
   const failed = results.filter((r) => !r.pass);
   console.log(`\n[SUMMARY] ${results.length - failed.length}/${results.length} Firestore Emulator Security Rules checks passed.`);

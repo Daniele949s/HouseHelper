@@ -752,4 +752,67 @@ export function clearInviteCodeRateLimit() {
   }
 }
 
+/**
+ * Detects raw or URL-encoded path traversal sequences (.., /, \, null bytes).
+ */
+export function hasPathTraversal(value) {
+  if (typeof value !== "string") return false;
+  if (value.includes("\0") || value.includes("..") || value.includes("/") || value.includes("\\")) {
+    return true;
+  }
+  const lower = value.toLowerCase();
+  if (
+    lower.includes("%2e") ||
+    lower.includes("%2f") ||
+    lower.includes("%5c") ||
+    lower.includes("%00") ||
+    lower.includes("%252e") ||
+    lower.includes("%252f") ||
+    lower.includes("%255c")
+  ) {
+    return true;
+  }
+  return false;
+}
+
+/**
+ * Validates that a Firestore document ID is a single safe path segment (no /, \, .., or control chars).
+ */
+export function isSafeDocumentId(value) {
+  if (typeof value !== "string") return false;
+  if (hasPathTraversal(value)) return false;
+  return /^[A-Za-z0-9_-]{1,64}$/.test(value);
+}
+
+/**
+ * Validates that an invite code is strictly alphanumeric (4-12 chars), blocking traversal segments.
+ */
+export function isSafeInviteCode(value) {
+  if (typeof value !== "string") return false;
+  if (hasPathTraversal(value)) return false;
+  return /^[A-Za-z0-9]{4,12}$/.test(value);
+}
+
+/**
+ * Validates a Firebase Storage document path stays strictly within case/{casaId}/documenti/{fileName}.
+ */
+export function isSafeStoragePath(storagePath, expectedCasaId = null) {
+  if (typeof storagePath !== "string" || storagePath.length === 0 || storagePath.length > 260) {
+    return false;
+  }
+  if (
+    storagePath.includes("\0") ||
+    storagePath.includes("\\") ||
+    storagePath.includes("..") ||
+    /%2e|%2f|%5c|%00/i.test(storagePath)
+  ) {
+    return false;
+  }
+  const match = storagePath.match(/^case\/([A-Za-z0-9_-]{1,64})\/documenti\/([A-Za-z0-9._-]{1,140})$/);
+  if (!match) return false;
+  if (match[2] === "." || match[2] === "..") return false;
+  if (expectedCasaId && match[1] !== expectedCasaId) return false;
+  return true;
+}
+
 

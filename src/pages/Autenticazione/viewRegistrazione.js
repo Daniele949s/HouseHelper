@@ -122,10 +122,10 @@ export default function ViewRegistrazione() {
 
       recordRegistrationAttempt();
 
-      if (process.env.NODE_ENV === "test") {
-        navigate("/scelta-casa");
+      if (!userCredential.user.emailVerified) {
+        navigate("/verifica-email", { replace: true, state: { email: trimmedEmail } });
       } else {
-        navigate("/verifica-email", { state: { email: trimmedEmail } });
+        navigate("/scelta-casa");
       }
     } catch (err) {
       console.error("Errore di registrazione:", err);
@@ -160,9 +160,15 @@ export default function ViewRegistrazione() {
         };
         await setDoc(userDocRef, profile);
         setUserData?.(profile);
-        navigate("/scelta-casa");
+        if (!user.emailVerified) {
+          navigate("/verifica-email", { replace: true, state: { email: user.email || "" } });
+        } else {
+          navigate("/scelta-casa");
+        }
       } else {
-        if (userDoc.data().casaId) {
+        if (!user.emailVerified) {
+          navigate("/verifica-email", { replace: true, state: { email: user.email || "" } });
+        } else if (userDoc.data().casaId) {
           navigate("/home");
         } else {
           navigate("/scelta-casa");

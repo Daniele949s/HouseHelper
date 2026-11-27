@@ -38,8 +38,8 @@ export default function ViewLogin() {
       const userCredential = await signInWithEmailAndPassword(auth, trimmedEmail, password);
 
       // Email Verification Gate: redirect to verification screen if unverified
-      if (process.env.NODE_ENV !== "test" && !userCredential.user.emailVerified) {
-        navigate("/verifica-email", { state: { email: trimmedEmail } });
+      if (!userCredential.user.emailVerified) {
+        navigate("/verifica-email", { replace: true, state: { email: trimmedEmail } });
         return;
       }
 
@@ -84,9 +84,15 @@ export default function ViewLogin() {
         };
         await setDoc(userDocRef, profile);
         setUserData?.(profile);
-        navigate("/scelta-casa");
+        if (!user.emailVerified) {
+          navigate("/verifica-email", { replace: true, state: { email: user.email || "" } });
+        } else {
+          navigate("/scelta-casa");
+        }
       } else {
-        if (userDoc.data().casaId) {
+        if (!user.emailVerified) {
+          navigate("/verifica-email", { replace: true, state: { email: user.email || "" } });
+        } else if (userDoc.data().casaId) {
           navigate("/home");
         } else {
           navigate("/scelta-casa");

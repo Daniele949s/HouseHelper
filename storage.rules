@@ -10,27 +10,31 @@ service firebase.storage {
       return request.auth != null && request.auth.uid != null;
     }
 
+    function isEmailVerified() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function isSafeDocId(val) {
+      return val is string && val.matches('^[A-Za-z0-9_-]{1,64}$');
+    }
+
     // Retrieve user document from Firestore (cross-service lookup)
     function getUserDoc() {
       return firestore.get(/databases/(default)/documents/utenti/$(request.auth.uid));
     }
 
-    // Check if the user document exists and has a non-empty string casaId
+    // Check if the user is email-verified and document exists with a safe string casaId
     function hasValidCasa() {
-      return isSignedIn()
+      return isEmailVerified()
         && firestore.exists(/databases/(default)/documents/utenti/$(request.auth.uid))
-        && getUserDoc().data.casaId != null
-        && getUserDoc().data.casaId is string
-        && getUserDoc().data.casaId.size() > 0;
+        && isSafeDocId(getUserDoc().data.casaId);
     }
 
     // Strict multi-tenant barrier: ensures user's active casaId exactly matches path casaId
-    // and blocks unapproved pending members.
+    // and blocks unapproved pending members and path traversal segments.
     function belongsToSameHouse(casaId) {
       return hasValidCasa()
-        && casaId != null
-        && casaId is string
-        && casaId.size() > 0
+        && isSafeDocId(casaId)
         && getUserDoc().data.casaId == casaId
         && getUserDoc().data.get('statoMembro', 'active') != 'pending';
     }
@@ -53,11 +57,14 @@ service firebase.storage {
     // Path structure: /case/{casaId}/documenti/{allPaths=**}
     // ==========================================
     match /case/{casaId}/documenti/{allPaths=**} {
-      // READ: Only authenticated household members belonging to casaId
-      allow read: if belongsToSameHouse(casaId);
+      // READ: Only email-verified household members belonging to casaId (no traversal segments)
+      allow read: if belongsToSameHouse(casaId)
+        && !allPaths.matches('.*\\.\\..*');
 
-      // CREATE: Only authenticated household members; enforce <= 15MB and safe MIME
+      // CREATE: Only email-verified household members; enforce <= 15MB, safe MIME, single segment
       allow create: if belongsToSameHouse(casaId)
+        && !allPaths.matches('.*\\.\\..*')
+        && !allPaths.matches('.*/.*')
         && isValidFileSize()
         && isValidContentType()
         && (request.resource.metadata == null 
@@ -67,8 +74,9 @@ service firebase.storage {
       // UPDATE: Prevent file overwrite and payload tampering
       allow update: if false;
 
-      // DELETE: Only authenticated household members belonging to casaId
-      allow delete: if belongsToSameHouse(casaId);
+      // DELETE: Only email-verified household members belonging to casaId
+      allow delete: if belongsToSameHouse(casaId)
+        && !allPaths.matches('.*\\.\\..*');
     }
 
     // ==========================================

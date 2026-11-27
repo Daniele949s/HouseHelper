@@ -33,11 +33,70 @@ export const MOBILE_BOTTOM_TABS = [
   { key: "nav.calendar", fallback: "Calendario", icon: "fa-calendar-alt", path: "/calendario", end: false },
 ];
 
+export const ACCESS_STATES = {
+  ANONYMOUS: "anonymous",
+  UNVERIFIED: "unverified",
+  VERIFIED_NO_HOUSE: "verified_no_house",
+  PENDING: "pending",
+  ACTIVE_MEMBER: "active_member",
+};
+
 /**
- * Canonical guard predicate: true only when user is authenticated and affiliated with a Household.
+ * Canonical email verification check: strictly requires Firebase Auth emailVerified === true.
  */
-export function hasHouseholdAccess(currentUser, userData) {
-  return Boolean(currentUser && userData && userData.casaId);
+export function isUserEmailVerified(currentUser) {
+  return Boolean(currentUser && currentUser.emailVerified === true);
+}
+
+/**
+ * Resolves the canonical access state for routing and UI guards.
+ * States: anonymous -> unverified -> verified_no_house -> pending | active_member.
+ */
+export function resolveAccessState(currentUser, userData, explicitEmailVerified) {
+  if (!currentUser) {
+    return ACCESS_STATES.ANONYMOUS;
+  }
+  const verified =
+    typeof explicitEmailVerified === "boolean"
+      ? explicitEmailVerified
+      : isUserEmailVerified(currentUser);
+  if (!verified) {
+    return ACCESS_STATES.UNVERIFIED;
+  }
+  if (!userData || !userData.casaId) {
+    return ACCESS_STATES.VERIFIED_NO_HOUSE;
+  }
+  if (userData.statoMembro === "pending") {
+    return ACCESS_STATES.PENDING;
+  }
+  return ACCESS_STATES.ACTIVE_MEMBER;
+}
+
+/**
+ * Returns the canonical landing route for a given access state.
+ */
+export function getDefaultRouteForState(accessState) {
+  switch (accessState) {
+    case ACCESS_STATES.UNVERIFIED:
+      return "/verifica-email";
+    case ACCESS_STATES.VERIFIED_NO_HOUSE:
+      return "/scelta-casa";
+    case ACCESS_STATES.PENDING:
+    case ACCESS_STATES.ACTIVE_MEMBER:
+      return "/home";
+    case ACCESS_STATES.ANONYMOUS:
+    default:
+      return "/login";
+  }
+}
+
+/**
+ * Canonical guard predicate: true only when user is authenticated, email-verified,
+ * and affiliated with a Household.
+ */
+export function hasHouseholdAccess(currentUser, userData, explicitEmailVerified) {
+  const state = resolveAccessState(currentUser, userData, explicitEmailVerified);
+  return state === ACCESS_STATES.ACTIVE_MEMBER || state === ACCESS_STATES.PENDING;
 }
 
 /**

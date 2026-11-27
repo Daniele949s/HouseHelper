@@ -2,20 +2,20 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { useLanguage } from "../contexts/LanguageContext";
+import {
+  getDefaultRouteForState,
+  resolveAccessState,
+} from "../navigation/navigationRegistry";
 
 export default function NotFound() {
   const navigate = useNavigate();
-  const { currentUser, userData } = useAuth();
+  const { currentUser, userData, isEmailVerified, accessState } = useAuth() || {};
   const { t } = useLanguage();
 
   const handleReturn = () => {
-    if (!currentUser) {
-      navigate("/login");
-    } else if (userData?.casaId) {
-      navigate("/home");
-    } else {
-      navigate("/scelta-casa");
-    }
+    const state =
+      accessState || resolveAccessState(currentUser, userData, isEmailVerified);
+    navigate(getDefaultRouteForState(state));
   };
 
   return (

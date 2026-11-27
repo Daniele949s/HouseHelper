@@ -1,7 +1,11 @@
 import React, { Suspense } from "react";
 import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
-import { hasHouseholdAccess } from "../navigation/navigationRegistry";
+import {
+  ACCESS_STATES,
+  getDefaultRouteForState,
+  resolveAccessState,
+} from "../navigation/navigationRegistry";
 import HouseholdShell from "./HouseholdShell";
 
 function InlineRouteLoading() {
@@ -15,20 +19,28 @@ function InlineRouteLoading() {
   );
 }
 
+function useResolvedAccessState() {
+  const authCtx = useAuth() || {};
+  const { currentUser, userData, isEmailVerified, accessState } = authCtx;
+  if (accessState) {
+    return accessState;
+  }
+  return resolveAccessState(currentUser, userData, isEmailVerified);
+}
+
 /**
- * Guard for routes requiring both authentication and an active household (casaId).
+ * Guard for routes requiring authentication, verified email, and a household (casaId).
  * Keeps HouseholdShell persistently mounted across all internal route transitions
  * so navigation never unmounts the shell or flashes the full-screen loader.
  */
 export function HouseProtectedRoute() {
-  const { currentUser, userData } = useAuth();
+  const accessState = useResolvedAccessState();
 
-  if (!currentUser) {
-    return <Navigate to="/login" replace />;
-  }
-
-  if (!hasHouseholdAccess(currentUser, userData)) {
-    return <Navigate to="/scelta-casa" replace />;
+  if (
+    accessState !== ACCESS_STATES.ACTIVE_MEMBER &&
+    accessState !== ACCESS_STATES.PENDING
+  ) {
+    return <Navigate to={getDefaultRouteForState(accessState)} replace />;
   }
 
   return (
@@ -42,18 +54,28 @@ export function HouseProtectedRoute() {
 
 /**
  * Guard for /scelta-casa route.
- * Prevents users who are ALREADY enrolled in a house from accessing /scelta-casa via URL.
- * Redirects them safely to /home.
+ * Only accessible to authenticated, email-verified users who are not yet enrolled in a house.
  */
 export function HouseSelectRoute() {
-  const { currentUser, userData } = useAuth();
+  const accessState = useResolvedAccessState();
 
-  if (!currentUser) {
-    return <Navigate to="/login" replace />;
+  if (accessState !== ACCESS_STATES.VERIFIED_NO_HOUSE) {
+    return <Navigate to={getDefaultRouteForState(accessState)} replace />;
   }
 
-  if (userData && userData.casaId) {
-    return <Navigate to="/home" replace />;
+  return <Outlet />;
+}
+
+/**
+ * Guard for /verifica-email route.
+ * Only accessible to authenticated users whose email is not yet verified.
+ * Redirects anonymous users to /login and verified users to /home or /scelta-casa.
+ */
+export function EmailVerificationRoute() {
+  const accessState = useResolvedAccessState();
+
+  if (accessState !== ACCESS_STATES.UNVERIFIED) {
+    return <Navigate to={getDefaultRouteForState(accessState)} replace />;
   }
 
   return <Outlet />;
@@ -61,17 +83,14 @@ export function HouseSelectRoute() {
 
 /**
  * Guard for public authentication routes (/, /login, /registrazione).
- * Prevents already logged-in users from viewing login/registration forms via URL.
- * Redirects them directly to /home (or /scelta-casa).
+ * Prevents already signed-in users (including unverified ones) from viewing auth forms
+ * via browser back/forward or direct URL, routing them to their canonical state screen.
  */
 export function PublicOnlyRoute() {
-  const { currentUser, userData } = useAuth();
+  const accessState = useResolvedAccessState();
 
-  if (currentUser) {
-    if (userData && userData.casaId) {
-      return <Navigate to="/home" replace />;
-    }
-    return <Navigate to="/scelta-casa" replace />;
+  if (accessState !== ACCESS_STATES.ANONYMOUS) {
+    return <Navigate to={getDefaultRouteForState(accessState)} replace />;
   }
 
   return <Outlet />;

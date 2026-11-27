@@ -5,7 +5,7 @@ import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { useAuth } from "../../contexts/AuthContext";
 import { useLanguage } from "../../contexts/LanguageContext";
 import { showToast } from "../../utils/feedback";
-import { sanitizeText, validateDate } from "../../utils/security";
+import { sanitizeText, validateDate, isSafeDocumentId } from "../../utils/security";
 
 const PRIORITY_OPTIONS = [
   { id: "info", labelKey: "board.priorityInfo", fallback: "Info", icon: "fas fa-info-circle" },
@@ -28,6 +28,12 @@ export default function ModificaNota() {
   useEffect(() => {
     const fetchNota = async () => {
       if (!userData?.casaId) return;
+      if (!isSafeDocumentId(id)) {
+        showToast(t("board.notFound", null, "Avviso non trovato o rimosso."), "error");
+        navigate("/bacheca");
+        setLoading(false);
+        return;
+      }
 
       try {
         const docRef = doc(db, "note", id);

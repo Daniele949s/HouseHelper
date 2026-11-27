@@ -1,14 +1,14 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { auth } from "../../firebase";
-import { sendEmailVerification, signOut } from "firebase/auth";
+import { applyActionCode, sendEmailVerification, signOut } from "firebase/auth";
 import { useAuth } from "../../contexts/AuthContext";
 import { useLanguage } from "../../contexts/LanguageContext";
 
 export default function ViewVerificaEmail() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { currentUser } = useAuth();
+  const { currentUser, userData, refreshAuthUser } = useAuth() || {};
   const { t } = useLanguage();
 
   const email = location.state?.email || currentUser?.email || t("auth.yourEmailFallback", {}, "il tuo indirizzo email");
@@ -17,6 +17,17 @@ export default function ViewVerificaEmail() {
   const [cooldown, setCooldown] = useState(0);
   const [message, setMessage] = useState(null);
   const [error, setError] = useState(null);
+  const lastAutoCheckRef = useRef(0);
+  const redirectTimerRef = useRef(null);
+  const handledOobRef = useRef(null);
+
+  useEffect(() => {
+    return () => {
+      if (redirectTimerRef.current) {
+        clearTimeout(redirectTimerRef.current);
+      }
+    };
+  }, []);
 
   // Cooldown countdown timer for resending verification email
   useEffect(() => {
@@ -27,30 +38,190 @@ export default function ViewVerificaEmail() {
     return () => clearInterval(timer);
   }, [cooldown]);
 
-  const handleCheckVerification = async () => {
-    setError(null);
-    setMessage(null);
-    setChecking(true);
+  const performVerificationCheck = useCallback(
+    async ({ silent = false } = {}) => {
+      if (!silent) {
+        setError(null);
+        setMessage(null);
+        setChecking(true);
+      }
 
-    try {
-      if (auth.currentUser) {
-        await auth.currentUser.reload();
-        if (auth.currentUser.emailVerified) {
+      try {
+        let verified = false;
+        let tokenVerified = false;
+        let freshUserData = userData;
+
+        if (typeof refreshAuthUser === "function") {
+          const res = await refreshAuthUser({ forceTokenRefresh: true });
+          verified = Boolean(res?.verified);
+          tokenVerified = Boolean(res?.tokenVerified);
+          if (res?.userData !== undefined) {
+            freshUserData = res.userData;
+          }
+        } else if (auth.currentUser) {
+          if (typeof auth.currentUser.reload === "function") {
+            await auth.currentUser.reload();
+          }
+          verified = Boolean(auth.currentUser.emailVerified === true);
+          tokenVerified = verified;
+          if (verified && typeof auth.currentUser.getIdToken === "function") {
+            await auth.currentUser.getIdToken(true);
+          }
+        }
+
+        if (verified && tokenVerified) {
+          setError(null);
           setMessage(t("auth.emailVerifiedSuccess", {}, "Email verificata con successo! Reindirizzamento..."));
-          setTimeout(() => {
-            navigate("/scelta-casa", { replace: true });
-          }, 1000);
-          return;
+          const destination = freshUserData?.casaId ? "/home" : "/scelta-casa";
+          if (redirectTimerRef.current) {
+            clearTimeout(redirectTimerRef.current);
+          }
+          redirectTimerRef.current = setTimeout(() => {
+            navigate(destination, { replace: true });
+          }, 400);
+          return true;
+        }
+
+        if (verified && !tokenVerified) {
+          setError(
+            t(
+              "auth.tokenRefreshPending",
+              {},
+              "Email verificata, ma il token di sessione non è ancora aggiornato. Riprova tra un istante o effettua nuovamente l'accesso."
+            )
+          );
+          return false;
+        }
+
+        if (!silent) {
+          setError(
+            t(
+              "auth.emailNotVerifiedYet",
+              {},
+              "L'indirizzo email non risulta ancora verificato. Clicca prima sul link ricevuto via email e riprova tra qualche istante."
+            )
+          );
+        }
+        return false;
+      } catch (err) {
+        console.error("Errore verifica:", err);
+        if (!silent) {
+          if (err?.code === "auth/user-token-expired") {
+            setError(
+              t(
+                "auth.sessionExpiredReauth",
+                {},
+                "La sessione è scaduta. Effettua nuovamente l'accesso per continuare."
+              )
+            );
+          } else if (err?.code === "auth/too-many-requests") {
+            setError(
+              t(
+                "auth.tooManyRequests",
+                {},
+                "Troppi tentativi ravvicinati. Attendi qualche istante e riprova."
+              )
+            );
+          } else {
+            setError(
+              t(
+                "auth.verifyStatusError",
+                {},
+                "Impossibile verificare lo stato dell'account. Riprova tra qualche istante."
+              )
+            );
+          }
+        }
+        return false;
+      } finally {
+        if (!silent) {
+          setChecking(false);
         }
       }
-      setError(t("auth.emailNotVerifiedYet", {}, "L'indirizzo email non risulta ancora verificato. Clicca prima sul link ricevuto via email e riprova tra qualche istante."));
-    } catch (err) {
-      console.error("Errore verifica:", err);
-      setError(t("auth.verifyStatusError", {}, "Impossibile verificare lo stato dell'account. Riprova tra qualche istante."));
-    } finally {
-      setChecking(false);
+    },
+    [navigate, refreshAuthUser, t, userData]
+  );
+
+  // Handle direct verification action links (?mode=verifyEmail&oobCode=...)
+  useEffect(() => {
+    const params = new URLSearchParams(location.search || "");
+    const mode = params.get("mode");
+    const oobCode = params.get("oobCode");
+    if (mode !== "verifyEmail" || !oobCode || handledOobRef.current === oobCode) {
+      return;
     }
-  };
+    handledOobRef.current = oobCode;
+
+    let cancelled = false;
+    (async () => {
+      setChecking(true);
+      setError(null);
+      try {
+        await applyActionCode(auth, oobCode);
+        if (!cancelled) {
+          await performVerificationCheck({ silent: false });
+        }
+      } catch (err) {
+        if (cancelled) return;
+        console.error("Errore applyActionCode:", err);
+        if (err?.code === "auth/expired-action-code") {
+          setError(
+            t(
+              "auth.verificationLinkExpired",
+              {},
+              "Il link di verifica è scaduto. Richiedi una nuova email di verifica qui sotto."
+            )
+          );
+        } else if (err?.code === "auth/invalid-action-code") {
+          setError(
+            t(
+              "auth.verificationLinkInvalid",
+              {},
+              "Il link di verifica non è valido o è già stato utilizzato. Prova a confermare o richiedi una nuova email."
+            )
+          );
+        } else {
+          setError(
+            t(
+              "auth.verifyStatusError",
+              {},
+              "Impossibile verificare lo stato dell'account. Riprova tra qualche istante."
+            )
+          );
+        }
+      } finally {
+        if (!cancelled) {
+          setChecking(false);
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [location.search, performVerificationCheck, t]);
+
+  // Auto-detect verification completed in another tab when user returns to this tab
+  useEffect(() => {
+    if (typeof window === "undefined" || typeof document === "undefined") return;
+
+    const triggerSilentCheck = () => {
+      if (document.visibilityState === "hidden") return;
+      const now = Date.now();
+      if (now - lastAutoCheckRef.current < 3000) return;
+      lastAutoCheckRef.current = now;
+      performVerificationCheck({ silent: true });
+    };
+
+    window.addEventListener("focus", triggerSilentCheck);
+    document.addEventListener("visibilitychange", triggerSilentCheck);
+    return () => {
+      window.removeEventListener("focus", triggerSilentCheck);
+      document.removeEventListener("visibilitychange", triggerSilentCheck);
+    };
+  }, [performVerificationCheck]);
+
+  const handleCheckVerification = () => performVerificationCheck({ silent: false });
 
   const handleResendEmail = async () => {
     if (cooldown > 0 || resending) return;
