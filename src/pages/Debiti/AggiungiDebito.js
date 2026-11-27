@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { useHousehold } from "../../contexts/HouseholdContext";
@@ -19,6 +19,7 @@ export default function AggiungiDebito() {
   const { t } = useLanguage();
 
   const [loading, setLoading] = useState(false);
+  const submittingRef = useRef(false);
   const [isDiviso, setIsDiviso] = useState(false);
   const [splitMode, setSplitMode] = useState("uguali"); // "uguali" | "fissi" | "percentuali" | "esclusioni"
   const [error, setError] = useState("");
@@ -103,7 +104,7 @@ export default function AggiungiDebito() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (loading) return; // Prevent double submit
+    if (submittingRef.current || loading) return; // Synchronous + state double-tap guard
     setError("");
 
     // 1. Text Sanitization (Anti-Injection & XSS)
@@ -138,6 +139,7 @@ export default function AggiungiDebito() {
       return;
     }
 
+    submittingRef.current = true;
     setLoading(true);
 
     try {
@@ -217,6 +219,7 @@ export default function AggiungiDebito() {
       console.error("Errore salvataggio debito:", err);
       setError(t("expenses.saveError", null, "Errore durante il salvataggio della spesa."));
     } finally {
+      submittingRef.current = false;
       setLoading(false);
     }
   };

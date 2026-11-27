@@ -10,7 +10,6 @@ import {
   writeBatch,
   query,
   where,
-  limit,
 } from "firebase/firestore";
 import { ref, deleteObject } from "firebase/storage";
 import { db, storage } from "../firebase";
@@ -142,7 +141,7 @@ export async function joinHousehold({ code, userUid }) {
     return null;
   }
 
-  // Primary secure lookup: exact document get on /inviti/{codice} (zero enumeration on /case).
+  // Canonical secure lookup: exact document GET on /inviti/{codice} (zero enumeration on /case).
   let targetCasaId = null;
   let targetHouseData = null;
 
@@ -158,23 +157,7 @@ export async function joinHousehold({ code, userUid }) {
       };
     }
   } catch {
-    // Ignore and fall through
-  }
-
-  // Fallback for legacy/test environments where /inviti has not been backfilled yet.
-  if (!targetCasaId) {
-    try {
-      const q = query(collection(db, "case"), where("codiceUnivoco", "==", normalizedCode), limit(1));
-      const querySnapshot = await getDocs(q);
-      if (!querySnapshot.empty) {
-        const casaDoc = querySnapshot.docs[0];
-        targetCasaId = casaDoc.id;
-        targetHouseData = { id: casaDoc.id, ...casaDoc.data() };
-      }
-    } catch {
-      // Blocked by hardened Firestore rules on /case list when invite does not exist in /inviti
-      return null;
-    }
+    return null;
   }
 
   if (!targetCasaId) {

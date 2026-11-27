@@ -77,7 +77,7 @@ export function seedHousehold({
   note = [],
   documenti = []
 } = {}) {
-  // Seed household
+  // Seed household & canonical invite pointer
   mockStore.seed('case', {
     [houseId]: {
       nome: houseName,
@@ -86,6 +86,16 @@ export function seedHousehold({
       createdAt: new Date()
     }
   });
+  if (inviteCode) {
+    mockStore.seed('inviti', {
+      [String(inviteCode).trim().toUpperCase()]: {
+        casaId: houseId,
+        nomeCasa: houseName,
+        creatoreId: creatorId,
+        createdAt: new Date()
+      }
+    });
+  }
 
   // Seed users
   const utentiMap = {};

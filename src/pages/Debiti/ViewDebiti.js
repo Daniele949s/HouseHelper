@@ -260,8 +260,10 @@ export default function ViewDebiti() {
           `Pareggio quota semplificata a favore di ${trans.toName}`
         )
       });
+      invalidateTenantFreshness(userData.casaId, "debiti");
+      invalidateTenantFreshness(userData.casaId, "dashboard");
       showToast(t("expenses.settleSimplifiedSuccess", null, "Pareggio registrato con successo!"), "success");
-      await fetchDati();
+      await fetchDati(true);
     } catch (err) {
       console.error("Errore pareggio debito:", err);
       showToast(t("expenses.settleSimplifiedError", null, "Errore durante il salvataggio del pareggio."), "error");

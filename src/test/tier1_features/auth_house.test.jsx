@@ -166,6 +166,13 @@ describe('Tier 1: Auth & House Selection Feature Coverage', () => {
         creatoreId: 'u_elena'
       }
     });
+    mockStore.seed('inviti', {
+      DANT01: {
+        casaId: 'casa_dante',
+        nomeCasa: 'Appartamento Dante',
+        creatoreId: 'u_elena'
+      }
+    });
 
     const user = { uid: 'u_marco', email: 'marco@test.com' };
     const userData = { username: 'Marco', email: 'marco@test.com', casaId: null };

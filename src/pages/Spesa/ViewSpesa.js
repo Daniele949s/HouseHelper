@@ -49,6 +49,7 @@ export default function ViewSpesa() {
   const [loading, setLoading] = useState(() => initialItems.length === 0 && !cachedSnap);
   const [savingItem, setSavingItem] = useState(false);
   const submittingRef = useRef(false);
+  const inFlightIdsRef = useRef(new Set());
 
   const syncSnapshot = (casaId, nextItems) => {
     if (!casaId) return;
@@ -194,23 +195,40 @@ export default function ViewSpesa() {
   };
 
   const toggleCheck = async (item) => {
-    if (item.casaId !== userData?.casaId || String(item.id).startsWith("temp_")) return;
-    const prevItems = items;
+    if (
+      item.casaId !== userData?.casaId ||
+      String(item.id).startsWith("temp_") ||
+      inFlightIdsRef.current.has(item.id)
+    ) {
+      return;
+    }
+    inFlightIdsRef.current.add(item.id);
     const nextComprato = !item.comprato;
-    const nextList = sortGroceries(
-      prevItems.map((it) => (it.id === item.id ? { ...it, comprato: nextComprato } : it))
-    );
-    setItems(nextList);
+    let nextSnapshotList = null;
+    setItems((prev) => {
+      nextSnapshotList = sortGroceries(
+        prev.map((it) => (it.id === item.id ? { ...it, comprato: nextComprato } : it))
+      );
+      return nextSnapshotList;
+    });
 
     try {
       await updateDoc(doc(db, "spesa", item.id), {
         comprato: nextComprato
       });
-      syncSnapshot(userData.casaId, nextList);
+      if (nextSnapshotList) {
+        syncSnapshot(userData.casaId, nextSnapshotList);
+      }
     } catch (error) {
       console.error("Errore toggle:", error);
-      setItems(prevItems);
+      setItems((prev) =>
+        sortGroceries(
+          prev.map((it) => (it.id === item.id ? { ...it, comprato: item.comprato } : it))
+        )
+      );
       showToast(t("groceries.updateError", null, "Aggiornamento non riuscito. Riprova."), "error", 3000);
+    } finally {
+      inFlightIdsRef.current.delete(item.id);
     }
   };
 

@@ -21,6 +21,7 @@ import {
   getAvailableRoommates,
   rotateChoreAssignee,
 } from "../utils/choreRotation";
+import { invalidateTenantFreshness } from "../utils/offlineStorage";
 
 const generateTimeSlots = () => {
   const slots = [];
@@ -142,14 +143,18 @@ export function validateAndBuildChorePayload({
  * Creates a new Chore document in Firestore.
  */
 export async function createChore(payload) {
-  return addDoc(collection(db, "turni"), payload);
+  const res = await addDoc(collection(db, "turni"), payload);
+  if (payload?.casaId) invalidateTenantFreshness(payload.casaId, "dashboard");
+  return res;
 }
 
 /**
  * Updates an existing Chore document in Firestore.
  */
 export async function updateChore(choreId, payload) {
-  return updateDoc(doc(db, "turni", choreId), payload);
+  const res = await updateDoc(doc(db, "turni", choreId), payload);
+  if (payload?.casaId) invalidateTenantFreshness(payload.casaId, "dashboard");
+  return res;
 }
 
 /**
@@ -162,6 +167,7 @@ export async function deleteChore(chore, casaId) {
     throw err;
   }
   await deleteDoc(doc(db, "turni", chore.id));
+  if (casaId) invalidateTenantFreshness(casaId, "dashboard");
 }
 
 /**
